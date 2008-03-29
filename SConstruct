@@ -7,10 +7,12 @@ import lsst.SConsUtils as scons
 
 env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
-                    [["boost", "boost/version.hpp", "boost_filesystem:C++"],
-                     ["boost", "boost/regex.hpp", "boost_regex:C++"],
+                    [["boost", "boost/regex.hpp", "boost_regex:C++"],
                      ["python", "Python.h"],
+		     ["utils", "lsst/utils/Demangle.h", "utils:C++"],
                     ])
+
+env.libs["daf_base"] += env.getlibs("boost utils")
 
 #
 # Is C++'s TR1 available?  If not, use e.g. #include "lsst/tr1/foo.h"
@@ -24,7 +26,7 @@ if not re.search(r"LSST_HAVE_TR1", str(env['CCFLAGS'])):
 #
 # Build/install things
 #
-for d in Split("examples lib tests python/lsst/daf/data doc"):
+for d in Split("examples lib tests python/lsst/daf/base doc"):
     SConscript(os.path.join(d, "SConscript"))
 
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"

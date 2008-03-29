@@ -5,25 +5,29 @@
 // Created on May 17, 2007, 8:31 AM
 //
 
-#include <string>
+#include <iostream>
 #include <list>
+#include <string>
+
+#include <boost/format.hpp>
+
 using namespace std;
 
-#include "lsst/mwi/data.h"
+#include "lsst/daf/base.h"
 
-#include "lsst/mwi/utils/Trace.h"
+using lsst::daf::base::DataProperty;
+using lsst::daf::base::Citizen;
 
-using lsst::mwi::utils::Trace;
-using lsst::mwi::data::DataProperty;
-using lsst::mwi::data::SupportFactory;
-using lsst::mwi::data::Citizen;
+void Trace(std::string const&, int, std::string const& text) {
+    std::cerr << text << std::endl;
+}
 
 void testFindUnique()
 {
     Trace("testFindUnique",5,"Building tree");
-    DataProperty::PtrType root = SupportFactory::createPropertyNode("root");
-    DataProperty::PtrType sub = SupportFactory::createPropertyNode("sub");
-    DataProperty::PtrType ssub = SupportFactory::createPropertyNode("ssub");
+    DataProperty::PtrType root(new DataProperty("root"));
+    DataProperty::PtrType sub(new DataProperty("sub"));
+    DataProperty::PtrType ssub(new DataProperty("ssub"));
     root->addProperty( sub );
     root->addProperty(DataProperty::PtrType(new DataProperty("a",string("root.a"))));
     sub->addProperty(DataProperty::PtrType(new DataProperty("a",string("root.sub.a"))));
@@ -73,7 +77,7 @@ void testFindUnique()
     }
     
     Trace("testFindUnique",5,"Inserting tree underneath node \"top\"");
-    DataProperty::PtrType top = SupportFactory::createPropertyNode("top");
+    DataProperty::PtrType top(new DataProperty("top"));
     top->addProperty(root);                
     Trace("testFindUnique",10, "Test top->findUnique on \"root.sub.b\" (should not find anything)" );
      found = top->findUnique("root.sub.b");
@@ -88,23 +92,7 @@ void testFindUnique()
 
 
 int main(int argc, char** argv) {
-    int verbosity = 100;
     int exitVal = 0;
-
-    if( argc > 1 )
-    {
-       try
-       {
-           int x = atoi(argv[1]);
-           verbosity = x;
-       }    
-       catch(...)
-       {
-           verbosity = 0;
-       }
-    }
-
-    Trace::setVerbosity("", verbosity);
 
     Trace("DataProperty_3",1,"Testing findUnique functionality");
     testFindUnique();

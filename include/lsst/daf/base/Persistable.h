@@ -41,7 +41,8 @@ namespace persistence {
 // Definition is in daf/persistence/FormatterImpl.h, but is not needed by
 // Persistable clients, only Formatter subclasses.
 template <class Form, class Archive>
-    void delegateSerialize(Archive& ar, unsigned int const version, Persistable* persistable);
+    void delegateSerialize(Archive& ar, unsigned int const version,
+                           lsst::daf::base::Persistable* persistable);
 
 } // namespace lsst::daf::persistence
 

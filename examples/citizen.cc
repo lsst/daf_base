@@ -1,9 +1,10 @@
 #include <iostream>
+#include <stdexcept>
+
+#include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
-#include "lsst/daf/data/Citizen.h"
-#include "lsst/daf/data/LsstBase.h"
-#include "lsst/pex/exceptions.h"
+#include "lsst/daf/base/Citizen.h"
 
 //
 // We'll fully qualify LsstBase here in the class definitions;
@@ -11,9 +12,9 @@
 
 namespace rhl {
 
-class Shoe : private lsst::daf::data::LsstBase {
+class Shoe : private lsst::daf::base::Citizen {
 public:
-    Shoe(int i = 0) : LsstBase(typeid(this)), _i(i) { }
+    Shoe(int i = 0) : Citizen(typeid(this)), _i(i) { }
     ~Shoe() { }
 private:
     int _i;
@@ -23,10 +24,10 @@ private:
 
 using namespace rhl;
 
-class MyClass : private lsst::daf::data::LsstBase {
+class MyClass : private lsst::daf::base::Citizen {
   public:
     MyClass(const char *typeName = 0) :
-        LsstBase(typeid(this)),
+        Citizen(typeid(this)),
         ptr(new int) {
         *ptr = 0;
     }
@@ -35,7 +36,7 @@ private:
     boost::scoped_ptr<int> ptr;         // no need to track this alloc
 };
 
-using namespace lsst::daf::data;
+using namespace lsst::daf::base;
 
 MyClass *foo() {
     boost::scoped_ptr<Shoe> x(new Shoe(1));
@@ -93,7 +94,7 @@ int main() {
     try {
         std::cerr << "Checking corruption\n";
         (void)Citizen::checkCorruption();
-    } catch(lsst::pex::exceptions::Memory &e) {
+    } catch(std::runtime_error& e) {
         std::cerr << "Memory check: " << e.what() <<
             "; proceeding with trepidation\n";
         ((int *)y.get())[1] = 0xdeadbeef; // uncorrupt the block

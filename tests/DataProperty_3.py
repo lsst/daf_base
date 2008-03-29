@@ -1,16 +1,16 @@
 # Test findUnique in hierarchies from Python
 
-import lsst.mwi.data as D
+import lsst.daf.base as B
 
-dp = D.SupportFactory.createPropertyNode("root")
-sub = D.SupportFactory.createPropertyNode("sub")
+dp = B.DataProperty("root")
+sub = B.DataProperty("sub")
 dp.addProperty(sub)
 
-dp.addProperty(D.SupportFactory.createLeafProperty("a", 3))
-dp.addProperty(D.SupportFactory.createLeafProperty("x", 4))
+dp.addProperty(B.DataProperty("a", 3))
+dp.addProperty(B.DataProperty("x", 4))
 
-sub.addProperty(D.SupportFactory.createLeafProperty("a", 1))
-sub.addProperty(D.SupportFactory.createLeafProperty("b", 2))
+sub.addProperty(B.DataProperty("a", 1))
+sub.addProperty(B.DataProperty("b", 2))
 
 x = dp.findUnique("sub")
 assert x.getName() == "sub"

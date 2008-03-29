@@ -3,6 +3,8 @@
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/utils/Utils.h"
 
+#include <iostream>
+
 using namespace std;
 using namespace lsst::daf::base;
 
@@ -98,7 +100,6 @@ void test2()
 }
 
 int main(int argc, char** argv) {
-    int verbosity = 100;
     int exitVal = 0;
     
     test();

@@ -1,6 +1,6 @@
 // -*- lsst-c++ -*-
-#ifndef LSST_DAF_BASE_H
-#define LSST_DAF_BASE_H
+#ifndef LSST_DAF_BASE_CITIZEN_H
+#define LSST_DAF_BASE_CITIZEN_H
 
 #include <vector>
 #include <map>
@@ -55,7 +55,7 @@ namespace base {
         enum { magicSentinel = 0xdeadbeef }; //!< a magic known bit pattern
         static int init();
     private:
-        typedef std::map<memId, const lsst::mwi::data::Citizen *> table;
+        typedef std::map<memId, const Citizen *> table;
 
         int _sentinel;                  // Initialised to _magicSentinel to detect overwritten memory
         memId _CitizenId;               // unique identifier for this pointer

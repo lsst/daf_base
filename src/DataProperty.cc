@@ -23,12 +23,14 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/format.hpp>
 
 #include "lsst/daf/base/DataProperty.h"
 
 using namespace std;
 
-static void execTrace( string s, int level = EXEC_TRACE ){
+int const EXEC_TRACE = 20;
+static void execTrace( string s, int level = EXEC_TRACE){
     // Cannot use Trace since move to daf/base.  Do nothing for now.
 }
 
@@ -791,9 +793,9 @@ void DataProperty::_cloneCollection( const DataProperty& source) {
  * depth-first traversal of the tree object DataProperties.
  */
 DataProperty::nameSetType& DataProperty::_findDescendantNames(
-                                        DataProperty::nameSetType& ret, 
-                                            const boost::regex& spec,
-                                              const string& nameRoot ) const {
+    nameSetType& ret,
+    const boost::regex& spec,
+    const string& nameRoot ) const {
     execTrace( boost::str( 
         boost::format("Enter DataProperty::_findDescendantNames() [%s]") 
             % this->toString()), EXEC_TRACE+5 );
@@ -836,9 +838,9 @@ DataProperty::nameSetType& DataProperty::_findDescendantNames(
  * of object "A" that is a descendant of this object, conforming to a name 
  * path of "A.B.C"
  */
-DataProperty::PtrType DataProperty::_recurseFindDescendant( 
-    DataProperty::stringVectorType::const_iterator nameSegs,  
-        DataProperty::stringVectorType::const_iterator end_of_nameSegs ) const {
+DataProperty::PtrType DataProperty::_recurseFindDescendant(
+    stringVectorType::const_iterator nameSegs,
+    stringVectorType::const_iterator end_of_nameSegs ) const {
     execTrace( boost::str( 
         boost::format( 
             "Enter DataProperty::findDescendant(%s) : %s") 

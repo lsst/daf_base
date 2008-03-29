@@ -3,7 +3,6 @@ Import("env")
 
 env.Program(["DataProperty_1.cc"], LIBS=env.libs["boost"] + ["daf_base"])
 env.Program(["DataProperty_2.cc"], LIBS=env.libs["boost"] + ["daf_base"])
-env.Program(["DataProperty_3.cc"], LIBS=env.libs["boost"] + ["daf_base"])
 env.Program(["DataProperty_4.cc"], LIBS=env.libs["boost"] + ["daf_base"])
 
 env.CheckSwig("python", ilang="c++")
@@ -12,12 +11,10 @@ env.Append(SWIGFLAGS=" -Ipython")
 #
 # Tests
 #
-import lsst.tests
-import os
-env['ENV']['SEAL_PLUGINS'] = os.environ['SEAL_PLUGINS']
+# import lsst.tests
 
-tests.run("DataProperty_*.cc")
+# tests.run("DataProperty_*.cc")
 
-for target in tests.run("*.py"):
-    env.Depends(target,
-        "../python/lsst/daf/base/_baseLib%s" % (mod, env['LDMODULESUFFIX']))
+# for target in tests.run("*.py"):
+#     env.Depends(target,
+#         "../python/lsst/daf/base/_baseLib%s" % (mod, env['LDMODULESUFFIX']))

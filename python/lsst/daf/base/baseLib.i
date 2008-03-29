@@ -6,7 +6,7 @@ Access to the classes from the daf_base library
 %enddef
 
 %feature("autodoc", "1");
-%module(package="lsst.daf.base", docstring=daf_base_DOCSTRING) base
+%module(package="lsst.daf.base", docstring=daf_base_DOCSTRING) baseLib
 
 %{
 #include "lsst/daf/base/Citizen.h"
@@ -23,7 +23,8 @@ using namespace lsst::daf::base;
 %init %{
 %}
 
-%include "p_lsstSwig.i"
+#define NO_SWIG_LSST_EXCEPTIONS
+%include "lsst/p_lsstSwig.i"
 %template(vectorCitizen) std::vector<Citizen *>;
 //
 // Swig 1.3.33 has problems with std::vector<Citizen const *>, so

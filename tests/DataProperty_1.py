@@ -1,15 +1,13 @@
 import pdb                              # we may want to say pdb.set_trace()
 import unittest
-import lsst.mwi.tests as tests
-import lsst.mwi.utils as mwiu
-from lsst.mwi.data import DataProperty
-from lsst.mwi.data import SupportFactory
+import lsst.tests as tests
+from lsst.daf.base import DataProperty
+from lsst.daf.base import SupportFactory
 
 try:
     type(verbose)
 except NameError:
     verbose = 0
-    mwiu.Trace_setVerbosity("mwi.DataProperty", verbose)
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

@@ -5,18 +5,21 @@
 // Created on May 17, 2007, 8:31 AM
 //
 
-#include <string>
+#include <iostream>
 #include <list>
+#include <string>
+#include <boost/format.hpp>
+
 using namespace std;
 
-#include "lsst/mwi/data.h"
+#include "lsst/daf/base.h"
 
-#include "lsst/mwi/utils/Trace.h"
+using lsst::daf::base::DataProperty;
+using lsst::daf::base::Citizen;
 
-using lsst::mwi::utils::Trace;
-using lsst::mwi::data::DataProperty;
-using lsst::mwi::data::SupportFactory;
-using lsst::mwi::data::Citizen;
+void Trace(std::string const&, int, std::string const& text) {
+    std::cerr << text << std::endl;
+}
 
 //
 // 
@@ -53,8 +56,7 @@ void testCopyAndAssignment()
 void testAddAndFind()
 {
     Trace("testAddAndFind",1,"Creating node DataProperty dp1");
-    DataProperty::PtrType dp1 = 
-        SupportFactory::createPropertyNode( "dp1" );
+    DataProperty::PtrType dp1( new DataProperty("dp1"));
 
     Trace("testAddAndFind",1,"Creating DataProperty dp2");
     DataProperty::PtrType dp2( new DataProperty("dp2", string("prop2_value")));
@@ -199,22 +201,22 @@ void testAddFindDelete()
     Trace("testAddFindDelete",5,"Building tree");
     //    DataProperty::nameSetType names = dp1->findNames( ".*" );
 
-    DataProperty::PtrType A = SupportFactory::createPropertyNode("A");
+    DataProperty::PtrType A(new DataProperty("A"));
     {
-        DataProperty::PtrType B = SupportFactory::createPropertyNode("B");
-        DataProperty::PtrType C = SupportFactory::createPropertyNode("C");
-        DataProperty::PtrType D = SupportFactory::createPropertyNode("D");
-        DataProperty::PtrType E1 = SupportFactory::createPropertyNode("E");
-        DataProperty::PtrType F1 = SupportFactory::createPropertyNode("F");
-        DataProperty::PtrType G1 = SupportFactory::createPropertyNode("G");
-        DataProperty::PtrType E2 = SupportFactory::createPropertyNode("E");
-        DataProperty::PtrType F2 = SupportFactory::createPropertyNode("F");
-        DataProperty::PtrType G2 = SupportFactory::createPropertyNode("G");
-        DataProperty::PtrType H = SupportFactory::createPropertyNode("H");
-        DataProperty::PtrType I = SupportFactory::createPropertyNode("I");
-        DataProperty::PtrType W = SupportFactory::createLeafProperty("W");
-        DataProperty::PtrType X = SupportFactory::createLeafProperty("X");
-        DataProperty::PtrType Y = SupportFactory::createLeafProperty("Y");
+        DataProperty::PtrType B(new DataProperty("B"));
+        DataProperty::PtrType C(new DataProperty("C"));
+        DataProperty::PtrType D(new DataProperty("D"));
+        DataProperty::PtrType E1(new DataProperty("E"));
+        DataProperty::PtrType F1(new DataProperty("F"));
+        DataProperty::PtrType G1(new DataProperty("G"));
+        DataProperty::PtrType E2(new DataProperty("E"));
+        DataProperty::PtrType F2(new DataProperty("F"));
+        DataProperty::PtrType G2(new DataProperty("G"));
+        DataProperty::PtrType H(new DataProperty("H"));
+        DataProperty::PtrType I(new DataProperty("I"));
+        DataProperty::PtrType W(new DataProperty("W"));
+        DataProperty::PtrType X(new DataProperty("X"));
+        DataProperty::PtrType Y(new DataProperty("Y"));
 
         A->addProperty(B); 
         B->addProperty(E1); B->addProperty(F1); B->addProperty(G1);
@@ -334,7 +336,7 @@ void testAddFindDelete()
 void testRegexFind()
 {
     Trace("testRegexFind",5,"Building tree");
-    DataProperty::PtrType root = SupportFactory::createPropertyNode("root");
+    DataProperty::PtrType root(new DataProperty("root"));
     root->addProperty(DataProperty::PtrType(new DataProperty("name1",string("value1"))));
     root->addProperty(DataProperty::PtrType(new DataProperty("name2",2)));
     root->addProperty(DataProperty::PtrType(new DataProperty("name2",4)));
@@ -365,23 +367,7 @@ void testRegexFind()
 
 
 int main(int argc, char** argv) {
-    int verbosity = 100;
     int exitVal = 0;
-
-    if( argc > 1 )
-    {
-       try
-       {
-           int x = atoi(argv[1]);
-           verbosity = x;
-       }    
-       catch(...)
-       {
-           verbosity = 0;
-       }
-    }
-
-    Trace::setVerbosity("", verbosity);
 
     Trace("DataProperty_2",1,"Testing copy and assignment functionality");
     testCopyAndAssignment();

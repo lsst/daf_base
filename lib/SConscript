@@ -6,6 +6,7 @@ env.SharedLibrary('daf_base',
                          map(lambda str: "../src/" + str,
                             ["Citizen.cc",
                              "DataProperty.cc",
+                             "DateTime.cc",
                              "Persistable.cc"
-                            ]), LIBS=env.getlibs("boost"))
+                            ]), LIBS=env.getlibs("boost utils"))
 

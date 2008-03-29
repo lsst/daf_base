@@ -1,7 +1,7 @@
 # -*- python -*-
 Import('env')
 
-env.Program("citizen", ["citizen.cc"], LIBS=env.libs["boost"] + ["daf_base"])
+env.Program("citizen", ["citizen.cc"], LIBS=env.libs["boost"] + ["daf_base"] + ["utils"])
 
 #
 # Tests
