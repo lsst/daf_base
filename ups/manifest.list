@@ -1,0 +1,7 @@
+>merge: build
+>merge: core
+>merge: boost
+>merge: utils
+>merge: swig
+>merge: doxygen
+>self

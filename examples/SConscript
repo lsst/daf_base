@@ -1,0 +1,14 @@
+# -*- python -*-
+Import('env')
+
+env.Program("citizen", ["citizen.cc"], LIBS=env.libs["boost"] + ["daf_base"])
+
+#
+# Tests
+#
+import lsst.tests
+tests = lsst.tests.Control(env, verbose=True)
+
+if tests.runExamples:
+    tests.run("*.cc")
+    tests.run("*.py")

@@ -1,0 +1,5 @@
+# -*- python -*-
+Import("env")
+
+env.CheckSwig("python", ilang="c++")
+env.LoadableModuleIncomplete("_data", Split("data.i"), LIBS=env.libs["boost"] + ["daf_base"])

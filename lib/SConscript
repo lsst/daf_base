@@ -1,0 +1,11 @@
+# -*- python -*-
+Import('env')
+import os
+
+env.SharedLibrary('daf_base',
+                         map(lambda str: "../src/" + str,
+                            ["Citizen.cc",
+                             "DataProperty.cc",
+                             "Persistable.cc"
+                            ]), LIBS=env.getlibs("boost"))
+
