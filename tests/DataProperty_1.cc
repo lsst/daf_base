@@ -14,8 +14,18 @@ class Foo {
      double durp;
 };
 
+/**
+  * \brief Construct a DataProperty object that can have descendants
+  * \return A reference-counted pointer to the instance
+  */
+DataProperty::PtrType createPropertyNode( std::string name ){
+    DataProperty::ContainerType coll;
+    DataProperty::PtrType ret( new DataProperty(name, coll) );
+    return ret;
+}
+
 void test() {
-     DataProperty::PtrType root(new DataProperty("root"));
+     DataProperty::PtrType root = createPropertyNode("root");
 
      DataProperty::PtrType prop1(new DataProperty("name1", std::string("value1")));
      DataProperty::PtrType prop2(new DataProperty("name2", 2));
@@ -56,7 +66,7 @@ void test() {
 
      // Try nested property list
      
-     DataProperty::PtrType nested(new DataProperty("nested"));
+     DataProperty::PtrType nested = createPropertyNode("nested");
 
      DataProperty::PtrType nprop1(new DataProperty("name1n", std::string("value1")));
      DataProperty::PtrType nprop2(new DataProperty("name2n", 2));
