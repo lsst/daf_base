@@ -121,6 +121,8 @@ public:
     const std::string toString(
         const std::string& prefix = "", bool deep = false ) const;
 
+    static PtrType createPropertyNode( std::string name );
+
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::data::DataPropertyFormatter);
 

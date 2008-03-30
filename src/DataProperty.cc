@@ -1,10 +1,10 @@
 // -*- lsst-c++ -*-
 /**
-  * \file DataProperty.cc
+  * @file DataProperty.cc
   *
-  * \ingroup daf_base
+  * @ingroup daf_base
   *
-  * \author Jeff Bartels
+  * @author Jeff Bartels
   *
   * Contact: jeffbartels@usa.net
   *
@@ -59,9 +59,9 @@ DataProperty::DataProperty() : Citizen(typeid(this)), _isANode(false) {
     
 /** Construct a new DataProperty object.
   *
-  * \param name The name of the object. Note that any '.' characters in the
+  * @param name The name of the object. Note that any '.' characters in the
   *               name are disallowed and will be replaced with '@' characters
-  * \param value The value of the DataProperty (defaults to an empty boost::any
+  * @param value The value of the DataProperty (defaults to an empty boost::any
   */
 DataProperty::DataProperty( std::string name, boost::any value )
     : Citizen(typeid(this)), _isANode(false) 
@@ -79,9 +79,9 @@ DataProperty::DataProperty( std::string name, boost::any value )
 
 /** Construct a new DataProperty object as a node.
   * 
-  * \param name The name of the object. Note that any '.' characters in the
+  * @param name The name of the object. Note that any '.' characters in the
   *               name are disallowed and will be replaced with '@' characters
-  * \param value A collection of DataProperty::PtrType
+  * @param value A collection of DataProperty::PtrType
   */
 DataProperty::DataProperty(
     std::string name, DataProperty::ContainerType& value )
@@ -104,7 +104,7 @@ DataProperty::DataProperty(
   * independent of the source object, including all descendants, if there are
   * any.
   *
-  * \param orig A reference to the DataProperty to clone.
+  * @param orig A reference to the DataProperty to clone.
   */
 DataProperty::DataProperty(const DataProperty& orig) 
         : Citizen(typeid(this)), _name(orig._name), _isANode(false) {
@@ -125,12 +125,12 @@ DataProperty::DataProperty(const DataProperty& orig)
   * Overwrites the content of the lhs and then clones the content of the rhs
   * object into the lhs. 
   *
-  * \note If the lhs' value is a collection of DataProperty (i.e. is a node),
+  * @note If the lhs' value is a collection of DataProperty (i.e. is a node),
   * the contents of that collection will be erased (per the semantics of 
   * std::list::erase prior to cloning. This may cause the collected 
   * instances to be destroyed per boost::shared_ptr semantics)
   *
-  * \note The original base Citizen of the lhs operand is left intact
+  * @note The original base Citizen of the lhs operand is left intact
   */
 DataProperty& DataProperty::operator= (const DataProperty& rhs ) 
 {
@@ -153,7 +153,7 @@ DataProperty& DataProperty::operator= (const DataProperty& rhs )
 
 /** DataProperty destructor
   * 
-  * \note If the lhs' value is a collection of DataProperty (i.e. is a node),
+  * @note If the lhs' value is a collection of DataProperty (i.e. is a node),
   * the contents of that collection will be erased (per the semantics of 
   * std::list::erase. This may cause the collected instances to be destroyed 
   * per boost::shared_ptr semantics)
@@ -179,11 +179,11 @@ const std::string& DataProperty::getName() const {
 
 /** Return the boost::any value attribute of this object. 
   *
-  * \note The value may be tested for specific type by performing a 
+  * @note The value may be tested for specific type by performing a 
   * boost::any_cast<>() on the returned reference value within a 
   * try-catch block.
   * 
-  * \note If the object is a node, then the boost::any value returned will be empty
+  * @note If the object is a node, then the boost::any value returned will be empty
   */
 const boost::any& DataProperty::getValue() const { 
     return _value;
@@ -192,7 +192,7 @@ const boost::any& DataProperty::getValue() const {
 
 /** Set the name attribute of the DataProperty object
   *
-  * \param name The name of the object. Note that any '.' characters in the
+  * @param name The name of the object. Note that any '.' characters in the
   *               name are disallowed and will be replaced with '@' characters
   */
 void DataProperty::setName(const std::string name) {
@@ -205,11 +205,11 @@ void DataProperty::setName(const std::string name) {
 
 /** Set the value of the DataProperty object. 
   *
-  * \param value A boost::any object containing the value
+  * @param value A boost::any object containing the value
   *
-  * \note Will mutate a node DataProperty object into a leaf
+  * @note Will mutate a node DataProperty object into a leaf
   *
-  * \note If the value of the object is currently a collection of DataProperty, then 
+  * @note If the value of the object is currently a collection of DataProperty, then 
   * the contents of the collection will be erased.  
   */
 void DataProperty::setValue(const boost::any& value) {
@@ -237,11 +237,11 @@ void DataProperty::setValue(const boost::any& value) {
   * collection and its contents.  If the object is currently
   * a node, then the contents of the aggregated collection will first be erased.  
   *
-  * \param value A boost::any object containing the value
+  * @param value A boost::any object containing the value
   *
-  * \note Will mutate a leaf DataProperty object into a node 
+  * @note Will mutate a leaf DataProperty object into a node 
   *
-  * \note If the value of the object is currently a collection of DataProperty, then 
+  * @note If the value of the object is currently a collection of DataProperty, then 
   * the contents of the collection will be erased.  
   */
 void DataProperty::setValue(const DataProperty::ContainerType& value) {
@@ -265,13 +265,13 @@ void DataProperty::setValue(const DataProperty::ContainerType& value) {
 
 /** Return an iterator to the collection of children properties owned by this object. 
  * 
- * \return an iteratorRangeType containing a begin/end const_iterator pair
+ * @return an iteratorRangeType containing a begin/end const_iterator pair
  *         to allow iteration over the child proerties of this object.
  *
- * \note The number of items in the range of iteration can be tested by calling the 
+ * @note The number of items in the range of iteration can be tested by calling the 
          std::distance(range.first, range.second) using the .first and .second members of
          the pair.
- * \throw Throws std::runtime_error if this object is not a node
+ * @throw Throws std::runtime_error if this object is not a node
  *
  */
 DataProperty::iteratorRangeType DataProperty::getChildren() const { 
@@ -283,14 +283,14 @@ DataProperty::iteratorRangeType DataProperty::getChildren() const {
 
 /** Add a copy of the given object to this object as a child property.
   *
-  * \param dp A reference to a DataProperty object
+  * @param dp A reference to a DataProperty object
   *
-  * \note To insure that the new child object will not be inadvertantly destroyed,
+  * @note To insure that the new child object will not be inadvertantly destroyed,
   *       a copy of the object is created and the copy stored as the child.
   *
-  * \return Returns false if this object is not a node (i.e. its value is not a 
+  * @return Returns false if this object is not a node (i.e. its value is not a 
   *         DataProperty::propertyCollectionType)
-  * \throw Throws std::runtime_error if this object is not a node
+  * @throw Throws std::runtime_error if this object is not a node
   *
   */
 void DataProperty::addProperty(const DataProperty& dp) {
@@ -305,11 +305,11 @@ void DataProperty::addProperty(const DataProperty& dp) {
 
 /** Adds the given object to this object as a child property.
   *
-  * \param prop A reference to a boost::shared_ptr containing a DataProperty object
+  * @param prop A reference to a boost::shared_ptr containing a DataProperty object
   *
-  * \return Returns false if this object is not a node (i.e. its value is not a 
+  * @return Returns false if this object is not a node (i.e. its value is not a 
   *         DataProperty::propertyCollectionType)
-  * \throw Throws std::runtime_error if this object is not a node
+  * @throw Throws std::runtime_error if this object is not a node
   *
   */
 void DataProperty::addProperty(DataProperty::PtrType const& prop) {
@@ -322,8 +322,8 @@ void DataProperty::addProperty(DataProperty::PtrType const& prop) {
 
 /** Adds the children of the given DataProperty to this DataProperty,
  * replacing the values of any that already exist.
- * \param prop A reference to a boost::shared_ptr containing a DataProperty object
-  * \throw Throws std::runtime_error if this object is not a node
+ * @param prop A reference to a boost::shared_ptr containing a DataProperty object
+  * @throw Throws std::runtime_error if this object is not a node
  */
 void DataProperty::addChildren(DataProperty::PtrType const& prop) {
     if (_isANode == false) {
@@ -350,26 +350,26 @@ void DataProperty::addChildren(DataProperty::PtrType const& prop) {
 /** Returns a DataProperty object that exists beneath the current object at a
  * location given by the search criteria string.
  * 
- * \param criteria A string containing one or more names, separated by dot '.'
+ * @param criteria A string containing one or more names, separated by dot '.'
  *                 characters (i.e. "Parent.Child.Grandchild" ). See notes.
 *
- * \param deep A boolean flag that controls whether or not the operation will
+ * @param deep A boolean flag that controls whether or not the operation will
  *             recurse beneath the level of this object to children nodes. Defaults
  *             to true. If true, recursion will proceed as a depth-first 
  *             traversal tree of nodes descending from this object, if false,
  *             will only iterate over the children of this object.
  *
   *
- * \return A PtrType containing a reference to the object found. If none
+ * @return A PtrType containing a reference to the object found. If none
  *         is found matching the given search criteria, then an empty PtrType
  *         is returned.
  * 
- * \throw Throws std::runtime_error if this object is not a node
+ * @throw Throws std::runtime_error if this object is not a node
  *
- * \throw Throws std::runtime_error if the given name occurs more than once 
+ * @throw Throws std::runtime_error if the given name occurs more than once 
  *        (i.e. multiple children of one node having the same name)
  *
- * \note The string is parsed by splitting it on '.' characters into a list of names. 
+ * @note The string is parsed by splitting it on '.' characters into a list of names. 
  * The list of names is processed in sequence from beginning to end by recursively
  * examining the descendants of this object. 
  * If the deep parameter is set to false, an object having name(1) must exist
@@ -409,10 +409,10 @@ DataProperty::PtrType DataProperty::findUnique(
 
 /** Returns a set of descendant DataProperty given by the search criteria string.
  * 
- * \param criteria A string containing one or more names, separated by dot '.'
+ * @param criteria A string containing one or more names, separated by dot '.'
  *                 characters (i.e. "Parent.Child.Grandchild..." ). See notes.
  *
- * \param deep A boolean flag that controls whether or not the operation will
+ * @param deep A boolean flag that controls whether or not the operation will
  *             recurse beneath the level of this object to children nodes. Defaults
  *             to true. If true, recursion will proceed as a depth-first 
  *             traversal tree of nodes descending from this object, if false,
@@ -420,21 +420,21 @@ DataProperty::PtrType DataProperty::findUnique(
  *             the method will find indirect descendants (i.e. GrandChild.GreatGrandchild),
  *             in the latter only a direct descendant will be found.
  *
- * \return A iteratorRangeType containing a pair of iterators to access the list 
+ * @return A iteratorRangeType containing a pair of iterators to access the list 
  *         of found objects. If none
  *         is found matching the given search criteria, then the first member
  *         of the pair is equal to the second.
  * 
- * \throw Throws std::runtime_error if this object is not a node
+ * @throw Throws std::runtime_error if this object is not a node
  *
- * \note See findUnique() for information regarding the criteria string.
- * \note The number of objects found by this method can be determined by testing
+ * @note See findUnique() for information regarding the criteria string.
+ * @note The number of objects found by this method can be determined by testing
  *       the iterator range with std::distance, i.e. std::distance(range.first,range.second).
- * \note If a DataProperty object only aggregates unique names, a call to this
+ * @note If a DataProperty object only aggregates unique names, a call to this
  *       method with a given criteria is functionally equivalent to a call to 
  *       findUnique, except that the result must be accessed through the
  *       iterator pair in the returned value.
- * \note Non-sensical calling arguments are possible: i.e. criteria specifies
+ * @note Non-sensical calling arguments are possible: i.e. criteria specifies
  *       grandchildren of this object, and deep is set to false.
  *       
  */
@@ -469,27 +469,27 @@ DataProperty::iteratorRangeType DataProperty::findAll(
  *  object or descendants of the children, whose names match the pattern given
  *  by the regular expression.
  * 
- * \param regexSpec A string containing a boost::regex-compliant regular
+ * @param regexSpec A string containing a boost::regex-compliant regular
  *                  expression.
  *
- * \param deep A boolean flag that controls whether or not the operation will
+ * @param deep A boolean flag that controls whether or not the operation will
  *             recurse beneath the level of this object to children nodes. Defaults
  *             to true. If true, recursion will proceed as a depth-first 
  *             traversal tree of nodes descending from this object, if false,
  *             will only iterate over the children of this object.
  *
- * \return A iteratorRangeType containing a pair of iterators to access the list 
+ * @return A iteratorRangeType containing a pair of iterators to access the list 
  *         of found objects. If none
  *         is found matching the given search criteria, then the first member
  *         of the pair is equal to the second.
  * 
- * \throw Throws std::runtime_error if this object is not a node
+ * @throw Throws std::runtime_error if this object is not a node
  *
- * \note The number of objects found by this method can be determined by testing
+ * @note The number of objects found by this method can be determined by testing
  *       the iterator range with std::distance, 
  *       i.e. std::distance(range.first,range.second).
  *
- * \note This implementation uses boost::regex_search. Accordingly, if it is 
+ * @note This implementation uses boost::regex_search. Accordingly, if it is 
  *       desired to perform anchored searches, regexSpec must include explicit 
  *       "^" and "$" characters.
  */
@@ -533,22 +533,22 @@ DataProperty::iteratorRangeType DataProperty::searchAll(
   * Attempts to remove the named descendant data property from this DataProperty object,
   * as given by the name criteria. 
   *
-  * \param regexSpec A string containing a boost::regex-compliant regular
+  * @param regexSpec A string containing a boost::regex-compliant regular
   *                  expression giving the name(s) of children (or descendant)
   *                  properties to remove
   *
-  * \param deep A boolean flag that controls whether or not the operation will
+  * @param deep A boolean flag that controls whether or not the operation will
   *             recurse beneath the level of this object to children nodes. Defaults
   *             to true. If true, recursion will proceed as a depth-first 
   *             traversal tree of nodes descending from this object, if false,
   *             will only iterate over the children of this object.
   *
   *
-  * \throw Throws an exception as per boost::regex::assign if the given regular expression
+  * @throw Throws an exception as per boost::regex::assign if the given regular expression
   *        string is invalid.
-  * \throw Throws std::runtime_error if this object is not a node
+  * @throw Throws std::runtime_error if this object is not a node
   *
-  * \note This implementation uses boost::regex_search. Accordingly, if it is 
+  * @note This implementation uses boost::regex_search. Accordingly, if it is 
   *       desired to perform anchored searches, regexSpec must include explicit 
   *       "^" and "$" characters.
   */
@@ -594,20 +594,20 @@ void DataProperty::deleteAll( const std::string& regexSpec, const bool deep ) {
  * this one. Each of the items in this list can be used in subsequent calls to the
  * find() operation.
  *
- * \param regexSpec A string containing a boost::regex-compliant regular
+ * @param regexSpec A string containing a boost::regex-compliant regular
  *                  expression.
  *
- * \return A nameSetType containing unique (possibly compound) names of 
+ * @return A nameSetType containing unique (possibly compound) names of 
  *         object(s) found. 
  *         If none is found matching the given search criteria, then an empty 
  *         nameSetType is returned.
  *
- * \throw Throws std::runtime_error if the given regular expression is bad
+ * @throw Throws std::runtime_error if the given regular expression is bad
  *
- * \note This implementation uses boost::regex_search. Accordingly, if it is 
+ * @note This implementation uses boost::regex_search. Accordingly, if it is 
  *       desired to perform anchored searches, regexSpec must include explicit 
  *       "^" and "$" characters.
- * \note Since DataProperties may aggregate multiple children with the same
+ * @note Since DataProperties may aggregate multiple children with the same
  *       names, when using the members of the returned set to perform
  *       findUnique calls, exceptions may be raised (see findUnique()). The
  *       safest technique is to call findAll with values returned from the set.
@@ -650,8 +650,8 @@ const bool DataProperty::isNode() const {
 
 /** Return a string representation of this object
   * 
-  * \param prefix A string to prepend to the returned string (defaults to "").
-  * \param deep A boolean. If true, then the representation will include
+  * @param prefix A string to prepend to the returned string (defaults to "").
+  * @param deep A boolean. If true, then the representation will include
   *             this object and ALL of its descendants. If false, will 
   *             not include any descendants in the returned string. Defaults to
   *             false.
@@ -707,6 +707,19 @@ const std::string DataProperty::toString(
     }
 
     return sout.str();
+}
+
+
+/** Construct a new DataProperty object that can contain others.
+  *
+  * @param name The name of the object. Note that any '.' characters in the
+  *               name are disallowed and will be replaced with '@' characters
+  * @return shared pointer to the new DataProperty object.
+  */
+DataProperty::PtrType DataProperty::createPropertyNode( std::string name ) {
+    ContainerType coll;
+    PtrType ret( new DataProperty(name, coll) );
+    return ret;
 }
 
 
