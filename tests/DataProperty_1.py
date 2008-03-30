@@ -2,7 +2,6 @@ import pdb                              # we may want to say pdb.set_trace()
 import unittest
 import lsst.tests as tests
 from lsst.daf.base import DataProperty
-from lsst.daf.base import SupportFactory
 
 try:
     type(verbose)
@@ -14,7 +13,7 @@ except NameError:
 class DataPropertyTestCase(unittest.TestCase):
     """A test case for DataProperty"""
     def setUp(self):
-        self.root = SupportFactory.createPropertyNode("root")
+        self.root = DataProperty.createPropertyNode("root")
 
         self.values = {}; props = []
         
@@ -90,9 +89,9 @@ class DataPropertyTestCase(unittest.TestCase):
 class NestedDataPropertyTestCase(unittest.TestCase):
     """A test case for nested DataProperty"""
     def setUp(self):
-        self.root = SupportFactory.createPropertyNode("root")
+        self.root = DataProperty.createPropertyNode("root")
 
-        nested = SupportFactory.createPropertyNode("nested")
+        nested = DataProperty.createPropertyNode("nested")
 
         self.values = {}; props = []
            

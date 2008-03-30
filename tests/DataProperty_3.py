@@ -2,8 +2,8 @@
 
 import lsst.daf.base as B
 
-dp = B.DataProperty("root")
-sub = B.DataProperty("sub")
+dp = B.DataProperty.createPropertyNode("root")
+sub = B.DataProperty.createPropertyNode("sub")
 dp.addProperty(sub)
 
 dp.addProperty(B.DataProperty("a", 3))

@@ -25,9 +25,9 @@ void Trace(std::string const&, int, std::string const& text) {
 void testFindUnique()
 {
     Trace("testFindUnique",5,"Building tree");
-    DataProperty::PtrType root(new DataProperty("root"));
-    DataProperty::PtrType sub(new DataProperty("sub"));
-    DataProperty::PtrType ssub(new DataProperty("ssub"));
+    DataProperty::PtrType root = DataProperty::createPropertyNode("root");
+    DataProperty::PtrType sub = DataProperty::createPropertyNode("sub");
+    DataProperty::PtrType ssub = DataProperty::createPropertyNode("ssub");
     root->addProperty( sub );
     root->addProperty(DataProperty::PtrType(new DataProperty("a",string("root.a"))));
     sub->addProperty(DataProperty::PtrType(new DataProperty("a",string("root.sub.a"))));
@@ -77,7 +77,7 @@ void testFindUnique()
     }
     
     Trace("testFindUnique",5,"Inserting tree underneath node \"top\"");
-    DataProperty::PtrType top(new DataProperty("top"));
+    DataProperty::PtrType top = DataProperty::createPropertyNode("top");
     top->addProperty(root);                
     Trace("testFindUnique",10, "Test top->findUnique on \"root.sub.b\" (should not find anything)" );
      found = top->findUnique("root.sub.b");

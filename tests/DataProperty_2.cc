@@ -56,7 +56,7 @@ void testCopyAndAssignment()
 void testAddAndFind()
 {
     Trace("testAddAndFind",1,"Creating node DataProperty dp1");
-    DataProperty::PtrType dp1( new DataProperty("dp1"));
+    DataProperty::PtrType dp1 = DataProperty::createPropertyNode("dp1");
 
     Trace("testAddAndFind",1,"Creating DataProperty dp2");
     DataProperty::PtrType dp2( new DataProperty("dp2", string("prop2_value")));
@@ -201,16 +201,16 @@ void testAddFindDelete()
     Trace("testAddFindDelete",5,"Building tree");
     //    DataProperty::nameSetType names = dp1->findNames( ".*" );
 
-    DataProperty::PtrType A(new DataProperty("A"));
+    DataProperty::PtrType A = DataProperty::createPropertyNode("A");
     {
-        DataProperty::PtrType B(new DataProperty("B"));
-        DataProperty::PtrType C(new DataProperty("C"));
-        DataProperty::PtrType D(new DataProperty("D"));
+        DataProperty::PtrType B = DataProperty::createPropertyNode("B");
+        DataProperty::PtrType C = DataProperty::createPropertyNode("C");
+        DataProperty::PtrType D = DataProperty::createPropertyNode("D");
         DataProperty::PtrType E1(new DataProperty("E"));
-        DataProperty::PtrType F1(new DataProperty("F"));
+        DataProperty::PtrType F1 = DataProperty::createPropertyNode("F");
         DataProperty::PtrType G1(new DataProperty("G"));
         DataProperty::PtrType E2(new DataProperty("E"));
-        DataProperty::PtrType F2(new DataProperty("F"));
+        DataProperty::PtrType F2 = DataProperty::createPropertyNode("F");
         DataProperty::PtrType G2(new DataProperty("G"));
         DataProperty::PtrType H(new DataProperty("H"));
         DataProperty::PtrType I(new DataProperty("I"));
@@ -336,7 +336,7 @@ void testAddFindDelete()
 void testRegexFind()
 {
     Trace("testRegexFind",5,"Building tree");
-    DataProperty::PtrType root(new DataProperty("root"));
+    DataProperty::PtrType root = DataProperty::createPropertyNode("root");
     root->addProperty(DataProperty::PtrType(new DataProperty("name1",string("value1"))));
     root->addProperty(DataProperty::PtrType(new DataProperty("name2",2)));
     root->addProperty(DataProperty::PtrType(new DataProperty("name2",4)));

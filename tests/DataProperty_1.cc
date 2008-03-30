@@ -25,7 +25,7 @@ DataProperty::PtrType createPropertyNode( std::string name ){
 }
 
 void test() {
-     DataProperty::PtrType root = createPropertyNode("root");
+     DataProperty::PtrType root = DataProperty::createPropertyNode("root");
 
      DataProperty::PtrType prop1(new DataProperty("name1", std::string("value1")));
      DataProperty::PtrType prop2(new DataProperty("name2", 2));
@@ -66,7 +66,7 @@ void test() {
 
      // Try nested property list
      
-     DataProperty::PtrType nested = createPropertyNode("nested");
+     DataProperty::PtrType nested = DataProperty::createPropertyNode("nested");
 
      DataProperty::PtrType nprop1(new DataProperty("name1n", std::string("value1")));
      DataProperty::PtrType nprop2(new DataProperty("name2n", 2));

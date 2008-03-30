@@ -11,10 +11,11 @@ env.Append(SWIGFLAGS=" -Ipython")
 #
 # Tests
 #
-# import lsst.tests
+import lsst.tests
 
-# tests.run("DataProperty_*.cc")
+tests = lsst.tests.Control(env, verbose = True)
+tests.run("DataProperty_*.cc")
 
-# for target in tests.run("*.py"):
-#     env.Depends(target,
-#         "../python/lsst/daf/base/_baseLib%s" % (mod, env['LDMODULESUFFIX']))
+for target in tests.run("*.py"):
+     env.Depends(target,
+        "../python/lsst/daf/base/_baseLib%s" % (env['LDMODULESUFFIX']))

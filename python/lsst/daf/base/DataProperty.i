@@ -50,8 +50,11 @@ class lsst::daf::base::DataProperty;           // needed forward definition
 #include "lsst/daf/base/DataProperty.h"
 %}
 
+%newobject DataProperty::createPropertyNode;
+
 %include "lsst/daf/base/DataProperty.h"
 
+%boost_shared_ptr(DataPropertyPtrType, lsst::daf::base::DataProperty)
 // %lsst_persistable_shared_ptr(DataPropertyPtrType, lsst::daf::base::DataProperty)
 
 
