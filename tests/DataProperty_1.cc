@@ -63,6 +63,13 @@ void test() {
      std::cout << dpPtr->toString("\t", true) << std::endl;
      dpPtr = root->findUnique("name3");
      std::cout << dpPtr->toString("\t", true) << std::endl;
+     dpPtr = root->findUnique("name4");
+     if (dpPtr) {
+         std::cout << "Error: findUnique(name4) got result: " << dpPtr->toString("\t", true) << std::endl;
+     }
+     else {
+         std::cout << "Suceess: findUnique(name4) got nothing" << std::endl;
+     }
 
      // Try nested property list
      
