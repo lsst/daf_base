@@ -808,7 +808,7 @@ void DataProperty::_cloneCollection( const DataProperty& source) {
 DataProperty::nameSetType& DataProperty::_findDescendantNames(
     nameSetType& ret,
     const boost::regex& spec,
-    const string& nameRoot ) const {
+    const std::string& nameRoot ) const {
     execTrace( boost::str( 
         boost::format("Enter DataProperty::_findDescendantNames() [%s]") 
             % this->toString()), EXEC_TRACE+5 );
