@@ -82,7 +82,7 @@ class DataPropertyTestCase(unittest.TestCase):
     def testUndefined(self):
         """Check that we can't find a data property that isn't defined"""
         dpPtr = self.root.findUnique("undefined")
-        assert dpPtr == None, "Found non-existent DataProperty"
+        assert dpPtr.get() == None, "Found non-existent DataProperty"
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

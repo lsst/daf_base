@@ -54,8 +54,9 @@ class lsst::daf::base::DataProperty;           // needed forward definition
 
 %include "lsst/daf/base/DataProperty.h"
 
-%boost_shared_ptr(DataPropertyPtrType, lsst::daf::base::DataProperty)
-// %lsst_persistable_shared_ptr(DataPropertyPtrType, lsst::daf::base::DataProperty)
+%include "persistenceMacros.i"
+
+%lsst_persistable_shared_ptr(DataPropertyPtrType, lsst::daf::base::DataProperty)
 
 
 #if 0                                   // doesn't work (yet)
