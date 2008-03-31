@@ -44,8 +44,10 @@ void test() {
      std::cout << "findAll(\"name2\"): " << std::endl;
      DataProperty::iteratorRangeType result = root->findAll("name2");
      DataProperty::ContainerType::const_iterator iter = result.first;
-     if( std::distance(result.first,result.second) != 2 )
+     if( std::distance(result.first,result.second) != 2 ) {
         std::cout << "    Error: findAll found " <<  std::distance(result.first,result.second) << " items" << std::endl; 
+        exit(1);
+     }
      else {
         for( ; iter != result.second; iter++ )
            std::cout << "    Found item: " << (*iter)->toString() << std::endl;
@@ -55,6 +57,7 @@ void test() {
      try {
         dpPtr = root->findUnique( "name2" );
         std::cout << "Error: findUnique did not throw exception with \"name2\"" << std::endl; 
+        exit(1);
      } catch( ... ) {
         std::cout << "Success: findUnique threw exception with \"name2\"" << std::endl; 
      }
@@ -66,9 +69,10 @@ void test() {
      dpPtr = root->findUnique("name4");
      if (dpPtr) {
          std::cout << "Error: findUnique(name4) got result: " << dpPtr->toString("\t", true) << std::endl;
+         exit(1);
      }
      else {
-         std::cout << "Suceess: findUnique(name4) got nothing" << std::endl;
+         std::cout << "Success: findUnique(name4) got nothing" << std::endl;
      }
 
      // Try nested property list
