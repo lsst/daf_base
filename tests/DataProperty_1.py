@@ -1,6 +1,6 @@
 import pdb                              # we may want to say pdb.set_trace()
 import unittest
-import lsst.tests as tests
+import lsst.utils.tests as tests
 from lsst.daf.base import DataProperty
 
 try:
@@ -82,7 +82,7 @@ class DataPropertyTestCase(unittest.TestCase):
     def testUndefined(self):
         """Check that we can't find a data property that isn't defined"""
         dpPtr = self.root.findUnique("undefined")
-        assert dpPtr.get() == None, "Found non-existent DataProperty"
+        assert dpPtr == None, "Found non-existent DataProperty"
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
