@@ -2,5 +2,5 @@
 Import("env")
 
 env.CheckSwig("python", ilang="c++", includedProducts="utils")
-env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.libs["boost"] + ["daf_base"])
+env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.libs["boost"] + ["daf_base", "utils"])
 
