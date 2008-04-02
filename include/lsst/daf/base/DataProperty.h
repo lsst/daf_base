@@ -36,9 +36,9 @@
 namespace lsst {
 namespace daf {
 
-namespace data {
+namespace persistence {
     class DataPropertyFormatter;
-} // namespace lsst::daf::data
+} // namespace lsst::daf::persistence
 
 namespace base {
 
@@ -124,7 +124,7 @@ public:
     static PtrType createPropertyNode( std::string name );
 
 private:
-    LSST_PERSIST_FORMATTER(lsst::daf::data::DataPropertyFormatter);
+    LSST_PERSIST_FORMATTER(lsst::daf::persistence::DataPropertyFormatter);
 
     typedef std::vector<std::string> stringVectorType;
 
