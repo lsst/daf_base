@@ -2,9 +2,4 @@
 Import("env")
 
 env.CheckSwig("python", ilang="c++", includedProducts="utils")
-<<<<<<< .mine
 env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.getlibs("daf_base"))
-=======
-env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.libs["boost"] + ["daf_base", "utils"])
-
->>>>>>> .r4708

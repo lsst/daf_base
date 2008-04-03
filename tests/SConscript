@@ -1,9 +1,9 @@
 # -*- python -*-
 Import("env")
 
-env.Program(["DataProperty_1.cc"], LIBS=env.libs["boost"] + ["daf_base", "utils"])
-env.Program(["DataProperty_2.cc"], LIBS=env.libs["boost"] + ["daf_base", "utils"])
-env.Program(["DataProperty_4.cc"], LIBS=env.libs["boost"] + ["daf_base", "utils"])
+env.Program(["DataProperty_1.cc"], LIBS=env.libs["daf_base"])
+env.Program(["DataProperty_2.cc"], LIBS=env.libs["daf_base"])
+env.Program(["DataProperty_4.cc"], LIBS=env.libs["daf_base"])
 
 env.CheckSwig("python", ilang="c++")
 env.Append(SWIGFLAGS=" -Ipython")
