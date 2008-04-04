@@ -80,7 +80,7 @@ public:
         lsst::daf::persistence::delegateSerialize<formatter, Archive>(ar, version, this); \
     };
 
-}}} // namespace lsst::mwi::base
+}}} // namespace lsst::daf::base
 
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
