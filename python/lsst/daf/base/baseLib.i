@@ -38,6 +38,9 @@ using namespace lsst::daf::base;
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
+
+%boost_shared_ptr(PersistableSharedPtr, lsst::daf::base::Persistable);
+
 %include "DataProperty.i"
 
 /******************************************************************************/
