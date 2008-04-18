@@ -178,7 +178,7 @@ const std::vector<const Citizen *> *Citizen::census() {
 //! Return true if the block is corrupted, but
 //! only after calling the corruptionCallback
 bool Citizen::_checkCorruption() const {
-    if (_sentinel == (long)magicSentinel) {
+    if (_sentinel == static_cast<int>(magicSentinel)) {
         return false;
     }
 
