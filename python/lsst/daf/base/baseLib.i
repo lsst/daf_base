@@ -25,6 +25,9 @@ using namespace lsst::daf::base;
 
 #define NO_SWIG_LSST_EXCEPTIONS
 %include "lsst/p_lsstSwig.i"
+SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
+SWIG_SHARED_PTR_DERIVED(DataProperty, lsst::daf::base::Persistable, lsst::daf::base::DataProperty)
+
 %template(vectorCitizen) std::vector<Citizen *>;
 //
 // Swig 1.3.33 has problems with std::vector<Citizen const *>, so
@@ -37,10 +40,8 @@ using namespace lsst::daf::base;
 %}
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
+
 %include "lsst/daf/base/Persistable.h"
-
-%boost_shared_ptr(PersistableSharedPtr, lsst::daf::base::Persistable);
-
 %include "DataProperty.i"
 
 /******************************************************************************/
