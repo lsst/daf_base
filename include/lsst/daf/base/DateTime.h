@@ -55,7 +55,7 @@ public:
     struct timeval timeval(void) const;
 
     static void initializeLeapSeconds(
-        std::vector<std::pair<int, int> > table);
+        std::vector<std::pair<int, int> > const& table);
 
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.

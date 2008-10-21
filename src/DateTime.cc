@@ -218,7 +218,7 @@ struct timeval dafBase::DateTime::timeval(void) const {
   * \param table Vector of {days since epoch, cumulative leap seconds} pairs.
   */
 void dafBase::DateTime::initializeLeapSeconds(
-    std::vector<std::pair<int, int> > table) {
+    std::vector<std::pair<int, int> > const& table) {
     Leap l;
     leapSecTable.clear();
     for (size_t i = 0; i < table.size(); ++i) {
