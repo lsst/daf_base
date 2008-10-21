@@ -2,17 +2,19 @@
 #
 # Setup our environment
 #
-import glob, os.path, re, os
+import glob, os.path, re
 import lsst.SConsUtils as scons
+
+dependencies = ["boost", "python", "utils"]
 
 env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
-                    [["boost", "boost/regex.hpp", "boost_regex:C++"],
+                    [["boost", "boost/version.hpp", "boost_filesystem:C++"],
                      ["python", "Python.h"],
-		     ["utils", "lsst/utils/Demangle.h", "utils:C++"],
+                     ["utils", "lsst/utils/Utils.h", "utils:C++"]
                     ])
 
-env.libs["daf_base"] += env.getlibs("boost utils")
+env.libs["daf_base"] += env.getlibs(" ".join(dependencies))
 
 #
 # Is C++'s TR1 available?  If not, use e.g. #include "lsst/tr1/foo.h"
