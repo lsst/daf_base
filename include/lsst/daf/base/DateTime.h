@@ -27,6 +27,8 @@
 
 #include <ctime>
 #include <sys/time.h>
+#include <utility>
+#include <vector>
 
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
@@ -51,6 +53,9 @@ public:
     struct tm utc2gmtime(void) const;
     struct timespec timespec(void) const;
     struct timeval timeval(void) const;
+
+    static void initializeLeapSeconds(
+        std::vector<std::pair<int, int> > const& table);
 
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.

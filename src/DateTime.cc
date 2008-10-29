@@ -20,10 +20,9 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 
 #include "lsst/daf/base/DateTime.h"
 
+#include <vector>
 
-namespace lsst {
-namespace daf {
-namespace base {
+namespace dafBase = lsst::daf::base;
 
 /// Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
 static double const EPOCH_IN_MJD = 40587.0;
@@ -42,7 +41,7 @@ struct Leap {
 
 /* Leap second table
  *
- * Source: ftp://maia.usno.navy.mil/ser7/tai-utc.dat
+ * Source: http://maia.usno.navy.mil/ser7/tai-utc.dat
  *
  * 1972 JAN  1 =JD 2441317.5  TAI-UTC=  10.0
  * 1972 JUL  1 =JD 2441499.5  TAI-UTC=  11.0
@@ -68,40 +67,52 @@ struct Leap {
  * 1997 JUL  1 =JD 2450630.5  TAI-UTC=  31.0
  * 1999 JAN  1 =JD 2451179.5  TAI-UTC=  32.0
  * 2006 JAN  1 =JD 2453736.5  TAI-UTC=  33.0
+ * 2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0
  */
 
-/** Table of leap seconds to date since the epoch, in ascending order.
- * Source: ftp://maia.usno.navy.mil/ser7/tai-utc.dat
- */
-static Leap leapSecTable[] = {
+static Leap defaultLeapSecTable[] = {
       {730, 10},      {912, 11},     {1096, 12},     {1461, 13},
      {1826, 14},     {2191, 15},     {2557, 16},     {2922, 17},
      {3287, 18},     {3652, 19},     {4199, 20},     {4564, 21},
      {4929, 22},     {5660, 23},     {6574, 24},     {7305, 25},
      {7670, 26},     {8217, 27},     {8582, 28},     {8947, 29},
-     {9496, 30},    {10043, 31},    {10592, 32},    {13149, 33}
+     {9496, 30},    {10043, 31},    {10592, 32},    {13149, 33},
+     {14245, 34}
 };
-/// Number of leap second descriptors in the table.
-static int const LEAP_SECS = sizeof(leapSecTable) / sizeof(Leap);
+
+/** Table of leap seconds to date since the epoch, in ascending order.
+ */
+class LeapTable : public std::vector<Leap> {
+public:
+    LeapTable(void);
+};
+
+LeapTable::LeapTable(void) : std::vector<Leap>() {
+    for (size_t i = 0; i < sizeof(defaultLeapSecTable) / sizeof(Leap); ++i) {
+        this->push_back(defaultLeapSecTable[i]);
+    }
+}
+
+static LeapTable leapSecTable;
 
 
 /** Constructor.
  * \param[in] nsecs Number of nanoseconds since the epoch in UTC or TAI.
  */
-DateTime::DateTime(long long nsecs) : _nsecs(nsecs) {
+dafBase::DateTime::DateTime(long long nsecs) : _nsecs(nsecs) {
 }
 
 /** Constructor.
  * \param[in] mjd Modified Julian Day in UTC.
  */
-DateTime::DateTime(double mjd) {
+dafBase::DateTime::DateTime(double mjd) {
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
 }
 
 /** Accessor.
  * \return Number of nanoseconds since the epoch in UTC or TAI.
  */
-long long DateTime::nsecs(void) const {
+long long dafBase::DateTime::nsecs(void) const {
         return _nsecs;
 }
 
@@ -110,18 +121,20 @@ long long DateTime::nsecs(void) const {
  *
  * The application must remember which time system was used to construct each
  * DateTime.
+ *
+ * Handles times back to the epoch (and even earlier, to 1968 Feb 1).
  */
-DateTime DateTime::utc2tai(void) const {
+dafBase::DateTime dafBase::DateTime::utc2tai(void) const {
     if (_nsecs < leapSecTable[0].when * LL_NSEC_PER_DAY) {
         double leapsecs = (utc2mjd() - 39126.0) * 0.002592 + 4.21317;
         return DateTime(_nsecs - static_cast<long long>(1.0e9 * leapsecs));
     }
-    for (int i = 1; i < LEAP_SECS - 1; ++i) {
+    for (size_t i = 1; i < leapSecTable.size(); ++i) {
         if (_nsecs < leapSecTable[i].when * LL_NSEC_PER_DAY) {
             return DateTime(_nsecs - leapSecTable[i - 1].secs * 1000000000LL);
         }
     }
-    return DateTime(_nsecs - leapSecTable[LEAP_SECS - 1].secs * 1000000000LL);
+    return DateTime(_nsecs - leapSecTable.back().secs * 1000000000LL);
 }
 
 /** Convert TAI time to UTC time.
@@ -129,8 +142,10 @@ DateTime DateTime::utc2tai(void) const {
  *
  * The application must remember which time system was used to construct each
  * DateTime.
+ *
+ * Handles times back to the epoch (and even earlier, to 1968 Feb 1).
  */
-DateTime DateTime::tai2utc(void) const {
+dafBase::DateTime dafBase::DateTime::tai2utc(void) const {
     if (_nsecs < leapSecTable[0].when * LL_NSEC_PER_DAY +
         leapSecTable[0].secs * 1000000000LL) {
         return DateTime(static_cast<long long>(
@@ -138,13 +153,13 @@ DateTime DateTime::tai2utc(void) const {
              (EPOCH_IN_MJD - 39126.0) * 0.002592e9) /
             (1 - 0.002592e9 / NSEC_PER_DAY)));
     }
-    for (int i = 1; i < LEAP_SECS - 1; ++i) {
+    for (size_t i = 1; i < leapSecTable.size(); ++i) {
         if (_nsecs < leapSecTable[i].when * LL_NSEC_PER_DAY +
             leapSecTable[i].secs * 1000000000LL) {
             return DateTime(_nsecs + leapSecTable[i - 1].secs * 1000000000LL);
         }
     }
-    return DateTime(_nsecs + leapSecTable[LEAP_SECS - 1].secs * 1000000000LL);
+    return DateTime(_nsecs + leapSecTable.back().secs * 1000000000LL);
 }
 
 /** Convert UTC time to Modified Julian Day.
@@ -154,7 +169,7 @@ DateTime DateTime::tai2utc(void) const {
  * The application must remember which time system was used to construct each
  * DateTime.
  */
-double DateTime::utc2mjd(void) const {
+double dafBase::DateTime::utc2mjd(void) const {
     return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
 
@@ -165,14 +180,14 @@ double DateTime::utc2mjd(void) const {
  * The application must remember which time system was used to construct each
  * DateTime.
  */
-double DateTime::tai2mjd(void) const {
+double dafBase::DateTime::tai2mjd(void) const {
     return static_cast<double>(tai2utc().nsecs()) / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
 
 /** Convert UTC time to struct tm.
  * \return Structure with decoded time in UTC.
  */
-struct tm DateTime::utc2gmtime(void) const {
+struct tm dafBase::DateTime::utc2gmtime(void) const {
     struct tm gmt;
     time_t secs = static_cast<time_t>(_nsecs / 1000000000LL);
     gmtime_r(&secs, &gmt);
@@ -182,7 +197,7 @@ struct tm DateTime::utc2gmtime(void) const {
 /** Convert time to struct timespec.
  * \return Structure with time in seconds and nanoseconds.
  */
-struct timespec DateTime::timespec(void) const {
+struct timespec dafBase::DateTime::timespec(void) const {
     struct timespec ts;
     ts.tv_sec = static_cast<time_t>(_nsecs / 1000000000LL);
     ts.tv_nsec = static_cast<int>(_nsecs % 1000000000LL);
@@ -192,11 +207,23 @@ struct timespec DateTime::timespec(void) const {
 /** Convert time to struct timeval.
  * \return Structure with time in seconds and microseconds.
  */
-struct timeval DateTime::timeval(void) const {
+struct timeval dafBase::DateTime::timeval(void) const {
     struct timeval tv;
     tv.tv_sec = static_cast<time_t>(_nsecs / 1000000000LL);
     tv.tv_usec = static_cast<int>((_nsecs % 10000000000LL) / 1000);
     return tv;
 }
 
-}}} // namespace lsst::daf::base
+/** Initialize leap second table.
+  * \param table Vector of {days since epoch, cumulative leap seconds} pairs.
+  */
+void dafBase::DateTime::initializeLeapSeconds(
+    std::vector<std::pair<int, int> > const& table) {
+    Leap l;
+    leapSecTable.clear();
+    for (size_t i = 0; i < table.size(); ++i) {
+        l.when = table[i].first;
+        l.secs = table[i].second;
+        leapSecTable.push_back(l);
+    }
+}
