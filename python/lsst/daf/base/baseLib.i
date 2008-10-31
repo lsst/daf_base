@@ -14,37 +14,30 @@ Access to the classes from the daf_base library
 #include "lsst/daf/base/Persistable.h"
 %}
 
-%inline %{
-namespace lsst { namespace daf { namespace base { } } }
-    
-using namespace lsst::daf::base;
-%}
-
-%init %{
-%}
-
 #define NO_SWIG_LSST_EXCEPTIONS
+
 %include "lsst/p_lsstSwig.i"
+
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
 SWIG_SHARED_PTR_DERIVED(DataProperty, lsst::daf::base::Persistable, lsst::daf::base::DataProperty)
 
-%template(vectorCitizen) std::vector<Citizen *>;
-//
-// Swig 1.3.33 has problems with std::vector<Citizen const *>, so
-// we fake things here.  It's a fake, hence the C-style cast
-//
-%inline %{
-    std::vector<Citizen *> * Citizen_census_for_swig() {
-        return (std::vector<Citizen *> *)Citizen::census();
+class lsst::daf::base::Citizen;
+
+%template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
+
+// Swig versions 1.3.33 - 1.3.36 have problems with std::vector<lsst::daf::base::Citizen const *>,
+// so replace Citizen::census() with a function that casts to something swig understands.
+%extend lsst::daf::base::Citizen {
+    static std::vector<lsst::daf::base::Citizen *> const * census() {
+        return reinterpret_cast<std::vector<lsst::daf::base::Citizen *> const *>(
+                lsst::daf::base::Citizen::census());
     }
-%}
+    %ignore census();
+}
+
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
-
 %include "lsst/daf/base/Persistable.h"
+
 %include "DataProperty.i"
 
-/******************************************************************************/
-// Local Variables: ***
-// eval: (setq indent-tabs-mode nil) ***
-// End: ***
