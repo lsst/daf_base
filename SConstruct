@@ -9,7 +9,9 @@ dependencies = ["boost", "python", "utils"]
 
 env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
-                    [["boost", "boost/version.hpp", "boost_filesystem:C++"],
+                    [["boost", "boost/version.hpp", "boost_system:C++"],
+                     ["boost", "boost/version.hpp", "boost_filesystem:C++"],
+                     ["boost", "boost/regex.hpp", "boost_regex:C++"],
                      ["python", "Python.h"],
                      ["utils", "lsst/utils/Utils.h", "utils:C++"]
                     ])
