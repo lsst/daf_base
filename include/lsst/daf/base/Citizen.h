@@ -2,8 +2,11 @@
 #ifndef LSST_DAF_BASE_CITIZEN_H
 #define LSST_DAF_BASE_CITIZEN_H
 
-#include <vector>
 #include <map>
+#include <ostream>
+#include <string>
+#include <vector>
+
 
 namespace lsst {
 namespace daf {

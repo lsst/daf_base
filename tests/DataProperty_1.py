@@ -47,7 +47,7 @@ class DataPropertyTestCase(unittest.TestCase):
         
         n = "name1"
         dpPtr = self.root.findUnique(n)
-        assert dpPtr.get() != None, "Failed to find %s" % n
+        assert dpPtr != None, "Failed to find %s" % n
         self.assertEqual(dpPtr.getValueString(), self.values[n])
 
     def testDataPtrType(self):
@@ -77,12 +77,12 @@ class DataPropertyTestCase(unittest.TestCase):
         """Check name3, which (should have) a non-{int,string} type"""
         n = "name3"
         dpPtr = self.root.findUnique(n)
-        assert dpPtr.get() != None, "Failed to find %s" % n
+        assert dpPtr != None, "Failed to find %s" % n
 
     def testUndefined(self):
         """Check that we can't find a data property that isn't defined"""
         dpPtr = self.root.findUnique("undefined")
-        assert dpPtr.get() == None, "Found non-existent DataProperty"
+        assert dpPtr == None, "Found non-existent DataProperty"
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -113,7 +113,7 @@ class NestedDataPropertyTestCase(unittest.TestCase):
     def testCopyConstructor(self):
         """Check copy constructor"""
     
-        rootCopy = DataProperty(self.root.get())
+        rootCopy = DataProperty(self.root)
 
         # Explicitly destroy root
         del self.root; self.root = None
@@ -135,13 +135,13 @@ class NestedDataPropertyTestCase(unittest.TestCase):
         n = "name1"
         prop = contents.value()
         dpPtr = prop.findUnique(n)
-        assert dpPtr.get() != None, "failed to find %s" % n
+        assert dpPtr != None, "failed to find %s" % n
         self.assertEqual(dpPtr.getValueString(), self.values[n])
 
         n = "name2"
         range = contents.value().findAll(n)
         dpPtr = range.value()
-        assert dpPtr.get() != None, "failed to find %s" % n
+        assert dpPtr != None, "failed to find %s" % n
         self.assertEqual(dpPtr.getValueInt(), self.values[n])
 
     def testFindNames(self):
