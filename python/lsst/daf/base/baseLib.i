@@ -12,6 +12,7 @@ Access to the classes from the daf_base library
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/DateTime.h"
 #include "lsst/daf/base/Persistable.h"
+#include "lsst/daf/base/PropertySet.h"
 %}
 
 #define NO_SWIG_LSST_EXCEPTIONS
@@ -19,7 +20,7 @@ Access to the classes from the daf_base library
 %include "lsst/p_lsstSwig.i"
 
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
-SWIG_SHARED_PTR_DERIVED(DataProperty, lsst::daf::base::Persistable, lsst::daf::base::DataProperty)
+SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
 
 class lsst::daf::base::Citizen;
 
@@ -38,6 +39,4 @@ class lsst::daf::base::Citizen;
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
-
-%include "DataProperty.i"
-
+%include "lsst/daf/base/PropertySet.h"

@@ -1,9 +1,7 @@
 # -*- python -*-
 Import("env")
 
-env.Program(["DataProperty_1.cc"], LIBS=env.libs["daf_base"])
-env.Program(["DataProperty_2.cc"], LIBS=env.libs["daf_base"])
-env.Program(["DataProperty_4.cc"], LIBS=env.libs["daf_base"])
+env.Program(["PropertySet_1.cc"], LIBS=env.libs["daf_base"])
 
 env.CheckSwig("python", ilang="c++")
 env.Append(SWIGFLAGS=" -Ipython")
@@ -14,7 +12,7 @@ env.Append(SWIGFLAGS=" -Ipython")
 import lsst.tests
 
 tests = lsst.tests.Control(env, verbose = True)
-tests.run("DataProperty_*.cc")
+tests.run("PropertySet_*.cc")
 
 for target in tests.run("*.py"):
      env.Depends(target,
