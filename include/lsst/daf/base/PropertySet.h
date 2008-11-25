@@ -18,9 +18,11 @@
   */
 
 #include <string>
+#include <lsst/tr1/unordered_map.h>
 #include <typeinfo>
 #include <vector>
 
+#include "boost/any.hpp"
 #include "boost/noncopyable.hpp"
 #include "boost/shared_ptr.hpp"
 #include "lsst/daf/base/Citizen.h"
@@ -66,11 +68,11 @@ public:
         // vector itself.
 
     // The following throw an exception if the type does not match exactly.
-    template <typename T> T const& get(string const& name) const;
+    template <typename T> T get(string const& name) const;
         // Note that the type must be explicitly specified for this template:
         // int i = propertySet.get<int>("foo");
-    template <typename T> T const& get(string const& name,
-                                       T const& defaultValue) const;
+    template <typename T> T get(string const& name,
+                                T const& defaultValue) const;
         // Returns the provided default value if the name does not exist.
     template <typename T> vector<T> const& getArray(string const& name) const;
 
@@ -101,6 +103,8 @@ public:
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter);
 
+    typedef tr1::unordered_map<string, boost::any> AnyMap;
+    AnyMap _map;
 };
 
 }}} // namespace lsst::daf::base

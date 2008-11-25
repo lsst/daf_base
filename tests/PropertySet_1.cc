@@ -1,6 +1,6 @@
 #include "lsst/daf/base/PropertySet.h"
 
-#define BOOST_TEST_MODULE Exception_1
+#define BOOST_TEST_MODULE PropertySet_1
 #include "boost/test/included/unit_test.hpp"
 
 namespace test = boost::test_tools;
@@ -39,7 +39,34 @@ BOOST_AUTO_TEST_CASE(setScalar) {
     ps.set("string", std::string("bar"));
 }
 
+BOOST_AUTO_TEST_CASE(getScalar) {
+    dafBase::PropertySet ps;
+    ps.set("bool", true);
+    short s = 42;
+    ps.set("short", s);
+    ps.set("int", 2008);
+    ps.set("int64_t", 0xfeeddeadbeefLL);
+    float f = 3.14159;
+    ps.set("float", f);
+    double d = 2.718281828459045;
+    ps.set("double", d);
+    ps.set<std::string>("char*", "foo");
+    ps.set("string", std::string("bar"));
+
+    BOOST_CHECK_EQUAL(ps.get<bool>("bool"), true);
+    BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
+    BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
+    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xfeeddeadbeefLL);
+    BOOST_CHECK_EQUAL(ps.get<float>("float"), 3.14159f);
+    BOOST_CHECK_EQUAL(ps.get<double>("double"), 2.718281828459045);
+    BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
+    BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "bar");
+}
+
 /*
+    template <typename T> T const& get(string const& name,
+                                       T const& default) const;
+        // Returns the provided default value if the name does not exist.
     template <typename T> void set(string const& name, vector<T> const& value);
     template <typename T> void add(string const& name, T const& value);
     template <typename T> void add(string const& name, vector<T> const& value);

@@ -11,6 +11,8 @@
 
 namespace dafBase = lsst::daf::base;
 
+#include <stdexcept>
+
 using namespace std;
 
 dafBase::PropertySet::PropertySet(void) : Citizen(typeid(*this)) {
@@ -65,32 +67,54 @@ size_t dafBase::PropertySet::valueCount(string const& name) const {
     return 0;
 }
 
-std::type_info const& dafBase::PropertySet::typeOf(string const& name) const {
+type_info const& dafBase::PropertySet::typeOf(string const& name) const {
     return typeid(*this);
 }
         // This returns typeid(vector::value_type), not the type of the value
         // vector itself.
 
 // The following throw an exception if the type does not match exactly.
-template <typename T>
-T const& dafBase::PropertySet::get(string const& name) const {
-    static T t;
-    return t;
-}
+
 // Note that the type must be explicitly specified for this template:
 // int i = propertySet.get<int>("foo")
+template <typename T>
+T dafBase::PropertySet::get(string const& name) const {
+    AnyMap::const_iterator it = _map.find(name);
+    if (it == _map.end()) {
+        throw runtime_error(name + " not found");
+    }
+    boost::shared_ptr< vector<T> > vp =
+        boost::any_cast< boost::shared_ptr< vector<T> > >(it->second);
+    if (vp->size() < 1) {
+        throw runtime_error(name + " empty");
+    }
+    return vp->back();
+}
 
 // Returns the provided default value if the name does not exist.
 template <typename T>
-T const& dafBase::PropertySet::get(string const& name,
-                                   T const& defaultValue) const {
-    return defaultValue;
+T dafBase::PropertySet::get(string const& name, T const& defaultValue) const {
+    AnyMap::const_iterator it = _map.find(name);
+    if (it == _map.end()) {
+        return defaultValue;
+    }
+    boost::shared_ptr< vector<T> > vp =
+        boost::any_cast< boost::shared_ptr< vector<T> > >(it->second);
+    if (vp->size() < 1) {
+        return defaultValue;
+    }
+    return vp->back();
 }
 
 template <typename T>
 vector<T> const& dafBase::PropertySet::getArray(string const& name) const {
-    static vector<T> v;
-    return v;
+    AnyMap::const_iterator it = _map.find(name);
+    if (it == _map.end()) {
+        throw runtime_error(name + " not found");
+    }
+    boost::shared_ptr< vector<T> > vp =
+        boost::any_cast< boost::shared_ptr< vector<T> > >(it->second);
+    return *vp;
 }
 
 // The following throw an exception if the conversion is inappropriate.
@@ -135,18 +159,41 @@ string dafBase::PropertySet::toString(bool topLevelOnly,
 // Modifiers
 template <typename T>
 void dafBase::PropertySet::set(string const& name, T const& value) {
+    boost::shared_ptr< vector<T> > vp(new vector<T>);
+    vp->push_back(value);
+    _map[name] = vp;
 }
 
 template <typename T>
 void dafBase::PropertySet::set(string const& name, vector<T> const& value) {
+    boost::shared_ptr< vector<T> > vp(new vector<T>(value));
+    _map[name] = vp;
 }
 
 template <typename T>
 void dafBase::PropertySet::add(string const& name, T const& value) {
+    AnyMap::iterator it = _map.find(name);
+    if (it == _map.end()) {
+        set(name, value);
+    }
+    else {
+        boost::shared_ptr< vector<T> > vp =
+            boost::any_cast< boost::shared_ptr< vector<T> > >(it->second);
+        vp->push_back(value);
+    }
 }
 
 template <typename T>
 void dafBase::PropertySet::add(string const& name, vector<T> const& value) {
+    AnyMap::iterator it = _map.find(name);
+    if (it == _map.end()) {
+        set(name, value);
+    }
+    else {
+        boost::shared_ptr< vector<T> > vp =
+            boost::any_cast< boost::shared_ptr< vector<T> > >(it->second);
+        vp->insert(vp->end(), value.begin(), value.end());
+    }
 }
 
 // All vectors from the source are add()ed to the destination with the
@@ -158,27 +205,27 @@ void dafBase::PropertySet::remove(string const& name) {
 }
 
 
-template bool const& dafBase::PropertySet::get<bool>(string const& name) const;
-template short const& dafBase::PropertySet::get<short>(string const& name) const;
-template int const& dafBase::PropertySet::get<int>(string const& name) const;
-template long const& dafBase::PropertySet::get<long>(string const& name) const;
-template long long const& dafBase::PropertySet::get<long long>(string const& name) const;
-template float const& dafBase::PropertySet::get<float>(string const& name) const;
-template double const& dafBase::PropertySet::get<double>(string const& name) const;
-template string const& dafBase::PropertySet::get<string>(string const& name) const;
-template dafBase::PropertySet::Ptr const& dafBase::PropertySet::get<dafBase::PropertySet::Ptr>(string const& name) const;
-template dafBase::Persistable::Ptr const& dafBase::PropertySet::get<dafBase::Persistable::Ptr>(string const& name) const;
+template bool dafBase::PropertySet::get<bool>(string const& name) const;
+template short dafBase::PropertySet::get<short>(string const& name) const;
+template int dafBase::PropertySet::get<int>(string const& name) const;
+template long dafBase::PropertySet::get<long>(string const& name) const;
+template long long dafBase::PropertySet::get<long long>(string const& name) const;
+template float dafBase::PropertySet::get<float>(string const& name) const;
+template double dafBase::PropertySet::get<double>(string const& name) const;
+template string dafBase::PropertySet::get<string>(string const& name) const;
+template dafBase::PropertySet::Ptr dafBase::PropertySet::get<dafBase::PropertySet::Ptr>(string const& name) const;
+template dafBase::Persistable::Ptr dafBase::PropertySet::get<dafBase::Persistable::Ptr>(string const& name) const;
 
-template bool const& dafBase::PropertySet::get<bool>(string const& name, bool const& defaultValue) const;
-template short const& dafBase::PropertySet::get<short>(string const& name, short const& defaultValue) const;
-template int const& dafBase::PropertySet::get<int>(string const& name, int const& defaultValue) const;
-template long const& dafBase::PropertySet::get<long>(string const& name, long const& defaultValue) const;
-template long long const& dafBase::PropertySet::get<long long>(string const& name, long long const& defaultValue) const;
-template float const& dafBase::PropertySet::get<float>(string const& name, float const& defaultValue) const;
-template double const& dafBase::PropertySet::get<double>(string const& name, double const& defaultValue) const;
-template string const& dafBase::PropertySet::get<string>(string const& name, string const& defaultValue) const;
-template dafBase::PropertySet::Ptr const& dafBase::PropertySet::get<dafBase::PropertySet::Ptr>(string const& name, PropertySet::Ptr const& defaultValue) const;
-template dafBase::Persistable::Ptr const& dafBase::PropertySet::get<dafBase::Persistable::Ptr>(string const& name, Persistable::Ptr const& defaultValue) const;
+template bool dafBase::PropertySet::get<bool>(string const& name, bool const& defaultValue) const;
+template short dafBase::PropertySet::get<short>(string const& name, short const& defaultValue) const;
+template int dafBase::PropertySet::get<int>(string const& name, int const& defaultValue) const;
+template long dafBase::PropertySet::get<long>(string const& name, long const& defaultValue) const;
+template long long dafBase::PropertySet::get<long long>(string const& name, long long const& defaultValue) const;
+template float dafBase::PropertySet::get<float>(string const& name, float const& defaultValue) const;
+template double dafBase::PropertySet::get<double>(string const& name, double const& defaultValue) const;
+template string dafBase::PropertySet::get<string>(string const& name, string const& defaultValue) const;
+template dafBase::PropertySet::Ptr dafBase::PropertySet::get<dafBase::PropertySet::Ptr>(string const& name, PropertySet::Ptr const& defaultValue) const;
+template dafBase::Persistable::Ptr dafBase::PropertySet::get<dafBase::Persistable::Ptr>(string const& name, Persistable::Ptr const& defaultValue) const;
 
 template vector<bool> const& dafBase::PropertySet::getArray<bool>(string const& name) const;
 template vector<short> const& dafBase::PropertySet::getArray<short>(string const& name) const;
