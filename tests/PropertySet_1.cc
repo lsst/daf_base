@@ -658,6 +658,22 @@ BOOST_AUTO_TEST_CASE(toString) {
         "string = \"bar\"\n"
         "v = [ 10, 9, 8 ]\n"
         );
+    BOOST_CHECK_EQUAL(ps.toString(true),
+        "bool = 1\n"
+        "char = '*'\n"
+        "char* = \"foo\"\n"
+        "char*2 = \"foo2\"\n"
+        "double = 2.71828\n"
+        "float = 3.14159\n"
+        "int = 2008\n"
+        "int64_t = 280297596632815\n"
+        "ps1 = { ... }\n"
+        "ps2 = { ... }\n"
+        "ps3 = { ... }\n"
+        "short = 42\n"
+        "string = \"bar\"\n"
+        "v = [ 10, 9, 8 ]\n"
+        );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
