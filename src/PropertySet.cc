@@ -427,10 +427,16 @@ string dafBase::PropertySet::toString(bool topLevelOnly,
             else if (t == typeid(float)) s << boost::any_cast<float>(v);
             else if (t == typeid(double)) s << boost::any_cast<double>(v);
             else if (t == typeid(string)) s << '"' << boost::any_cast<string>(v) << '"';
-            else if (t == typeid(Ptr) && !topLevelOnly) {
-                s << '{' << std::endl;
-                s << boost::any_cast<Ptr>(*k)->toString(false, indent + "..");
-                s << indent << '}';
+            else if (t == typeid(Ptr)) {
+                if (topLevelOnly) {
+                    s << "{ ... }";
+                }
+                else {
+                    s << '{' << std::endl;
+                    s << boost::any_cast<Ptr>(*k)->toString(false,
+                                                            indent + "..");
+                    s << indent << '}';
+                }
             }
             else if (t == typeid(Persistable::Ptr)) s << "<Persistable>";
             else s << "<Unknown>";
