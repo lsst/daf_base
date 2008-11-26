@@ -36,7 +36,27 @@ class lsst::daf::base::Citizen;
     %ignore census();
 }
 
+%template(VectorB) std::vector<bool>;
+%template(VectorI) std::vector<int>;
+%template(VectorD) std::vector<double>;
+%template(VectorS) std::vector<std::string>;
+
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
 %include "lsst/daf/base/PropertySet.h"
+
+%template(setB) lsst::daf::base::PropertySet::set<bool>;
+%template(setI) lsst::daf::base::PropertySet::set<int>;
+%template(setD) lsst::daf::base::PropertySet::set<double>;
+%template(setS) lsst::daf::base::PropertySet::set<std::string>;
+
+%template(addB) lsst::daf::base::PropertySet::add<bool>;
+%template(addI) lsst::daf::base::PropertySet::add<int>;
+%template(addD) lsst::daf::base::PropertySet::add<double>;
+%template(addS) lsst::daf::base::PropertySet::add<std::string>;
+
+%template(getArrayB) lsst::daf::base::PropertySet::getArray<bool>;
+%template(getArrayI) lsst::daf::base::PropertySet::getArray<int>;
+%template(getArrayD) lsst::daf::base::PropertySet::getArray<double>;
+%template(getArrayS) lsst::daf::base::PropertySet::getArray<std::string>;
