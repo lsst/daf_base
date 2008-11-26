@@ -296,8 +296,8 @@ int dafBase::PropertySet::getAsInt(string const& name) const {
 }
 
 /** Get the last value for a bool/char/short/int/int64_t property name
-  * (possibly hierarchical).  Unsigned int properties are not acceptable, but
-  * unsigned versions of smaller types are, except possibly unsigned long,
+  * (possibly hierarchical).  Unsigned int64_t properties are not acceptable,
+  * but unsigned versions of smaller types are, except possibly unsigned long,
   * depending on compiler.
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as an int64_t.
