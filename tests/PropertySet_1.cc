@@ -29,6 +29,7 @@ BOOST_AUTO_TEST_CASE(bases) {
 BOOST_AUTO_TEST_CASE(getScalar) {
     dafBase::PropertySet ps;
     ps.set("bool", true);
+    ps.set("char", '*');
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
@@ -42,6 +43,7 @@ BOOST_AUTO_TEST_CASE(getScalar) {
     ps.set("string", std::string("bar"));
 
     BOOST_CHECK_EQUAL(ps.get<bool>("bool"), true);
+    BOOST_CHECK_EQUAL(ps.get<char>("char"), '*');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xfeeddeadbeefLL);
@@ -55,6 +57,7 @@ BOOST_AUTO_TEST_CASE(getScalar) {
 BOOST_AUTO_TEST_CASE(resetScalar) {
     dafBase::PropertySet ps;
     ps.set("bool", true);
+    ps.set("char", '*');
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
@@ -68,6 +71,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     ps.set("string", std::string("bar"));
 
     BOOST_CHECK_EQUAL(ps.get<bool>("bool"), true);
+    BOOST_CHECK_EQUAL(ps.get<char>("char"), '*');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xfeeddeadbeefLL);
@@ -78,6 +82,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "bar");
 
     ps.set("bool", false);
+    ps.set("char", '%');
     s = 2008;
     ps.set("short", s);
     ps.set("int", 42);
@@ -91,6 +96,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     ps.set("string", std::string("xyzzy"));
 
     BOOST_CHECK_EQUAL(ps.get<bool>("bool"), false);
+    BOOST_CHECK_EQUAL(ps.get<char>("char"), '%');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 42);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xcafefacadeLL);
@@ -202,6 +208,7 @@ BOOST_AUTO_TEST_CASE(addVector) {
 BOOST_AUTO_TEST_CASE(typeOf) {
     dafBase::PropertySet ps;
     ps.set("bool", true);
+    ps.set("char", '*');
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
@@ -214,6 +221,7 @@ BOOST_AUTO_TEST_CASE(typeOf) {
     ps.set("string", std::string("bar"));
 
     BOOST_CHECK(ps.typeOf("bool") == typeid(bool));
+    BOOST_CHECK(ps.typeOf("char") == typeid(char));
     BOOST_CHECK(ps.typeOf("short") == typeid(short));
     BOOST_CHECK(ps.typeOf("int") == typeid(int));
     BOOST_CHECK(ps.typeOf("int64_t") == typeid(int64_t));
@@ -416,6 +424,7 @@ BOOST_AUTO_TEST_CASE(propertySetNames) {
 BOOST_AUTO_TEST_CASE(getAs) {
     dafBase::PropertySet ps;
     ps.set("bool", true);
+    ps.set("char", 'A');
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
@@ -432,17 +441,20 @@ BOOST_AUTO_TEST_CASE(getAs) {
     ps.set("top", psp);
 
     BOOST_CHECK_EQUAL(ps.getAsBool("bool"), true);
-    BOOST_CHECK_THROW(ps.getAsBool("short"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsBool("char"), boost::bad_any_cast);
     BOOST_CHECK_EQUAL(ps.getAsInt("bool"), 1);
+    BOOST_CHECK_EQUAL(ps.getAsInt("char"), static_cast<int>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt("short"), 42);
     BOOST_CHECK_EQUAL(ps.getAsInt("int"), 2008);
     BOOST_CHECK_THROW(ps.getAsInt("int64_t"), boost::bad_any_cast);
     BOOST_CHECK_EQUAL(ps.getAsInt64("bool"), 1LL);
+    BOOST_CHECK_EQUAL(ps.getAsInt64("char"), static_cast<int64_t>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt64("short"), 42LL);
     BOOST_CHECK_EQUAL(ps.getAsInt64("int"), 2008LL);
     BOOST_CHECK_EQUAL(ps.getAsInt64("int64_t"), 0xfeeddeadbeefLL);
     BOOST_CHECK_THROW(ps.getAsInt64("float"), boost::bad_any_cast);
     BOOST_CHECK_EQUAL(ps.getAsDouble("bool"), 1.0);
+    BOOST_CHECK_EQUAL(ps.getAsDouble("char"), static_cast<double>('A'));
     BOOST_CHECK_EQUAL(ps.getAsDouble("short"), 42.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int"), 2008.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int64_t"),
@@ -450,6 +462,7 @@ BOOST_AUTO_TEST_CASE(getAs) {
     BOOST_CHECK_EQUAL(ps.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.getAsDouble("double"), 2.718281828459045);
     BOOST_CHECK_THROW(ps.getAsDouble("char*"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsString("char"), boost::bad_any_cast);
     BOOST_CHECK_EQUAL(ps.getAsString("char*"), "foo");
     BOOST_CHECK_EQUAL(ps.getAsString("char*2"), "foo2");
     BOOST_CHECK_EQUAL(ps.getAsString("string"), "bar");
@@ -516,7 +529,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) {
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(ps.combine(psp), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.combine(psp), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(remove) {
@@ -589,6 +602,7 @@ BOOST_AUTO_TEST_CASE(deepCopy) {
 BOOST_AUTO_TEST_CASE(toString) {
     dafBase::PropertySet ps;
     ps.set("bool", true);
+    ps.set("char", '*');
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
@@ -611,6 +625,7 @@ BOOST_AUTO_TEST_CASE(toString) {
 
     BOOST_CHECK_EQUAL(ps.toString(),
         "bool = 1\n"
+        "char = '*'\n"
         "char* = \"foo\"\n"
         "char*2 = \"foo2\"\n"
         "double = 2.71828\n"
