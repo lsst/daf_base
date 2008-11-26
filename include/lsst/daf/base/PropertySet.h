@@ -17,8 +17,8 @@
   * @ingroup daf_base
   */
 
-#include <string>
 #include <lsst/tr1/unordered_map.h>
+#include <string>
 #include <typeinfo>
 #include <vector>
 
@@ -51,7 +51,8 @@ public:
     virtual ~PropertySet(void);
 
 // Accessors
-    Ptr deepCopy(void) const;  // Returns a PropertySet::Ptr to a new deep copy.
+    Ptr deepCopy(void) const;
+    // Returns a PropertySet::Ptr pointing to a new deep copy.
 
     size_t nameCount(bool topLevelOnly = true) const;
     vector<string> names(bool topLevelOnly = true) const;
@@ -74,7 +75,7 @@ public:
     template <typename T> T get(string const& name,
                                 T const& defaultValue) const;
         // Returns the provided default value if the name does not exist.
-    template <typename T> vector<T> const& getArray(string const& name) const;
+    template <typename T> vector<T> getArray(string const& name) const;
 
     // The following throw an exception if the conversion is inappropriate.
     bool getAsBool(string const& name) const;      // for bools only
@@ -92,8 +93,11 @@ public:
 // Modifiers
     template <typename T> void set(string const& name, T const& value);
     template <typename T> void set(string const& name, vector<T> const& value);
+    void set(string const& name, char const* value);
     template <typename T> void add(string const& name, T const& value);
     template <typename T> void add(string const& name, vector<T> const& value);
+    void add(string const& name, char const* value);
+
     void combine(Ptr const source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.
@@ -103,7 +107,14 @@ public:
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter);
 
-    typedef tr1::unordered_map<string, boost::any> AnyMap;
+    typedef tr1::unordered_map<string,
+            boost::shared_ptr< vector<boost::any> > > AnyMap;
+
+    AnyMap::iterator find(string const& name);
+    AnyMap::const_iterator find(string const& name) const;
+    void findOrInsert(string const& name,
+                      boost::shared_ptr< vector<boost::any> > vp);
+
     AnyMap _map;
 };
 
