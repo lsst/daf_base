@@ -11,7 +11,8 @@ env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
                     [["boost", "boost/shared_ptr.hpp"],
                      ["python", "Python.h"],
-                     ["utils", "lsst/utils/Utils.h", "utils:C++"]
+                     ["utils", "lsst/utils/Utils.h", "utils:C++"],
+                     ["pex_exceptions", "lsst/pex/exceptions/Runtime.h", "pex_exceptions:C++"]
                     ])
 
 env.libs["daf_base"] += env.getlibs(" ".join(dependencies))

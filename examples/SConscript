@@ -1,7 +1,8 @@
 # -*- python -*-
 Import('env')
 
-env.Program("citizen", ["citizen.cc"], LIBS=env.libs["boost"] + ["daf_base"] + ["utils"])
+env.Program("citizen", ["citizen.cc"],
+    LIBS=env.getlibs("daf_base utils pex_exceptions"))
 
 #
 # Tests

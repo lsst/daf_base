@@ -22,7 +22,10 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 #include <sstream>
 #include <stdexcept>
 
+#include "lsst/pex/exceptions/Runtime.h"
+
 namespace dafBase = lsst::daf::base;
+namespace pexExcept = lsst::pex::exceptions;
 
 using namespace std;
 
@@ -195,7 +198,7 @@ size_t dafBase::PropertySet::valueCount(string const& name) const {
 type_info const& dafBase::PropertySet::typeOf(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     return i->second->back().type();
 }
@@ -214,7 +217,7 @@ template <typename T>
 T dafBase::PropertySet::get(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     return boost::any_cast<T>(i->second->back());
 }
@@ -249,7 +252,7 @@ template <typename T>
 vector<T> dafBase::PropertySet::getArray(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     vector<T> v;
     for (vector<boost::any>::const_iterator j = i->second->begin();
@@ -282,7 +285,7 @@ bool dafBase::PropertySet::getAsBool(string const& name) const {
 int dafBase::PropertySet::getAsInt(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -307,7 +310,7 @@ int dafBase::PropertySet::getAsInt(string const& name) const {
 int64_t dafBase::PropertySet::getAsInt64(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -333,7 +336,7 @@ int64_t dafBase::PropertySet::getAsInt64(string const& name) const {
 double dafBase::PropertySet::getAsDouble(string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
-        throw runtime_error(name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -491,7 +494,8 @@ void dafBase::PropertySet::add(string const& name, T const& value) {
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw runtime_error(name + " mismatched type");
+            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+                              name + " has mismatched type");
         }
         i->second->push_back(value);
     }
@@ -514,7 +518,8 @@ void dafBase::PropertySet::add(string const& name, vector<T> const& value) {
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw runtime_error(name + " mismatched type");
+            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+                              name + " has mismatched type");
         }
         i->second->insert(i->second->end(), value.begin(), value.end());
     }
@@ -553,7 +558,8 @@ void dafBase::PropertySet::combine(Ptr const source) {
         }
         else {
             if (sj->second->back().type() != dj->second->back().type()) {
-                throw runtime_error(*i + " mismatched type");
+                throw LSST_EXCEPT(pexExcept::DomainErrorException,
+                                  *i + " has mismatched type");
             }
             dj->second->insert(dj->second->end(),
                                sj->second->begin(), sj->second->end());
@@ -654,7 +660,9 @@ void dafBase::PropertySet::findOrInsert(
         return;
     }
     else if (j->second->back().type() != typeid(Ptr)) {
-        throw runtime_error(prefix + " exists and is not PropertySet::Ptr");
+        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                          prefix +
+                          " exists but does not contain PropertySet::Ptrs");
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
     p->findOrInsert(suffix, vp);

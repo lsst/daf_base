@@ -1,7 +1,8 @@
 # -*- python -*-
 Import("env")
 
-env.Program(["PropertySet_1.cc"], LIBS=env.libs["daf_base"])
+env.Program(["PropertySet_1.cc"],
+    LIBS=env.getlibs("daf_base utils pex_exceptions"))
 
 env.CheckSwig("python", ilang="c++")
 env.Append(SWIGFLAGS=" -Ipython")
