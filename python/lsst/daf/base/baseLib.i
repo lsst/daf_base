@@ -36,27 +36,38 @@ class lsst::daf::base::Citizen;
     %ignore census();
 }
 
-%template(VectorB) std::vector<bool>;
-%template(VectorI) std::vector<int>;
-%template(VectorD) std::vector<double>;
-%template(VectorS) std::vector<std::string>;
+// This has to come before PropertySet.h
+%define VectorAddType(type, typeName)
+    %template(Vector ## typeName) std::vector<type>;
+%enddef
+
+VectorAddType(bool, Bool)
+VectorAddType(short, Short)
+VectorAddType(int, Int)
+VectorAddType(long long, Int64)
+VectorAddType(float, Float)
+VectorAddType(double, Double)
+VectorAddType(std::string, String)
+VectorAddType(lsst::daf::base::DateTime, DateTime)
 
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
 %include "lsst/daf/base/PropertySet.h"
 
-%template(setB) lsst::daf::base::PropertySet::set<bool>;
-%template(setI) lsst::daf::base::PropertySet::set<int>;
-%template(setD) lsst::daf::base::PropertySet::set<double>;
-%template(setS) lsst::daf::base::PropertySet::set<std::string>;
+// This has to come after PropertySet.h
+%define PropertySetAddType(type, typeName)
+    %template(set ## typeName) lsst::daf::base::PropertySet::set<type>;
+    %template(add ## typeName) lsst::daf::base::PropertySet::add<type>;
+    %template(get ## typeName) lsst::daf::base::PropertySet::get<type>;
+    %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type>;
+%enddef
 
-%template(addB) lsst::daf::base::PropertySet::add<bool>;
-%template(addI) lsst::daf::base::PropertySet::add<int>;
-%template(addD) lsst::daf::base::PropertySet::add<double>;
-%template(addS) lsst::daf::base::PropertySet::add<std::string>;
-
-%template(getArrayB) lsst::daf::base::PropertySet::getArray<bool>;
-%template(getArrayI) lsst::daf::base::PropertySet::getArray<int>;
-%template(getArrayD) lsst::daf::base::PropertySet::getArray<double>;
-%template(getArrayS) lsst::daf::base::PropertySet::getArray<std::string>;
+PropertySetAddType(bool, Bool)
+PropertySetAddType(short, Short)
+PropertySetAddType(int, Int)
+PropertySetAddType(long long, Int64)
+PropertySetAddType(float, Float)
+PropertySetAddType(double, Double)
+PropertySetAddType(std::string, String)
+PropertySetAddType(lsst::daf::base::DateTime, DateTime)

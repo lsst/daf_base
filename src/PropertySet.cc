@@ -23,6 +23,7 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 #include <stdexcept>
 
 #include "lsst/pex/exceptions/Runtime.h"
+#include "lsst/daf/base/DateTime.h"
 
 namespace dafBase = lsst::daf::base;
 namespace pexExcept = lsst::pex::exceptions;
@@ -701,5 +702,6 @@ INSTANTIATE(double)
 INSTANTIATE(string)
 INSTANTIATE(dafBase::PropertySet::Ptr)
 INSTANTIATE(dafBase::Persistable::Ptr)
+INSTANTIATE(dafBase::DateTime)
 
 /// @endcond
