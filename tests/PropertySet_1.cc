@@ -314,6 +314,23 @@ BOOST_AUTO_TEST_CASE(hierarchy) {
     BOOST_CHECK(!ps.exists("ps4"));
 }
 
+BOOST_AUTO_TEST_CASE(variousThrows) {
+    dafBase::PropertySet ps;
+    ps.set("int", 42);
+    BOOST_CHECK_THROW(ps.set("int.sub", "foo"), std::runtime_error);
+    BOOST_CHECK_THROW(ps.get<double>("int"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.get<double>("double"), std::runtime_error);
+    BOOST_CHECK_THROW(ps.getArray<double>("double"), std::runtime_error);
+    BOOST_CHECK_THROW(ps.typeOf("double"), std::runtime_error);
+    BOOST_CHECK_THROW(ps.add("int", 4.2), std::runtime_error);
+    std::vector<double> v;
+    v.push_back(3.14159);
+    v.push_back(2.71828);
+    BOOST_CHECK_THROW(ps.add("int", v), std::runtime_error);
+    BOOST_CHECK_NO_THROW(ps.remove("foo.bar"));
+    BOOST_CHECK_NO_THROW(ps.remove("int.sub"));
+}
+
 BOOST_AUTO_TEST_CASE(names) {
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);

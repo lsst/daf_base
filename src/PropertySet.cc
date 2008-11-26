@@ -391,7 +391,7 @@ void dafBase::PropertySet::remove(string const& name) {
     string prefix(name, 0, i);
     AnyMap::iterator j = _map.find(prefix);
     if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
-        throw runtime_error(name + " not found");
+        return;
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
     string suffix(name, i + 1);
