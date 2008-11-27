@@ -159,7 +159,7 @@ dafBase::PropertySet::propertySetNames(bool topLevelOnly) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return true if property exists.
   */
-bool dafBase::PropertySet::exists(string const& name) const {
+bool dafBase::PropertySet::exists(std::string const& name) const {
     return find(name) != _map.end();
 }
 
@@ -167,7 +167,7 @@ bool dafBase::PropertySet::exists(string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return true if property exists and has more than one value.
   */
-bool dafBase::PropertySet::isArray(string const& name) const {
+bool dafBase::PropertySet::isArray(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     return i != _map.end() && i->second->size() > 1U;
 }
@@ -176,7 +176,7 @@ bool dafBase::PropertySet::isArray(string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return true if property exists and its values are PropertySet::Ptrs.
   */
-bool dafBase::PropertySet::isPropertySetPtr(string const& name) const {
+bool dafBase::PropertySet::isPropertySetPtr(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     return i != _map.end() && i->second->back().type() == typeid(Ptr);
 }
@@ -185,7 +185,7 @@ bool dafBase::PropertySet::isPropertySetPtr(string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Number of values for that property.  0 if it doesn't exist.
   */
-size_t dafBase::PropertySet::valueCount(string const& name) const {
+size_t dafBase::PropertySet::valueCount(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) return 0;
     return i->second->size();
@@ -196,7 +196,7 @@ size_t dafBase::PropertySet::valueCount(string const& name) const {
   * @return Type of values for that property.
   * @throws NotFoundException Property does not exist.
   */
-type_info const& dafBase::PropertySet::typeOf(string const& name) const {
+type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
@@ -271,7 +271,7 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws boost::bad_any_cast Value is not a bool.
   */
-bool dafBase::PropertySet::getAsBool(string const& name) const {
+bool dafBase::PropertySet::getAsBool(std::string const& name) const {
     return get<bool>(name);
 }
 
@@ -283,7 +283,7 @@ bool dafBase::PropertySet::getAsBool(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws boost::bad_any_cast Value cannot be converted to int.
   */
-int dafBase::PropertySet::getAsInt(string const& name) const {
+int dafBase::PropertySet::getAsInt(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
@@ -308,7 +308,7 @@ int dafBase::PropertySet::getAsInt(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws boost::bad_any_cast Value cannot be converted to int64_t.
   */
-int64_t dafBase::PropertySet::getAsInt64(string const& name) const {
+int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
@@ -334,7 +334,7 @@ int64_t dafBase::PropertySet::getAsInt64(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws boost::bad_any_cast Value cannot be converted to double.
   */
-double dafBase::PropertySet::getAsDouble(string const& name) const {
+double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
@@ -365,7 +365,7 @@ double dafBase::PropertySet::getAsDouble(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws boost::bad_any_cast Value is not a string.
   */
-string dafBase::PropertySet::getAsString(string const& name) const {
+std::string dafBase::PropertySet::getAsString(std::string const& name) const {
     return get<string>(name);
 }
 
@@ -376,7 +376,7 @@ string dafBase::PropertySet::getAsString(string const& name) const {
   * @throws boost::bad_any_cast Value is not a PropertySet::Ptr.
   */
 dafBase::PropertySet::Ptr
-dafBase::PropertySet::getAsPropertySetPtr(string const& name) const {
+dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
     return get<Ptr>(name);
 }
 
@@ -387,7 +387,7 @@ dafBase::PropertySet::getAsPropertySetPtr(string const& name) const {
   * @throws boost::bad_any_cast Value is not a Persistable::Ptr.
   */
 dafBase::Persistable::Ptr
-dafBase::PropertySet::getAsPersistablePtr(string const& name) const {
+dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {
     return get<Persistable::Ptr>(name);
 }
 
@@ -397,8 +397,8 @@ dafBase::PropertySet::getAsPersistablePtr(string const& name) const {
   * @param[in] indent String to indent lines by (default none).
   * @return String representation of the PropertySet.
   */
-string dafBase::PropertySet::toString(bool topLevelOnly,
-                                      string const& indent) const {
+std::string dafBase::PropertySet::toString(bool topLevelOnly,
+                                           std::string const& indent) const {
     ostringstream s;
     vector<string> nv = names();
     sort(nv.begin(), nv.end());
@@ -482,7 +482,7 @@ void dafBase::PropertySet::set(string const& name, vector<T> const& value) {
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string (converted to \c std::string ).
   */
-void dafBase::PropertySet::set(string const& name, char const* value) {
+void dafBase::PropertySet::set(std::string const& name, char const* value) {
     set(name, string(value));
 }
 
@@ -540,7 +540,7 @@ void dafBase::PropertySet::add(string const& name, vector<T> const& value) {
   * @throws DomainErrorException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
-void dafBase::PropertySet::add(string const& name, char const* value) {
+void dafBase::PropertySet::add(std::string const& name, char const* value) {
    add(name, string(value));
 }
 
@@ -578,7 +578,7 @@ void dafBase::PropertySet::combine(Ptr const source) {
   * nothing if the property does not exist.
   * @param[in] name Property name to remove, possibly hierarchical.
   */
-void dafBase::PropertySet::remove(string const& name) {
+void dafBase::PropertySet::remove(std::string const& name) {
     string::size_type i = name.find('.');
     if (i == name.npos) {
         _map.erase(name);
@@ -605,7 +605,7 @@ void dafBase::PropertySet::remove(string const& name) {
   * Assumes that end() is the same for all unordered_maps.
   */
 dafBase::PropertySet::AnyMap::iterator
-dafBase::PropertySet::find(string const& name) {
+dafBase::PropertySet::find(std::string const& name) {
     string::size_type i = name.find('.');
     if (i == name.npos) {
         return _map.find(name);
@@ -627,7 +627,7 @@ dafBase::PropertySet::find(string const& name) {
   * Assumes that end() is the same for all unordered_maps.
   */
 dafBase::PropertySet::AnyMap::const_iterator
-dafBase::PropertySet::find(string const& name) const {
+dafBase::PropertySet::find(std::string const& name) const {
     string::size_type i = name.find('.');
     if (i == name.npos) {
         return _map.find(name);
@@ -649,7 +649,7 @@ dafBase::PropertySet::find(string const& name) const {
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::findOrInsert(
-    string const& name, boost::shared_ptr< vector<boost::any> > vp) {
+    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
     string::size_type i = name.find('.');
     if (i == name.npos) {
         _map[name] = vp;

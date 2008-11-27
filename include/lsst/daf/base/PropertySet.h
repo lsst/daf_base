@@ -38,8 +38,6 @@ namespace persistence {
 
 namespace base {
 
-using namespace std;
-
 class PropertySet :
     public Persistable, public Citizen, public boost::noncopyable {
 public:
@@ -55,65 +53,68 @@ public:
     // Returns a PropertySet::Ptr pointing to a new deep copy.
 
     size_t nameCount(bool topLevelOnly = true) const;
-    vector<string> names(bool topLevelOnly = true) const;
-    vector<string> paramNames(bool topLevelOnly = true) const;
-    vector<string> propertySetNames(bool topLevelOnly = true) const;
+    std::vector<std::string> names(bool topLevelOnly = true) const;
+    std::vector<std::string> paramNames(bool topLevelOnly = true) const;
+    std::vector<std::string> propertySetNames(bool topLevelOnly = true) const;
 
-    bool exists(string const& name) const;
-    bool isArray(string const& name) const;
-    bool isPropertySetPtr(string const& name) const;
+    bool exists(std::string const& name) const;
+    bool isArray(std::string const& name) const;
+    bool isPropertySetPtr(std::string const& name) const;
 
-    size_t valueCount(string const& name) const;
-    std::type_info const& typeOf(string const& name) const;
+    size_t valueCount(std::string const& name) const;
+    std::type_info const& typeOf(std::string const& name) const;
         // This returns typeof(vector::value_type), not the type of the value
         // vector itself.
 
     // The following throw an exception if the type does not match exactly.
-    template <typename T> T get(string const& name) const;
+    template <typename T> T get(std::string const& name) const;
         // Note that the type must be explicitly specified for this template:
         // int i = propertySet.get<int>("foo");
-    template <typename T> T get(string const& name,
-                                T const& defaultValue) const;
+    template <typename T>
+        T get(std::string const& name, T const& defaultValue) const;
         // Returns the provided default value if the name does not exist.
-    template <typename T> vector<T> getArray(string const& name) const;
+    template <typename T>
+        std::vector<T> getArray(std::string const& name) const;
 
     // The following throw an exception if the conversion is inappropriate.
-    bool getAsBool(string const& name) const;      // for bools only
-    int getAsInt(string const& name) const;        // bool, char, short, int
-    int64_t getAsInt64(string const& name) const;  // above plus int64_t
-    double getAsDouble(string const& name) const;  // above plus float, double
-    string getAsString(string const& name) const;  // for strings only
-    PropertySet::Ptr getAsPropertySetPtr(string const& name) const;
-    Persistable::Ptr getAsPersistablePtr(string const& name) const;
+    bool getAsBool(std::string const& name) const;      // for bools only
+    int getAsInt(std::string const& name) const;        // bool/char/short/int
+    int64_t getAsInt64(std::string const& name) const;  // above + int64_t
+    double getAsDouble(std::string const& name) const;  // + float, double
+    std::string getAsString(std::string const& name) const; // for strings only
+    PropertySet::Ptr getAsPropertySetPtr(std::string const& name) const;
+    Persistable::Ptr getAsPersistablePtr(std::string const& name) const;
 
     // Use this for debugging, not for serialization/persistence.
-    string toString(bool topLevelOnly = false,
-                    string const& indent = "") const;
+    std::string toString(bool topLevelOnly = false,
+                    std::string const& indent = "") const;
 
 // Modifiers
-    template <typename T> void set(string const& name, T const& value);
-    template <typename T> void set(string const& name, vector<T> const& value);
-    void set(string const& name, char const* value);
-    template <typename T> void add(string const& name, T const& value);
-    template <typename T> void add(string const& name, vector<T> const& value);
-    void add(string const& name, char const* value);
+    template <typename T> void set(std::string const& name, T const& value);
+    template <typename T> void set(std::string const& name,
+                                   std::vector<T> const& value);
+    void set(std::string const& name, char const* value);
+    template <typename T> void add(std::string const& name, T const& value);
+    template <typename T> void add(std::string const& name,
+                                   std::vector<T> const& value);
+    void add(std::string const& name, char const* value);
 
     void combine(Ptr const source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.
 
-    void remove(string const& name);
+    void remove(std::string const& name);
 
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter);
 
-    typedef tr1::unordered_map<string,
-            boost::shared_ptr< vector<boost::any> > > AnyMap;
+    typedef std::tr1::unordered_map<std::string,
+            boost::shared_ptr< std::vector<boost::any> > > AnyMap;
 
-    AnyMap::iterator find(string const& name);
-    AnyMap::const_iterator find(string const& name) const;
-    void findOrInsert(string const& name,
-                      boost::shared_ptr< vector<boost::any> > vp);
+    AnyMap::iterator find(std::string const& name);
+    AnyMap::const_iterator find(std::string const& name) const;
+    void findOrInsert(std::string const& name,
+                      boost::shared_ptr< std::vector<boost::any> > vp);
 
     AnyMap _map;
 };
