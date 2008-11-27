@@ -2,6 +2,7 @@
 >merge: base
 >merge: boost
 >merge: utils
+>merge: pex_exceptions
 >merge: swig
 >merge: doxygen
 >self

@@ -2,4 +2,4 @@
 Import("env")
 
 env.CheckSwig("python", ilang="c++", includedProducts="utils")
-env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.getlibs("daf_base"))
+env.LoadableModuleIncomplete("_baseLib", Split("baseLib.i"), LIBS=env.getlibs("daf_base pex_exceptions"))

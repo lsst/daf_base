@@ -12,14 +12,15 @@ Access to the classes from the daf_base library
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/DateTime.h"
 #include "lsst/daf/base/Persistable.h"
+#include "lsst/daf/base/PropertySet.h"
 %}
-
-#define NO_SWIG_LSST_EXCEPTIONS
 
 %include "lsst/p_lsstSwig.i"
 
+%lsst_exceptions()
+
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
-SWIG_SHARED_PTR_DERIVED(DataProperty, lsst::daf::base::Persistable, lsst::daf::base::DataProperty)
+SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
 
 class lsst::daf::base::Citizen;
 
@@ -35,9 +36,38 @@ class lsst::daf::base::Citizen;
     %ignore census();
 }
 
+// This has to come before PropertySet.h
+%define VectorAddType(type, typeName)
+    %template(Vector ## typeName) std::vector<type>;
+%enddef
+
+VectorAddType(bool, Bool)
+VectorAddType(short, Short)
+VectorAddType(int, Int)
+VectorAddType(long long, Int64)
+VectorAddType(float, Float)
+VectorAddType(double, Double)
+VectorAddType(std::string, String)
+VectorAddType(lsst::daf::base::DateTime, DateTime)
+
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
+%include "lsst/daf/base/PropertySet.h"
 
-%include "DataProperty.i"
+// This has to come after PropertySet.h
+%define PropertySetAddType(type, typeName)
+    %template(set ## typeName) lsst::daf::base::PropertySet::set<type>;
+    %template(add ## typeName) lsst::daf::base::PropertySet::add<type>;
+    %template(get ## typeName) lsst::daf::base::PropertySet::get<type>;
+    %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type>;
+%enddef
 
+PropertySetAddType(bool, Bool)
+PropertySetAddType(short, Short)
+PropertySetAddType(int, Int)
+PropertySetAddType(long long, Int64)
+PropertySetAddType(float, Float)
+PropertySetAddType(double, Double)
+PropertySetAddType(std::string, String)
+PropertySetAddType(lsst::daf::base::DateTime, DateTime)
