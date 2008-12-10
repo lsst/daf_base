@@ -5,7 +5,7 @@
 import glob, os.path, re
 import lsst.SConsUtils as scons
 
-dependencies = ["boost", "python", "utils"]
+dependencies = ["boost", "python", "utils", "pex_exceptions"]
 
 env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
@@ -14,13 +14,20 @@ env = scons.makeEnv("daf_base",
                      ["utils", "lsst/utils/Utils.h", "utils:C++"],
                      ["pex_exceptions", "lsst/pex/exceptions/Runtime.h", "pex_exceptions:C++"]
                     ])
+env.Help("""
+LSST Data Access Framework base package
+""")
 
-env.libs["daf_base"] += env.getlibs(" ".join(dependencies))
+###############################################################################
+# Boilerplate below here
+
+pkg = env["eups_product"]
+env.libs[pkg] += env.getlibs(" ".join(dependencies))
 
 #
 # Build/install things
 #
-for d in Split("examples lib tests python/lsst/daf/base doc"):
+for d in Split("lib python/lsst/" + re.sub(r'_', "/", pkg) + " examples tests doc"):
     SConscript(os.path.join(d, "SConscript"))
 
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
@@ -42,6 +49,3 @@ if files:
     env.Command("TAGS", files, "etags -o $TARGET $SOURCES")
 
 env.Declare()
-env.Help("""
-LSST Data Access Framework base package
-""")

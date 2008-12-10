@@ -1,12 +1,7 @@
 # -*- python -*-
 Import('env')
-import os
+import glob
 
-env.SharedLibrary('daf_base',
-                         map(lambda str: "../src/" + str,
-                            ["Citizen.cc",
-                             "DateTime.cc",
-                             "Persistable.cc",
-                             "PropertySet.cc"
-                            ]), LIBS=env.getlibs("boost utils"))
-
+pkg = env["eups_product"]
+env.SharedLibrary(pkg, glob.glob("../src/*.cc"),
+    LIBS=filter(lambda x: x != pkg, env.getlibs(pkg)))

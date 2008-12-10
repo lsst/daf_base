@@ -1,8 +1,8 @@
 # -*- python -*-
 Import('env')
+import glob
 
-env.Program("citizen", ["citizen.cc"],
-    LIBS=env.getlibs("daf_base utils pex_exceptions"))
+env.Program(glob.glob("*.cc"), LIBS=env.getlibs(env["eups_product"]))
 
 #
 # Tests

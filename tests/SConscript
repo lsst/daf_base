@@ -1,11 +1,8 @@
 # -*- python -*-
 Import("env")
+import glob
 
-env.Program(["PropertySet_1.cc"],
-    LIBS=env.getlibs("daf_base utils pex_exceptions"))
-
-env.CheckSwig("python", ilang="c++")
-env.Append(SWIGFLAGS=" -Ipython")
+env.Program(glob.glob("*.cc"), LIBS=env.getlibs(env["eups_product"]))
 
 #
 # Tests
@@ -13,7 +10,7 @@ env.Append(SWIGFLAGS=" -Ipython")
 import lsst.tests
 
 tests = lsst.tests.Control(env, verbose = True)
-tests.run("PropertySet_*.cc")
+tests.run("*.cc")
 
 for target in tests.run("*.py"):
      env.Depends(target,
