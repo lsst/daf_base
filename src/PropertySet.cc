@@ -53,7 +53,13 @@ dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
         if (i->second->back().type() == typeid(Ptr)) {
             for (vector<boost::any>::const_iterator j =
                  i->second->begin(); j != i->second->end(); ++j) {
-                n->add(i->first, boost::any_cast<Ptr>(*j)->deepCopy());
+                Ptr p = boost::any_cast<Ptr>(*j);
+                if (p.get() == 0) {
+                    n->add(i->first, Ptr());
+                }
+                else {
+                    n->add(i->first, p->deepCopy());
+                }
             }
         }
         else {
@@ -75,7 +81,10 @@ size_t dafBase::PropertySet::nameCount(bool topLevelOnly) const {
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         ++n;
         if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            n += boost::any_cast<Ptr>(i->second->back())->nameCount(false);
+            Ptr p = boost::any_cast<Ptr>(i->second->back());
+            if (p.get() != 0) {
+                n += p->nameCount(false);
+            }
         }
     }
     return n;
@@ -92,11 +101,13 @@ vector<string> dafBase::PropertySet::names(bool topLevelOnly) const {
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         v.push_back(i->first);
         if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            vector<string> w =
-                boost::any_cast<Ptr>(i->second->back())->names(false);
-            for (vector<string>::const_iterator k = w.begin();
-                 k != w.end(); ++k) {
-                v.push_back(i->first + "." + *k);
+            Ptr p = boost::any_cast<Ptr>(i->second->back());
+            if (p.get() != 0) {
+                vector<string> w = p->names(false);
+                for (vector<string>::const_iterator k = w.begin();
+                     k != w.end(); ++k) {
+                    v.push_back(i->first + "." + *k);
+                }
             }
         }
     }
@@ -114,9 +125,9 @@ dafBase::PropertySet::paramNames(bool topLevelOnly) const {
     vector<string> v;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         if (i->second->back().type() == typeid(Ptr)) {
-            if (!topLevelOnly) {
-                vector<string> w =
-                    boost::any_cast<Ptr>(i->second->back())->paramNames(false);
+            Ptr p = boost::any_cast<Ptr>(i->second->back());
+            if (p.get() != 0 && !topLevelOnly) {
+                vector<string> w = p->paramNames(false);
                 for (vector<string>::const_iterator k = w.begin();
                      k != w.end(); ++k) {
                     v.push_back(i->first + "." + *k);
@@ -142,9 +153,9 @@ dafBase::PropertySet::propertySetNames(bool topLevelOnly) const {
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         if (i->second->back().type() == typeid(Ptr)) {
             v.push_back(i->first);
-            if (!topLevelOnly) {
-                vector<string> w = boost::any_cast<Ptr>(i->second->back())->
-                    propertySetNames(false);
+            Ptr p = boost::any_cast<Ptr>(i->second->back());
+            if (p.get() != 0 && !topLevelOnly) {
+                vector<string> w = p->propertySetNames(false);
                 for (vector<string>::const_iterator k = w.begin();
                      k != w.end(); ++k) {
                     v.push_back(i->first + "." + *k);
@@ -432,10 +443,15 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
                     s << "{ ... }";
                 }
                 else {
-                    s << '{' << std::endl;
-                    s << boost::any_cast<Ptr>(*k)->toString(false,
-                                                            indent + "..");
-                    s << indent << '}';
+                    Ptr p = boost::any_cast<Ptr>(v);
+                    if (p.get() == 0) {
+                        s << "{ NULL }";
+                    }
+                    else {
+                        s << '{' << std::endl;
+                        s << p->toString(false, indent + "..");
+                        s << indent << '}';
+                    }
                 }
             }
             else if (t == typeid(Persistable::Ptr)) s << "<Persistable>";
@@ -553,6 +569,9 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
   * May only partially combine the PropertySets if an exception occurs.
   */
 void dafBase::PropertySet::combine(Ptr const source) {
+    if (source.get() == 0) {
+        return;
+    }
     vector<string> names = source->paramNames(false);
     for (vector<string>::const_iterator i = names.begin();
          i != names.end(); ++i) {
@@ -590,8 +609,10 @@ void dafBase::PropertySet::remove(std::string const& name) {
         return;
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
-    string suffix(name, i + 1);
-    p->remove(suffix);
+    if (p.get() != 0) {
+        string suffix(name, i + 1);
+        p->remove(suffix);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -616,6 +637,9 @@ dafBase::PropertySet::find(std::string const& name) {
         return _map.end();
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
+    if (p.get() == 0) {
+        return _map.end();
+    }
     string suffix(name, i + 1);
     return p->find(suffix);
 }
@@ -638,6 +662,9 @@ dafBase::PropertySet::find(std::string const& name) const {
         return _map.end();
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
+    if (p.get() == 0) {
+        return _map.end();
+    }
     string suffix(name, i + 1);
     return p->find(suffix);
 }
@@ -672,6 +699,11 @@ void dafBase::PropertySet::findOrInsert(
                           " exists but does not contain PropertySet::Ptrs");
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
+    if (p.get() == 0) {
+        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                          prefix +
+                          " exists but contains null PropertySet::Ptr");
+    }
     p->findOrInsert(suffix, vp);
 }
 
