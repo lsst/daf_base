@@ -22,6 +22,9 @@ Access to the classes from the daf_base library
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
 SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
 
+%include "persistenceMacros.i"
+%lsst_persistable(lsst::daf::base::PropertySet);
+
 class lsst::daf::base::Citizen;
 
 %template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
