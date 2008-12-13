@@ -53,6 +53,33 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("ints2"), 8)
         self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
 
+    def testGetVector2(self):
+        ps = dafBase.PropertySet()
+        v = [42, 2008, 1]
+        ps.setInt("ints", v)
+        ps.setInt("ints2", [10, 9, 8])
+        w = ps.getArrayInt("ints")
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v[0], w[0])
+        self.assertEqual(v[1], w[1])
+        self.assertEqual(v[2], w[2])
+        self.assertEqual(ps.getInt("ints2"), 8)
+        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+
+    def testAddScalar(self):
+        ps = dafBase.PropertySet()
+        v = [42, 2008, 1]
+        ps.setInt("ints", v)
+        ps.addInt("ints", -999)
+        ps.add("other", "foo")
+        w = ps.getArrayInt("ints")
+        self.assertEqual(len(w), 4)
+        self.assertEqual(v[0], w[0])
+        self.assertEqual(v[1], w[1])
+        self.assertEqual(v[2], w[2])
+        self.assertEqual(w[3], -999)
+        self.assertEqual(ps.getString("other"), "foo")
+
 if __name__ == '__main__':
     unittest.main()
 
@@ -82,25 +109,6 @@ if __name__ == '__main__':
 #     BOOST_CHECK_THROW(ps.get<std::string>("int"), boost::bad_any_cast);
 # }
 # 
-# 
-# BOOST_AUTO_TEST_CASE(addScalar) {
-#     dafBase::PropertySet ps;
-#     std::vector<int> v;
-#     v.push_back(42);
-#     v.push_back(2008);
-#     v.push_back(1);
-#     ps.set("ints", v);
-#     ps.add("ints", -999);
-#     ps.add("other", "foo");
-# 
-#     std::vector<int> w = ps.getArray<int>("ints");
-#     BOOST_CHECK_EQUAL(w.size(), 4U);
-#     for (int i = 0; i < 3; ++i) {
-#         BOOST_CHECK_EQUAL(v[i], w[i]);
-#     }
-#     BOOST_CHECK_EQUAL(w[3], -999);
-#     BOOST_CHECK_EQUAL(ps.get<std::string>("other"), "foo");
-# }
 # 
 # BOOST_AUTO_TEST_CASE(addVector) {
 #     dafBase::PropertySet ps;
