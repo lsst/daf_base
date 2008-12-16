@@ -25,8 +25,6 @@ SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::ba
 %include "persistenceMacros.i"
 %lsst_persistable(lsst::daf::base::PropertySet);
 
-%import "lsst/pex/exceptions/exceptionsLib.i"
-
 class lsst::daf::base::Citizen;
 
 %template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
