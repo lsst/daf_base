@@ -10,6 +10,7 @@ dependencies = ["boost", "python", "utils", "pex_exceptions"]
 env = scons.makeEnv("daf_base",
                     r"$HeadURL$",
                     [["boost", "boost/shared_ptr.hpp"],
+                     ["boost", "boost/regex.hpp", "boost_regex:C++"],
                      ["python", "Python.h"],
                      ["utils", "lsst/utils/Utils.h", "utils:C++"],
                      ["pex_exceptions", "lsst/pex/exceptions/Runtime.h", "pex_exceptions:C++"]
