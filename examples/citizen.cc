@@ -4,6 +4,7 @@
 #include <boost/format.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
+#include "lsst/pex/exceptions.h"
 #include "lsst/daf/base/Citizen.h"
 
 //
@@ -12,7 +13,7 @@
 
 namespace rhl {
 
-class Shoe : private lsst::daf::base::Citizen {
+class Shoe : public lsst::daf::base::Citizen {
 public:
     Shoe(int i = 0) : Citizen(typeid(this)), _i(i) { }
     ~Shoe() { }
@@ -20,11 +21,11 @@ private:
     int _i;
 };
 
-} // namespace rhl
+}
 
 using namespace rhl;
 
-class MyClass : private lsst::daf::base::Citizen {
+class MyClass : public lsst::daf::base::Citizen {
   public:
     MyClass(const char *typeName = 0) :
         Citizen(typeid(this)),
@@ -67,12 +68,9 @@ int main() {
     (void)Citizen::setNewCallback(newCallback);
     (void)Citizen::setDeleteCallback(deleteCallback);
 #endif
-    // x isn't going to be deleted until main exists, so I don't want to see it
-    // listed as a memory leak; I accordingly save the memId just _after_
-    // it was allocated, and will only ask for leaks that occurred after
-    // this point    
-    Shoe x;
     const Citizen::memId firstId = Citizen::getNextMemId();
+    Shoe x;
+    x.markPersistent();                 // x isn't going to be deleted until main exists, so don't list as a leak
     
     boost::scoped_ptr<Shoe> y(new Shoe);
     boost::scoped_ptr<Shoe> z(new Shoe(10));
@@ -90,14 +88,14 @@ int main() {
     z.reset();                          // i.e. delete pointed-to object
     delete mine;
 
-    ((int *)y.get())[1] = 0;            // deliberately corrupt the block
+    ((int *)y.get())[0] = 0;            // deliberately corrupt the block
     try {
         std::cerr << "Checking corruption\n";
         (void)Citizen::checkCorruption();
-    } catch(std::runtime_error& e) {
-        std::cerr << "Memory check: " << e.what() <<
-            "; proceeding with trepidation\n";
-        ((int *)y.get())[1] = 0xdeadbeef; // uncorrupt the block
+    } catch(lsst::pex::exceptions::MemoryException& e) {
+        std::cerr << "Memory check: " << e <<
+            "Proceeding with trepidation\n";
+        ((int *)y.get())[0] = 0xdeadbeef; // uncorrupt the block
     }
 
     y.reset();

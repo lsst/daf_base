@@ -7,6 +7,7 @@
 #include <boost/format.hpp>
 #include <ctype.h>
 #include "lsst/daf/base/Citizen.h"
+#include "lsst/pex/exceptions.h"
 #include "lsst/utils/Demangle.h"
 
 namespace lsst {
@@ -298,7 +299,8 @@ Citizen::memId defaultDeleteCallback(const Citizen *ptr //!< About-to-be deleted
 //! Default CorruptionCallback
 Citizen::memId defaultCorruptionCallback(const Citizen *ptr //!< About-to-be deleted Citizen
                               ) {
-//    throw lsst::Memory(str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
+    throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                      str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
 
     return ptr->getId();                // NOTREACHED
 }

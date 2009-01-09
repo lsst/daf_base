@@ -3,13 +3,3 @@ Import('env')
 import glob
 
 env.Program(glob.glob("*.cc"), LIBS=env.getlibs(env["eups_product"]))
-
-#
-# Tests
-#
-import lsst.tests
-tests = lsst.tests.Control(env, verbose=True)
-
-if tests.runExamples:
-    tests.run("*.cc")
-    tests.run("*.py")
