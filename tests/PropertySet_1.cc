@@ -676,4 +676,26 @@ BOOST_AUTO_TEST_CASE(toString) {
         );
 }
 
+BOOST_AUTO_TEST_CASE(cycle) {
+    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    psp->set("int", 42);
+    psp->set("a.double", 3.14159);
+    psp->set("b.c.d", 2008);
+    dafBase::PropertySet::Ptr a = psp->getAsPropertySetPtr("a");
+    dafBase::PropertySet::Ptr b = psp->getAsPropertySetPtr("b");
+    dafBase::PropertySet::Ptr c = psp->getAsPropertySetPtr("b.c");
+    BOOST_CHECK_THROW(psp->set("t", psp),
+                      pexExcept::InvalidParameterException);
+    BOOST_CHECK_THROW(psp->set("a.t", psp),
+                      pexExcept::InvalidParameterException);
+    BOOST_CHECK_THROW(psp->set("a.t", a),
+                      pexExcept::InvalidParameterException);
+    psp->set("b.t", psp->getAsPropertySetPtr("a"));
+    BOOST_CHECK_EQUAL(a, psp->getAsPropertySetPtr("b.t"));
+    BOOST_CHECK_THROW(psp->set("b.c.t", b),
+                      pexExcept::InvalidParameterException);
+    BOOST_CHECK_THROW(psp->set("b.c.t", c),
+                      pexExcept::InvalidParameterException);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

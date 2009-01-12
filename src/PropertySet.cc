@@ -448,7 +448,7 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
                         s << "{ NULL }";
                     }
                     else {
-                        s << '{' << std::endl;
+                        s << '{' << endl;
                         s << p->toString(false, indent + "..");
                         s << indent << '}';
                     }
@@ -458,7 +458,7 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
             else s << "<Unknown>";
         }
         if (j->second->size() > 1) s << " ]";
-        s << std::endl;
+        s << endl;
     }
     return s.str();
 }
@@ -474,7 +474,7 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertySet::set(string const& name, T const& value) {
+void dafBase::PropertySet::set(std::string const& name, T const& value) {
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->push_back(value);
     findOrInsert(name, vp);
@@ -487,7 +487,8 @@ void dafBase::PropertySet::set(string const& name, T const& value) {
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertySet::set(string const& name, vector<T> const& value) {
+void dafBase::PropertySet::set(std::string const& name,
+                               vector<T> const& value) {
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->insert(vp->end(), value.begin(), value.end());
     findOrInsert(name, vp);
@@ -510,7 +511,7 @@ void dafBase::PropertySet::set(std::string const& name, char const* value) {
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertySet::add(string const& name, T const& value) {
+void dafBase::PropertySet::add(std::string const& name, T const& value) {
     AnyMap::iterator i = find(name);
     if (i == _map.end()) {
         set(name, value);
@@ -534,7 +535,8 @@ void dafBase::PropertySet::add(string const& name, T const& value) {
   * May only partially add the vector if an exception occurs.
   */
 template <typename T>
-void dafBase::PropertySet::add(string const& name, vector<T> const& value) {
+void dafBase::PropertySet::add(std::string const& name,
+                               vector<T> const& value) {
     AnyMap::iterator i = find(name);
     if (i == _map.end()) {
         set(name, value);
@@ -544,6 +546,23 @@ void dafBase::PropertySet::add(string const& name, vector<T> const& value) {
             throw LSST_EXCEPT(pexExcept::DomainErrorException,
                               name + " has mismatched type");
         }
+        i->second->insert(i->second->end(), value.begin(), value.end());
+    }
+}
+
+// Specialize for Ptrs to check for cycles.
+template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
+    std::string const& name, vector<Ptr> const& value) {
+    AnyMap::iterator i = find(name);
+    if (i == _map.end()) {
+        set(name, value);
+    }
+    else {
+        if (i->second->back().type() != typeid(Ptr)) {
+            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+                              name + " has mismatched type");
+        }
+        cycleCheckPtr(value, name);
         i->second->insert(i->second->end(), value.begin(), value.end());
     }
 }
@@ -586,6 +605,10 @@ void dafBase::PropertySet::combine(Ptr const source) {
             if (sj->second->back().type() != dj->second->back().type()) {
                 throw LSST_EXCEPT(pexExcept::DomainErrorException,
                                   *i + " has mismatched type");
+            }
+            // Check for cycles
+            if (sj->second->back().type() == typeid(Ptr)) {
+                cycleCheckAny(*(sj->second), *i);
             }
             dj->second->insert(dj->second->end(),
                                sj->second->begin(), sj->second->end());
@@ -677,6 +700,11 @@ dafBase::PropertySet::find(std::string const& name) const {
   */
 void dafBase::PropertySet::findOrInsert(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+    // Check for cycles
+    if (vp->back().type() == typeid(Ptr)) {
+        cycleCheckAny(*vp, name);
+    }
+
     string::size_type i = name.find('.');
     if (i == name.npos) {
         _map[name] = vp;
@@ -705,6 +733,26 @@ void dafBase::PropertySet::findOrInsert(
                           " exists but contains null PropertySet::Ptr");
     }
     p->findOrInsert(suffix, vp);
+}
+
+void dafBase::PropertySet::cycleCheckPtr(std::vector<Ptr> const& v,
+                                         std::string const& name) {
+    for (vector<Ptr>::const_iterator i = v.begin(); i != v.end(); ++i) {
+        if (i->get() == this) {
+            throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                              name + " would cause a cycle");
+        }
+    }
+}
+
+void dafBase::PropertySet::cycleCheckAny(std::vector<boost::any> const& v,
+                                         std::string const& name) {
+    for (vector<boost::any>::const_iterator i = v.begin(); i != v.end(); ++i) {
+        if (boost::any_cast<Ptr>(*i).get() == this) {
+            throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                              name + " would cause a cycle");
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
