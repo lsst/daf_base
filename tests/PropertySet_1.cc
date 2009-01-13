@@ -336,13 +336,11 @@ BOOST_AUTO_TEST_CASE(variousThrows) {
                       lsst::pex::exceptions::NotFoundException);
     BOOST_CHECK_THROW(ps.typeOf("double"),
                       lsst::pex::exceptions::NotFoundException);
-    BOOST_CHECK_THROW(ps.add("int", 4.2),
-                      lsst::pex::exceptions::DomainErrorException);
+    BOOST_CHECK_THROW(ps.add("int", 4.2), dafBase::TypeMismatchException);
     std::vector<double> v;
     v.push_back(3.14159);
     v.push_back(2.71828);
-    BOOST_CHECK_THROW(ps.add("int", v),
-                      lsst::pex::exceptions::DomainErrorException);
+    BOOST_CHECK_THROW(ps.add("int", v), dafBase::TypeMismatchException);
     BOOST_CHECK_NO_THROW(ps.remove("foo.bar"));
     BOOST_CHECK_NO_THROW(ps.remove("int.sub"));
 }
@@ -537,8 +535,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) {
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(ps.combine(psp),
-                      lsst::pex::exceptions::DomainErrorException);
+    BOOST_CHECK_THROW(ps.combine(psp), dafBase::TypeMismatchException);
 }
 
 BOOST_AUTO_TEST_CASE(remove) {
@@ -695,6 +692,8 @@ BOOST_AUTO_TEST_CASE(cycle) {
     BOOST_CHECK_THROW(psp->set("b.c.t", b),
                       pexExcept::InvalidParameterException);
     BOOST_CHECK_THROW(psp->set("b.c.t", c),
+                      pexExcept::InvalidParameterException);
+    BOOST_CHECK_THROW(a->set("t", psp),
                       pexExcept::InvalidParameterException);
 }
 

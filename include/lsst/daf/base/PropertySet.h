@@ -116,13 +116,16 @@ private:
     AnyMap::const_iterator find(std::string const& name) const;
     void findOrInsert(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
-    void cycleCheckPtr(std::vector<Ptr> const& v, std::string const& name);
-    void cycleCheckAny(std::vector<boost::any> const& v,
-                       std::string const& name);
+    void cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
+    void cycleCheckAnyVec(std::vector<boost::any> const& v,
+                          std::string const& name);
+    void cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
 };
 
+template<> void PropertySet::add<PropertySet::Ptr>(
+    std::string const& name, Ptr const& value);
 template<> void PropertySet::add<PropertySet::Ptr>(
     std::string const& name, std::vector<Ptr> const& value);
 

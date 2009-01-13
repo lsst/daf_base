@@ -547,7 +547,7 @@ void dafBase::PropertySet::set(std::string const& name, char const* value) {
   * (possibly hierarchical).  Sets the value if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
-  * @throws DomainErrorException Type does not match existing values.
+  * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
@@ -558,9 +558,26 @@ void dafBase::PropertySet::add(std::string const& name, T const& value) {
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+            throw LSST_EXCEPT(TypeMismatchException,
                               name + " has mismatched type");
         }
+        i->second->push_back(value);
+    }
+}
+
+// Specialize for Ptrs to check for cycles.
+template <> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
+    std::string const& name, Ptr const& value) {
+    AnyMap::iterator i = find(name);
+    if (i == _map.end()) {
+        set(name, value);
+    }
+    else {
+        if (i->second->back().type() != typeid(Ptr)) {
+            throw LSST_EXCEPT(TypeMismatchException,
+                              name + " has mismatched type");
+        }
+        cycleCheckPtr(value, name);
         i->second->push_back(value);
     }
 }
@@ -569,7 +586,7 @@ void dafBase::PropertySet::add(std::string const& name, T const& value) {
   * (possibly hierarchical).  Sets the values if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
-  * @throws DomainErrorException Type does not match existing values.
+  * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   * @note
   * May only partially add the vector if an exception occurs.
@@ -583,7 +600,7 @@ void dafBase::PropertySet::add(std::string const& name,
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+            throw LSST_EXCEPT(TypeMismatchException,
                               name + " has mismatched type");
         }
         i->second->insert(i->second->end(), value.begin(), value.end());
@@ -599,10 +616,10 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
     }
     else {
         if (i->second->back().type() != typeid(Ptr)) {
-            throw LSST_EXCEPT(pexExcept::DomainErrorException,
+            throw LSST_EXCEPT(TypeMismatchException,
                               name + " has mismatched type");
         }
-        cycleCheckPtr(value, name);
+        cycleCheckPtrVec(value, name);
         i->second->insert(i->second->end(), value.begin(), value.end());
     }
 }
@@ -612,7 +629,7 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
   * does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Character string value to append.
-  * @throws DomainErrorException Type does not match existing values.
+  * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::add(std::string const& name, char const* value) {
@@ -622,7 +639,7 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
 /** Appends all value vectors from the \a source to their corresponding
   * properties.  Sets values if a property does not exist.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @throws DomainErrorException Type does not match existing values.
+  * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   * @note
   * May only partially combine the PropertySets if an exception occurs.
@@ -643,12 +660,12 @@ void dafBase::PropertySet::combine(Ptr const source) {
         }
         else {
             if (sj->second->back().type() != dj->second->back().type()) {
-                throw LSST_EXCEPT(pexExcept::DomainErrorException,
+                throw LSST_EXCEPT(TypeMismatchException,
                                   *i + " has mismatched type");
             }
             // Check for cycles
             if (sj->second->back().type() == typeid(Ptr)) {
-                cycleCheckAny(*(sj->second), *i);
+                cycleCheckAnyVec(*(sj->second), *i);
             }
             dj->second->insert(dj->second->end(),
                                sj->second->begin(), sj->second->end());
@@ -742,7 +759,7 @@ void dafBase::PropertySet::findOrInsert(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
     // Check for cycles
     if (vp->back().type() == typeid(Ptr)) {
-        cycleCheckAny(*vp, name);
+        cycleCheckAnyVec(*vp, name);
     }
 
     string::size_type i = name.find('.');
@@ -775,20 +792,30 @@ void dafBase::PropertySet::findOrInsert(
     p->findOrInsert(suffix, vp);
 }
 
-void dafBase::PropertySet::cycleCheckPtr(std::vector<Ptr> const& v,
+void dafBase::PropertySet::cycleCheckPtrVec(std::vector<Ptr> const& v,
                                          std::string const& name) {
     for (vector<Ptr>::const_iterator i = v.begin(); i != v.end(); ++i) {
-        if (i->get() == this) {
-            throw LSST_EXCEPT(pexExcept::InvalidParameterException,
-                              name + " would cause a cycle");
-        }
+        cycleCheckPtr(*i, name);
     }
 }
 
-void dafBase::PropertySet::cycleCheckAny(std::vector<boost::any> const& v,
+void dafBase::PropertySet::cycleCheckAnyVec(std::vector<boost::any> const& v,
                                          std::string const& name) {
     for (vector<boost::any>::const_iterator i = v.begin(); i != v.end(); ++i) {
-        if (boost::any_cast<Ptr>(*i).get() == this) {
+        cycleCheckPtr(boost::any_cast<Ptr>(*i), name);
+    }
+}
+
+void dafBase::PropertySet::cycleCheckPtr(Ptr const& v,
+                                         std::string const& name) {
+    if (v.get() == this) {
+        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                          name + " would cause a cycle");
+    }
+    vector<string> sets = v->propertySetNames(false);
+    for (vector<string>::const_iterator i = sets.begin();
+         i != sets.end(); ++i) {
+        if (v->getAsPropertySetPtr(*i).get() == this) {
             throw LSST_EXCEPT(pexExcept::InvalidParameterException,
                               name + " would cause a cycle");
         }
