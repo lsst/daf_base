@@ -529,6 +529,7 @@ void dafBase::PropertySet::set(std::string const& name, T const& value) {
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name,
                                vector<T> const& value) {
+    if (value.empty()) return;
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->insert(vp->end(), value.begin(), value.end());
     findOrInsert(name, vp);
@@ -702,8 +703,6 @@ void dafBase::PropertySet::remove(std::string const& name) {
 /** Finds the property name (possibly hierarchical).
   * @param[in] name Property name to find, possibly hierarchical.
   * @return unordered_map::iterator to the property or end() if nonexistent.
-  * @note
-  * Assumes that end() is the same for all unordered_maps.
   */
 dafBase::PropertySet::AnyMap::iterator
 dafBase::PropertySet::find(std::string const& name) {
@@ -721,14 +720,16 @@ dafBase::PropertySet::find(std::string const& name) {
         return _map.end();
     }
     string suffix(name, i + 1);
-    return p->find(suffix);
+    AnyMap::iterator x = p->find(suffix);
+    if (x == p->_map.end()) {
+        return _map.end();
+    }
+    return x;
 }
 
 /** Finds the property name (possibly hierarchical).  Const version.
   * @param[in] name Property name to find, possibly hierarchical.
   * @return unordered_map::const_iterator to the property or end().
-  * @note
-  * Assumes that end() is the same for all unordered_maps.
   */
 dafBase::PropertySet::AnyMap::const_iterator
 dafBase::PropertySet::find(std::string const& name) const {
@@ -746,7 +747,11 @@ dafBase::PropertySet::find(std::string const& name) const {
         return _map.end();
     }
     string suffix(name, i + 1);
-    return p->find(suffix);
+    AnyMap::const_iterator x = p->find(suffix);
+    if (x == p->_map.end()) {
+        return _map.end();
+    }
+    return x;
 }
 
 /** Finds the property name (possibly hierarchical) and sets or replaces its
