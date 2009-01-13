@@ -75,3 +75,50 @@ PropertySetAddType(float, Float)
 PropertySetAddType(double, Double)
 PropertySetAddType(std::string, String)
 PropertySetAddType(lsst::daf::base::DateTime, DateTime)
+
+%pythoncode {
+def getPSValue(self, name):
+    """
+    Extract a single Python value of unknown type from a PropertySet by
+    trying each Python-compatible type in turn until no exception is raised.
+    """
+    try:
+        value = self.getAsString(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsPropertySetPtr(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsPersistablePtr(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsBool(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsInt(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsInt64(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getAsDouble(name)
+        return value
+    except:
+        pass
+    raise lsst.pex.exceptions.LsstException, \
+        'Unknown DataProperty value type for ' + name
+
+PropertySet.get = getPSValue
+}
