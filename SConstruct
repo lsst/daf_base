@@ -2,7 +2,7 @@
 #
 # Setup our environment
 #
-import glob, os.path, re
+import glob, os.path, re, sys
 import lsst.SConsUtils as scons
 
 dependencies = ["boost", "python", "utils", "pex_exceptions"]
@@ -29,7 +29,10 @@ env.libs[pkg] += env.getlibs(" ".join(dependencies))
 # Build/install things
 #
 for d in Split("lib python/lsst/" + re.sub(r'_', "/", pkg) + " examples tests doc"):
-    SConscript(os.path.join(d, "SConscript"))
+    try:
+        SConscript(os.path.join(d, "SConscript"))
+    except Exception, e:
+        print >> sys.stderr, "%s: %s" % (os.path.join(d, "SConscript"), e)
 
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
 
@@ -38,7 +41,7 @@ Alias("install", [env.Install(env['prefix'], "python"),
                   env.Install(env['prefix'], "lib"),
                   env.InstallAs(os.path.join(env['prefix'], "doc", "doxygen"),
                                 os.path.join("doc", "htmlDir")),
-                  env.InstallEups(env['prefix'] + "/ups", glob.glob("ups/*.table"))])
+                  env.InstallEups(env['prefix'] + "/ups")])
 
 scons.CleanTree(r"*~ core *.so *.os *.o")
 
