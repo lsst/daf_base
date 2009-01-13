@@ -140,15 +140,15 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) {
     ps.set("char*2", "foo2");
     ps.set("string", std::string("bar"));
 
-    BOOST_CHECK_THROW(ps.get<bool>("short"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<bool>("int"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<short>("int"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<int>("short"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<int>("bool"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<unsigned int>("int"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<double>("float"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<float>("double"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.get<std::string>("int"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.get<bool>("short"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<bool>("int"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<short>("int"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<int>("short"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<int>("bool"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<unsigned int>("int"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<double>("float"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<float>("double"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.get<std::string>("int"), dafBase::TypeMismatchException);
 }
 
 BOOST_AUTO_TEST_CASE(getVector) {
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(variousThrows) {
     ps.set("int", 42);
     BOOST_CHECK_THROW(ps.set("int.sub", "foo"),
                       lsst::pex::exceptions::InvalidParameterException);
-    BOOST_CHECK_THROW(ps.get<double>("int"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.get<double>("int"), dafBase::TypeMismatchException);
     BOOST_CHECK_THROW(ps.get<double>("double"),
                       lsst::pex::exceptions::NotFoundException);
     BOOST_CHECK_THROW(ps.getArray<double>("double"),
@@ -449,18 +449,18 @@ BOOST_AUTO_TEST_CASE(getAs) {
     ps.set("top", psp);
 
     BOOST_CHECK_EQUAL(ps.getAsBool("bool"), true);
-    BOOST_CHECK_THROW(ps.getAsBool("char"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsBool("char"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsInt("bool"), 1);
     BOOST_CHECK_EQUAL(ps.getAsInt("char"), static_cast<int>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt("short"), 42);
     BOOST_CHECK_EQUAL(ps.getAsInt("int"), 2008);
-    BOOST_CHECK_THROW(ps.getAsInt("int64_t"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsInt("int64_t"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsInt64("bool"), 1LL);
     BOOST_CHECK_EQUAL(ps.getAsInt64("char"), static_cast<int64_t>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt64("short"), 42LL);
     BOOST_CHECK_EQUAL(ps.getAsInt64("int"), 2008LL);
     BOOST_CHECK_EQUAL(ps.getAsInt64("int64_t"), 0xfeeddeadbeefLL);
-    BOOST_CHECK_THROW(ps.getAsInt64("float"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsInt64("float"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsDouble("bool"), 1.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("char"), static_cast<double>('A'));
     BOOST_CHECK_EQUAL(ps.getAsDouble("short"), 42.0);
@@ -469,16 +469,16 @@ BOOST_AUTO_TEST_CASE(getAs) {
                       static_cast<double>(0xfeeddeadbeefLL));
     BOOST_CHECK_EQUAL(ps.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.getAsDouble("double"), 2.718281828459045);
-    BOOST_CHECK_THROW(ps.getAsDouble("char*"), boost::bad_any_cast);
-    BOOST_CHECK_THROW(ps.getAsString("char"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsDouble("char*"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(ps.getAsString("char"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsString("char*"), "foo");
     BOOST_CHECK_EQUAL(ps.getAsString("char*2"), "foo2");
     BOOST_CHECK_EQUAL(ps.getAsString("string"), "bar");
-    BOOST_CHECK_THROW(ps.getAsString("int"), boost::bad_any_cast);
+    BOOST_CHECK_THROW(ps.getAsString("int"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsString("top.bottom"), "x");
     BOOST_CHECK_EQUAL(ps.getAsPropertySetPtr("top"), psp);
     BOOST_CHECK_THROW(ps.getAsPropertySetPtr("top.bottom"),
-                      boost::bad_any_cast);
+                      dafBase::TypeMismatchException);
 }
 
 BOOST_AUTO_TEST_CASE(combine) {

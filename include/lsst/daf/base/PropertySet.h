@@ -27,6 +27,7 @@
 #include "boost/shared_ptr.hpp"
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
+#include "lsst/pex/exceptions.h"
 
 namespace lsst {
 namespace daf {
@@ -124,6 +125,10 @@ private:
 
 template<> void PropertySet::add<PropertySet::Ptr>(
     std::string const& name, std::vector<Ptr> const& value);
+
+LSST_EXCEPTION_TYPE(TypeMismatchException,
+                    lsst::pex::exceptions::LogicErrorException,
+                    lsst::daf::base::TypeMismatchException)
 
 }}} // namespace lsst::daf::base
 

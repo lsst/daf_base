@@ -223,7 +223,7 @@ type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Last value set or added.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value does not match desired type.
+  * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
 T dafBase::PropertySet::get(string const& name) const {
@@ -231,6 +231,13 @@ T dafBase::PropertySet::get(string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
+    try {
+        return boost::any_cast<T>(i->second->back());
+    }
+    catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
+    }
+    // not reached
     return boost::any_cast<T>(i->second->back());
 }
 
@@ -241,7 +248,7 @@ T dafBase::PropertySet::get(string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @param[in] defaultValue Default value to return if property does not exist.
   * @return Last value set or added.
-  * @throws boost::bad_any_cast Value does not match desired type.
+  * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
 T dafBase::PropertySet::get(string const& name, T const& defaultValue) const {
@@ -249,6 +256,13 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const {
     if (i == _map.end()) {
         return defaultValue;
     }
+    try {
+        return boost::any_cast<T>(i->second->back());
+    }
+    catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
+    }
+    // not reached
     return boost::any_cast<T>(i->second->back());
 }
 
@@ -258,7 +272,7 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Vector of values.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value does not match desired type.
+  * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
 vector<T> dafBase::PropertySet::getArray(string const& name) const {
@@ -269,7 +283,12 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
     vector<T> v;
     for (vector<boost::any>::const_iterator j = i->second->begin();
          j != i->second->end(); ++j) {
-        v.push_back(boost::any_cast<T>(*j));
+        try {
+            v.push_back(boost::any_cast<T>(*j));
+        }
+        catch (boost::bad_any_cast) {
+            throw LSST_EXCEPT(TypeMismatchException, name);
+        }
     }
     return v;
 }
@@ -280,7 +299,7 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as a bool.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value is not a bool.
+  * @throws TypeMismatchException Value is not a bool.
   */
 bool dafBase::PropertySet::getAsBool(std::string const& name) const {
     return get<bool>(name);
@@ -292,7 +311,7 @@ bool dafBase::PropertySet::getAsBool(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as an int.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value cannot be converted to int.
+  * @throws TypeMismatchException Value cannot be converted to int.
   */
 int dafBase::PropertySet::getAsInt(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
@@ -307,6 +326,13 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
     if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
     if (t == typeid(short)) return boost::any_cast<short>(v);
     if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
+    try {
+        return boost::any_cast<int>(v);
+    }
+    catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
+    }
+    // not reached
     return boost::any_cast<int>(v);
 }
 
@@ -317,7 +343,7 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as an int64_t.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value cannot be converted to int64_t.
+  * @throws TypeMismatchException Value cannot be converted to int64_t.
   */
 int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
@@ -335,6 +361,13 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     if (t == typeid(int)) return boost::any_cast<int>(v);
     if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
     if (t == typeid(long)) return boost::any_cast<long>(v);
+    try {
+        return boost::any_cast<int64_t>(v);
+    }
+    catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
+    }
+    // not reached
     return boost::any_cast<int64_t>(v);
 }
 
@@ -343,7 +376,7 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as a double.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value cannot be converted to double.
+  * @throws TypeMismatchException Value cannot be converted to double.
   */
 double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
@@ -365,6 +398,13 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     if (t == typeid(long long)) return boost::any_cast<long long>(v);
     if (t == typeid(unsigned long long)) return boost::any_cast<unsigned long long>(v);
     if (t == typeid(float)) return boost::any_cast<float>(v);
+    try {
+        return boost::any_cast<double>(v);
+    }
+    catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
+    }
+    // not reached
     return boost::any_cast<double>(v);
 }
 
@@ -374,7 +414,7 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return String value.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value is not a string.
+  * @throws TypeMismatchException Value is not a string.
   */
 std::string dafBase::PropertySet::getAsString(std::string const& name) const {
     return get<string>(name);
@@ -384,7 +424,7 @@ std::string dafBase::PropertySet::getAsString(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return PropertySet::Ptr value.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value is not a PropertySet::Ptr.
+  * @throws TypeMismatchException Value is not a PropertySet::Ptr.
   */
 dafBase::PropertySet::Ptr
 dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
@@ -395,7 +435,7 @@ dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Persistable::Ptr value.
   * @throws NotFoundException Property does not exist.
-  * @throws boost::bad_any_cast Value is not a Persistable::Ptr.
+  * @throws TypeMismatchException Value is not a Persistable::Ptr.
   */
 dafBase::Persistable::Ptr
 dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {

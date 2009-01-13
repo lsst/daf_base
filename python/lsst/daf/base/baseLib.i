@@ -18,6 +18,7 @@ Access to the classes from the daf_base library
 %include "lsst/p_lsstSwig.i"
 
 %lsst_exceptions()
+%import "lsst/pex/exceptions/exceptionsLib.i"
 
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
 SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
