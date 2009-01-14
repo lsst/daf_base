@@ -26,6 +26,7 @@
   */
 
 #include <ctime>
+#include <ostream>
 #include <sys/time.h>
 #include <utility>
 #include <vector>
@@ -70,6 +71,8 @@ private:
     long long _nsecs;
         ///< Nanoseconds since Unix epoch, but zone/scale are unspecified.
 };
+
+std::ostream& operator<<(std::ostream& s, DateTime const& dt);
 
 }}} // namespace lsst::daf::base
 

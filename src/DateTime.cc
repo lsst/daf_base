@@ -227,3 +227,15 @@ void dafBase::DateTime::initializeLeapSeconds(
         leapSecTable.push_back(l);
     }
 }
+
+std::ostream&
+dafBase::operator<<(std::ostream& s, dafBase::DateTime const& dt) {
+    char* buf = new char[27];
+    time_t t = static_cast<time_t>(dt.nsecs() / 1000000000LL);
+    char* ct = ctime_r(&t, buf);
+    s << "DateTime(" << dt.nsecs();
+    if (ct) s << " = " << ct;
+    s << ")";
+    delete[] buf;
+    return s;
+}
