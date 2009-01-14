@@ -50,22 +50,11 @@ dafBase::PropertySet::~PropertySet(void) {
 dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
     Ptr n(new PropertySet);
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
-            for (vector<boost::any>::const_iterator j =
-                 i->second->begin(); j != i->second->end(); ++j) {
-                Ptr p = boost::any_cast<Ptr>(*j);
-                if (p.get() == 0) {
-                    n->add(i->first, Ptr());
-                }
-                else {
-                    n->add(i->first, p->deepCopy());
-                }
-            }
+        if (i->second.type() == typeid(Ptr)) {
+            n->add(i->first, i->second.getLast<Ptr>()->deepCopy());
         }
         else {
-            boost::shared_ptr< vector<boost::any> > vp(
-                new vector<boost::any>(*(i->second)));
-            n->_map[i->first] = vp;
+            n->_map[i->first] = i->second;
         }
     }
     return n;
@@ -80,11 +69,8 @@ size_t dafBase::PropertySet::nameCount(bool topLevelOnly) const {
     int n = 0;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         ++n;
-        if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
-            if (p.get() != 0) {
-                n += p->nameCount(false);
-            }
+        if (!topLevelOnly && i->second.type() == typeid(Ptr)) {
+            n += i->second.getLast<Ptr>()->nameCount(false);
         }
     }
     return n;
@@ -100,14 +86,12 @@ vector<string> dafBase::PropertySet::names(bool topLevelOnly) const {
     vector<string> v;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         v.push_back(i->first);
-        if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
-            if (p.get() != 0) {
-                vector<string> w = p->names(false);
-                for (vector<string>::const_iterator k = w.begin();
-                     k != w.end(); ++k) {
-                    v.push_back(i->first + "." + *k);
-                }
+        if (!topLevelOnly && i->second.type() == typeid(Ptr)) {
+            Ptr p = i->second.getLast<Ptr>();
+            vector<string> w = p->names(false);
+            for (vector<string>::const_iterator k = w.begin();
+                 k != w.end(); ++k) {
+                v.push_back(i->first + "." + *k);
             }
         }
     }
@@ -124,9 +108,9 @@ vector<string>
 dafBase::PropertySet::paramNames(bool topLevelOnly) const {
     vector<string> v;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
-            if (p.get() != 0 && !topLevelOnly) {
+        if (i->second.type() == typeid(Ptr)) {
+            Ptr p = i->second.getLast<Ptr>();
+            if (!topLevelOnly) {
                 vector<string> w = p->paramNames(false);
                 for (vector<string>::const_iterator k = w.begin();
                      k != w.end(); ++k) {
@@ -151,10 +135,10 @@ vector<string>
 dafBase::PropertySet::propertySetNames(bool topLevelOnly) const {
     vector<string> v;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
+        if (i->second.type() == typeid(Ptr)) {
             v.push_back(i->first);
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
-            if (p.get() != 0 && !topLevelOnly) {
+            Ptr p = i->second.getLast<Ptr>();
+            if (!topLevelOnly) {
                 vector<string> w = p->propertySetNames(false);
                 for (vector<string>::const_iterator k = w.begin();
                      k != w.end(); ++k) {
@@ -180,7 +164,7 @@ bool dafBase::PropertySet::exists(std::string const& name) const {
   */
 bool dafBase::PropertySet::isArray(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
-    return i != _map.end() && i->second->size() > 1U;
+    return i != _map.end() && i->second.size() > 1U;
 }
 
 /** Determine if a name (possibly hierarchical) is a subproperty.
@@ -189,7 +173,7 @@ bool dafBase::PropertySet::isArray(std::string const& name) const {
   */
 bool dafBase::PropertySet::isPropertySetPtr(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
-    return i != _map.end() && i->second->back().type() == typeid(Ptr);
+    return i != _map.end() && i->second.type() == typeid(Ptr);
 }
 
 /** Get number of values for a property name (possibly hierarchical).
@@ -199,7 +183,7 @@ bool dafBase::PropertySet::isPropertySetPtr(std::string const& name) const {
 size_t dafBase::PropertySet::valueCount(std::string const& name) const {
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) return 0;
-    return i->second->size();
+    return i->second.size();
 }
 
 /** Get the type of values for a property name (possibly hierarchical).
@@ -212,7 +196,7 @@ type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    return i->second->back().type();
+    return i->second.type();
 }
 
 // The following throw an exception if the type does not match exactly.
@@ -231,14 +215,10 @@ T dafBase::PropertySet::get(string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    try {
-        return boost::any_cast<T>(i->second->back());
-    }
-    catch (boost::bad_any_cast) {
+    if (i->second.type() != typeid(T)) {
         throw LSST_EXCEPT(TypeMismatchException, name);
     }
-    // not reached
-    return boost::any_cast<T>(i->second->back());
+    return i->second.getLast<T>();
 }
 
 /** Get the last value for a property name (possibly hierarchical).
@@ -256,14 +236,10 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const {
     if (i == _map.end()) {
         return defaultValue;
     }
-    try {
-        return boost::any_cast<T>(i->second->back());
-    }
-    catch (boost::bad_any_cast) {
+    if (i->second.type() != typeid(T)) {
         throw LSST_EXCEPT(TypeMismatchException, name);
     }
-    // not reached
-    return boost::any_cast<T>(i->second->back());
+    return i->second.getLast<T>();
 }
 
 /** Get the vector of values for a property name (possibly hierarchical).
@@ -280,17 +256,10 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    vector<T> v;
-    for (vector<boost::any>::const_iterator j = i->second->begin();
-         j != i->second->end(); ++j) {
-        try {
-            v.push_back(boost::any_cast<T>(*j));
-        }
-        catch (boost::bad_any_cast) {
-            throw LSST_EXCEPT(TypeMismatchException, name);
-        }
+    if (i->second.type() != typeid(T)) {
+        throw LSST_EXCEPT(TypeMismatchException, name);
     }
-    return v;
+    return i->second.getVec<T>();
 }
 
 // The following throw an exception if the conversion is inappropriate.
@@ -318,22 +287,7 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    boost::any v = i->second->back();
-    type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    try {
-        return boost::any_cast<int>(v);
-    }
-    catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
-    }
-    // not reached
-    return boost::any_cast<int>(v);
+    return i->second.getAsInt(name);
 }
 
 /** Get the last value for a bool/char/short/int/int64_t property name
@@ -350,25 +304,7 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    boost::any v = i->second->back();
-    type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    if (t == typeid(int)) return boost::any_cast<int>(v);
-    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
-    if (t == typeid(long)) return boost::any_cast<long>(v);
-    try {
-        return boost::any_cast<int64_t>(v);
-    }
-    catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
-    }
-    // not reached
-    return boost::any_cast<int64_t>(v);
+    return i->second.getAsInt64(name);
 }
 
 /** Get the last value for any arithmetic property name (possibly
@@ -383,29 +319,7 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
-    boost::any v = i->second->back();
-    type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    if (t == typeid(int)) return boost::any_cast<int>(v);
-    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
-    if (t == typeid(long)) return boost::any_cast<long>(v);
-    if (t == typeid(unsigned long)) return boost::any_cast<unsigned long>(v);
-    if (t == typeid(long long)) return boost::any_cast<long long>(v);
-    if (t == typeid(unsigned long long)) return boost::any_cast<unsigned long long>(v);
-    if (t == typeid(float)) return boost::any_cast<float>(v);
-    try {
-        return boost::any_cast<double>(v);
-    }
-    catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
-    }
-    // not reached
-    return boost::any_cast<double>(v);
+    return i->second.getAsDouble(name);
 }
 
 /** Get the last value for a string property name (possibly hierarchical).
@@ -456,48 +370,20 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
     for (vector<string>::const_iterator i = nv.begin(); i != nv.end(); ++i) {
         AnyMap::const_iterator j = _map.find(*i);
         s << indent << j->first << " = ";
-        boost::shared_ptr< vector<boost::any> > vp = j->second;
-        if (vp->size() > 1) s << "[ ";
-        type_info const& t = vp->back().type();
-        for (vector<boost::any>::const_iterator k = vp->begin();
-             k != vp->end(); ++k) {
-            if (k != vp->begin()) s << ", ";
-            boost::any const& v(*k);
-            if (t == typeid(bool)) s << boost::any_cast<bool>(v);
-            else if (t == typeid(char)) s << '\'' << boost::any_cast<char>(v) << '\'';
-            else if (t == typeid(signed char)) s << '\'' << boost::any_cast<signed char>(v) << '\'';
-            else if (t == typeid(unsigned char)) s << '\'' << boost::any_cast<unsigned char>(v) << '\'';
-            else if (t == typeid(short)) s << boost::any_cast<short>(v);
-            else if (t == typeid(unsigned short)) s << boost::any_cast<unsigned short>(v);
-            else if (t == typeid(int)) s << boost::any_cast<int>(v);
-            else if (t == typeid(unsigned int)) s << boost::any_cast<unsigned int>(v);
-            else if (t == typeid(long)) s << boost::any_cast<long>(v);
-            else if (t == typeid(unsigned long)) s << boost::any_cast<unsigned long>(v);
-            else if (t == typeid(long long)) s << boost::any_cast<long long>(v);
-            else if (t == typeid(unsigned long long)) s << boost::any_cast<unsigned long long>(v);
-            else if (t == typeid(float)) s << boost::any_cast<float>(v);
-            else if (t == typeid(double)) s << boost::any_cast<double>(v);
-            else if (t == typeid(string)) s << '"' << boost::any_cast<string>(v) << '"';
-            else if (t == typeid(Ptr)) {
-                if (topLevelOnly) {
-                    s << "{ ... }";
-                }
-                else {
-                    Ptr p = boost::any_cast<Ptr>(v);
-                    if (p.get() == 0) {
-                        s << "{ NULL }";
-                    }
-                    else {
-                        s << '{' << endl;
-                        s << p->toString(false, indent + "..");
-                        s << indent << '}';
-                    }
-                }
+        if (j->second.type() == typeid(Ptr)) {
+            if (topLevelOnly) {
+                s << "{ ... }";
             }
-            else if (t == typeid(Persistable::Ptr)) s << "<Persistable>";
-            else s << "<Unknown>";
+            else {
+                Ptr p = j->second.getLast<Ptr>();
+                s << '{' << endl;
+                s << p->toString(false, indent + "..");
+                s << indent << '}';
+            }
         }
-        if (j->second->size() > 1) s << " ]";
+        else {
+            j->second.toStream(s);
+        }
         s << endl;
     }
     return s.str();
