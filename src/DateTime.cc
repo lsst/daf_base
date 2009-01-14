@@ -235,7 +235,7 @@ dafBase::operator<<(std::ostream& s, dafBase::DateTime const& dt) {
     char* ct = ctime_r(&t, buf);
     s << "DateTime(" << dt.nsecs();
     if (ct) s << " = " << ct;
-    s << ")";
+    s << " [local, if UTC])";
     delete[] buf;
     return s;
 }
