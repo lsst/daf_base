@@ -10,6 +10,8 @@ namespace dafBase = lsst::daf::base;
 
 #include "lsst/pex/exceptions/Runtime.h"
 
+#define INT64CONST(x) static_cast<int64_t>(x ## LL)
+
 BOOST_AUTO_TEST_SUITE(PropertySetSuite)
 
 BOOST_AUTO_TEST_CASE(construct) {
@@ -35,7 +37,7 @@ BOOST_AUTO_TEST_CASE(getScalar) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -48,7 +50,7 @@ BOOST_AUTO_TEST_CASE(getScalar) {
     BOOST_CHECK_EQUAL(ps.get<char>("char"), '*');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
-    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xfeeddeadbeefLL);
+    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 2.718281828459045);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
@@ -63,7 +65,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -76,7 +78,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     BOOST_CHECK_EQUAL(ps.get<char>("char"), '*');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
-    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xfeeddeadbeefLL);
+    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 2.718281828459045);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
@@ -88,7 +90,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     s = 2008;
     ps.set("short", s);
     ps.set("int", 42);
-    ps.set("int64_t", 0xcafefacadeLL);
+    ps.set("int64_t", INT64CONST(0xcafefacade));
     f = 2.71828;
     ps.set("float", f);
     d = 3.1415926535897932;
@@ -101,7 +103,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) {
     BOOST_CHECK_EQUAL(ps.get<char>("char"), '%');
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 42);
-    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), 0xcafefacadeLL);
+    BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xcafefacade));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 2.71828f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 3.1415926535897932);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "baz");
@@ -131,7 +133,7 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -214,7 +216,7 @@ BOOST_AUTO_TEST_CASE(typeOf) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -434,7 +436,7 @@ BOOST_AUTO_TEST_CASE(getAs) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -453,18 +455,18 @@ BOOST_AUTO_TEST_CASE(getAs) {
     BOOST_CHECK_EQUAL(ps.getAsInt("short"), 42);
     BOOST_CHECK_EQUAL(ps.getAsInt("int"), 2008);
     BOOST_CHECK_THROW(ps.getAsInt("int64_t"), dafBase::TypeMismatchException);
-    BOOST_CHECK_EQUAL(ps.getAsInt64("bool"), 1LL);
+    BOOST_CHECK_EQUAL(ps.getAsInt64("bool"), INT64CONST(1));
     BOOST_CHECK_EQUAL(ps.getAsInt64("char"), static_cast<int64_t>('A'));
-    BOOST_CHECK_EQUAL(ps.getAsInt64("short"), 42LL);
-    BOOST_CHECK_EQUAL(ps.getAsInt64("int"), 2008LL);
-    BOOST_CHECK_EQUAL(ps.getAsInt64("int64_t"), 0xfeeddeadbeefLL);
+    BOOST_CHECK_EQUAL(ps.getAsInt64("short"), INT64CONST(42));
+    BOOST_CHECK_EQUAL(ps.getAsInt64("int"), INT64CONST(2008));
+    BOOST_CHECK_EQUAL(ps.getAsInt64("int64_t"), INT64CONST(0xfeeddeadbeef));
     BOOST_CHECK_THROW(ps.getAsInt64("float"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(ps.getAsDouble("bool"), 1.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("char"), static_cast<double>('A'));
     BOOST_CHECK_EQUAL(ps.getAsDouble("short"), 42.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int"), 2008.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int64_t"),
-                      static_cast<double>(0xfeeddeadbeefLL));
+                      static_cast<double>(INT64CONST(0xfeeddeadbeef)));
     BOOST_CHECK_EQUAL(ps.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.getAsDouble("double"), 2.718281828459045);
     BOOST_CHECK_THROW(ps.getAsDouble("char*"), dafBase::TypeMismatchException);
@@ -612,7 +614,7 @@ BOOST_AUTO_TEST_CASE(toString) {
     short s = 42;
     ps.set("short", s);
     ps.set("int", 2008);
-    ps.set("int64_t", 0xfeeddeadbeefLL);
+    ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
