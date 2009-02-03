@@ -1,5 +1,5 @@
-setupRequired(utils >= 3.4)
-setupRequired(pex_exceptions >= 3.2)
+setupRequired(utils >= 3.4.1)
+setupRequired(pex_exceptions >= 3.2.1)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
