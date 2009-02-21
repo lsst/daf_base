@@ -54,6 +54,8 @@ VectorAddType(double, Double)
 VectorAddType(std::string, String)
 VectorAddType(lsst::daf::base::DateTime, DateTime)
 
+SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
+    
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
