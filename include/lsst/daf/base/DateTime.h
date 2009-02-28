@@ -15,20 +15,12 @@
 /** @class lsst::daf::base::DateTime
   * @brief Class for handling dates/times, including MJD, UTC, and TAI.
   *
-  * Representation must be a 64-bit integer giving time in nanoseconds to
-  * remain compatible with CORAL/SEAL.  Methods may convert to any other time
-  * desired.
-  *
-  * Application must keep track of the time system and timezone, so this is
-  * most useful for output to databases.
-  *
   * @ingroup daf_base
   */
 
 #include <ctime>
 #include <sys/time.h>
-#include <utility>
-#include <vector>
+#include <string>
 
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
@@ -42,20 +34,20 @@ namespace base {
 
 class DateTime {
 public:
-    explicit DateTime(long long nsecs = 0LL); // Could be UTC, TAI, local
-    explicit DateTime(double mjd); // Converts to UTC
+    enum Timescale { TAI, UTC };
+    explicit DateTime(long long nsecs = 0LL, Timescale scale = TAI);
+    explicit DateTime(double mjd, Timescale scale = TAI);
+    DateTime(int year, int month, int day, int hr, int min, int sec,
+             Timescale scale = TAI);
 
-    long long nsecs(void) const;
-    DateTime utc2tai(void) const;
-    DateTime tai2utc(void) const;
-    double utc2mjd(void) const;
-    double tai2mjd(void) const;
-    struct tm utc2gmtime(void) const;
-    struct timespec timespec(void) const;
-    struct timeval timeval(void) const;
+    long long nsecs(Timescale scale = TAI) const;
+    double mjd(Timescale scale = TAI) const;
 
-    static void initializeLeapSeconds(
-        std::vector<std::pair<int, int> > const& table);
+    struct tm gmtime(void) const; // Always UTC
+    struct timespec timespec(void) const; // Always UTC
+    struct timeval timeval(void) const; // Always UTC
+
+    static void initializeLeapSeconds(std::string const& leapString);
 
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.
@@ -68,7 +60,7 @@ public:
 
 private:
     long long _nsecs;
-        ///< Nanoseconds since Unix epoch, but zone/scale are unspecified.
+        ///< Nanoseconds since Unix epoch
 };
 
 }}} // namespace lsst::daf::base

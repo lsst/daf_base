@@ -20,11 +20,15 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 
 #include "lsst/daf/base/DateTime.h"
 
+#include "boost/regex.hpp"
 #include <vector>
+
+#include "lsst/pex/exceptions.h"
 
 namespace dafBase = lsst::daf::base;
 
 /// Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
+static double const MJD_TO_JD = 2400000.5;
 static double const EPOCH_IN_MJD = 40587.0;
 
 /// Nanoseconds per day.
@@ -33,190 +37,208 @@ static double const NSEC_PER_DAY = 86.4e12;
 /// Nanoseconds per day as a long long.
 static long long const LL_NSEC_PER_DAY = 86400000000000LL;
 
-/// Leap second descriptor.
-struct Leap {
-    int when; ///< Number of days since the epoch.
-    int secs; ///< Leap seconds added to TAI after midnight on that day.
-};
-
-/* Leap second table
+/* Leap second table as string.
  *
  * Source: http://maia.usno.navy.mil/ser7/tai-utc.dat
  */
-
 static std::string leapString =
-"
-1961 JAN  1 =JD 2437300.5  TAI-UTC=   1.4228180 S + (MJD - 37300.) X 0.001296 S
-1961 AUG  1 =JD 2437512.5  TAI-UTC=   1.3728180 S + (MJD - 37300.) X 0.001296 S
-1962 JAN  1 =JD 2437665.5  TAI-UTC=   1.8458580 S + (MJD - 37665.) X 0.0011232S
-1963 NOV  1 =JD 2438334.5  TAI-UTC=   1.9458580 S + (MJD - 37665.) X 0.0011232S
-1964 JAN  1 =JD 2438395.5  TAI-UTC=   3.2401300 S + (MJD - 38761.) X 0.001296 S
-1964 APR  1 =JD 2438486.5  TAI-UTC=   3.3401300 S + (MJD - 38761.) X 0.001296 S
-1964 SEP  1 =JD 2438639.5  TAI-UTC=   3.4401300 S + (MJD - 38761.) X 0.001296 S
-1965 JAN  1 =JD 2438761.5  TAI-UTC=   3.5401300 S + (MJD - 38761.) X 0.001296 S
-1965 MAR  1 =JD 2438820.5  TAI-UTC=   3.6401300 S + (MJD - 38761.) X 0.001296 S
-1965 JUL  1 =JD 2438942.5  TAI-UTC=   3.7401300 S + (MJD - 38761.) X 0.001296 S
-1965 SEP  1 =JD 2439004.5  TAI-UTC=   3.8401300 S + (MJD - 38761.) X 0.001296 S
-1966 JAN  1 =JD 2439126.5  TAI-UTC=   4.3131700 S + (MJD - 39126.) X 0.002592 S
-1968 FEB  1 =JD 2439887.5  TAI-UTC=   4.2131700 S + (MJD - 39126.) X 0.002592 S
-1972 JAN  1 =JD 2441317.5  TAI-UTC=  10.0       S + (MJD - 41317.) X 0.0      S
-1972 JUL  1 =JD 2441499.5  TAI-UTC=  11.0       S + (MJD - 41317.) X 0.0      S
-1973 JAN  1 =JD 2441683.5  TAI-UTC=  12.0       S + (MJD - 41317.) X 0.0      S
-1974 JAN  1 =JD 2442048.5  TAI-UTC=  13.0       S + (MJD - 41317.) X 0.0      S
-1975 JAN  1 =JD 2442413.5  TAI-UTC=  14.0       S + (MJD - 41317.) X 0.0      S
-1976 JAN  1 =JD 2442778.5  TAI-UTC=  15.0       S + (MJD - 41317.) X 0.0      S
-1977 JAN  1 =JD 2443144.5  TAI-UTC=  16.0       S + (MJD - 41317.) X 0.0      S
-1978 JAN  1 =JD 2443509.5  TAI-UTC=  17.0       S + (MJD - 41317.) X 0.0      S
-1979 JAN  1 =JD 2443874.5  TAI-UTC=  18.0       S + (MJD - 41317.) X 0.0      S
-1980 JAN  1 =JD 2444239.5  TAI-UTC=  19.0       S + (MJD - 41317.) X 0.0      S
-1981 JUL  1 =JD 2444786.5  TAI-UTC=  20.0       S + (MJD - 41317.) X 0.0      S
-1982 JUL  1 =JD 2445151.5  TAI-UTC=  21.0       S + (MJD - 41317.) X 0.0      S
-1983 JUL  1 =JD 2445516.5  TAI-UTC=  22.0       S + (MJD - 41317.) X 0.0      S
-1985 JUL  1 =JD 2446247.5  TAI-UTC=  23.0       S + (MJD - 41317.) X 0.0      S
-1988 JAN  1 =JD 2447161.5  TAI-UTC=  24.0       S + (MJD - 41317.) X 0.0      S
-1990 JAN  1 =JD 2447892.5  TAI-UTC=  25.0       S + (MJD - 41317.) X 0.0      S
-1991 JAN  1 =JD 2448257.5  TAI-UTC=  26.0       S + (MJD - 41317.) X 0.0      S
-1992 JUL  1 =JD 2448804.5  TAI-UTC=  27.0       S + (MJD - 41317.) X 0.0      S
-1993 JUL  1 =JD 2449169.5  TAI-UTC=  28.0       S + (MJD - 41317.) X 0.0      S
-1994 JUL  1 =JD 2449534.5  TAI-UTC=  29.0       S + (MJD - 41317.) X 0.0      S
-1996 JAN  1 =JD 2450083.5  TAI-UTC=  30.0       S + (MJD - 41317.) X 0.0      S
-1997 JUL  1 =JD 2450630.5  TAI-UTC=  31.0       S + (MJD - 41317.) X 0.0      S
-1999 JAN  1 =JD 2451179.5  TAI-UTC=  32.0       S + (MJD - 41317.) X 0.0      S
-2006 JAN  1 =JD 2453736.5  TAI-UTC=  33.0       S + (MJD - 41317.) X 0.0      S
-2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0       S + (MJD - 41317.) X 0.0      S
-"
+"\
+1961 JAN  1 =JD 2437300.5  TAI-UTC=   1.4228180 S + (MJD - 37300.) X 0.001296 S\n\
+1961 AUG  1 =JD 2437512.5  TAI-UTC=   1.3728180 S + (MJD - 37300.) X 0.001296 S\n\
+1962 JAN  1 =JD 2437665.5  TAI-UTC=   1.8458580 S + (MJD - 37665.) X 0.0011232S\n\
+1963 NOV  1 =JD 2438334.5  TAI-UTC=   1.9458580 S + (MJD - 37665.) X 0.0011232S\n\
+1964 JAN  1 =JD 2438395.5  TAI-UTC=   3.2401300 S + (MJD - 38761.) X 0.001296 S\n\
+1964 APR  1 =JD 2438486.5  TAI-UTC=   3.3401300 S + (MJD - 38761.) X 0.001296 S\n\
+1964 SEP  1 =JD 2438639.5  TAI-UTC=   3.4401300 S + (MJD - 38761.) X 0.001296 S\n\
+1965 JAN  1 =JD 2438761.5  TAI-UTC=   3.5401300 S + (MJD - 38761.) X 0.001296 S\n\
+1965 MAR  1 =JD 2438820.5  TAI-UTC=   3.6401300 S + (MJD - 38761.) X 0.001296 S\n\
+1965 JUL  1 =JD 2438942.5  TAI-UTC=   3.7401300 S + (MJD - 38761.) X 0.001296 S\n\
+1965 SEP  1 =JD 2439004.5  TAI-UTC=   3.8401300 S + (MJD - 38761.) X 0.001296 S\n\
+1966 JAN  1 =JD 2439126.5  TAI-UTC=   4.3131700 S + (MJD - 39126.) X 0.002592 S\n\
+1968 FEB  1 =JD 2439887.5  TAI-UTC=   4.2131700 S + (MJD - 39126.) X 0.002592 S\n\
+1972 JAN  1 =JD 2441317.5  TAI-UTC=  10.0       S + (MJD - 41317.) X 0.0      S\n\
+1972 JUL  1 =JD 2441499.5  TAI-UTC=  11.0       S + (MJD - 41317.) X 0.0      S\n\
+1973 JAN  1 =JD 2441683.5  TAI-UTC=  12.0       S + (MJD - 41317.) X 0.0      S\n\
+1974 JAN  1 =JD 2442048.5  TAI-UTC=  13.0       S + (MJD - 41317.) X 0.0      S\n\
+1975 JAN  1 =JD 2442413.5  TAI-UTC=  14.0       S + (MJD - 41317.) X 0.0      S\n\
+1976 JAN  1 =JD 2442778.5  TAI-UTC=  15.0       S + (MJD - 41317.) X 0.0      S\n\
+1977 JAN  1 =JD 2443144.5  TAI-UTC=  16.0       S + (MJD - 41317.) X 0.0      S\n\
+1978 JAN  1 =JD 2443509.5  TAI-UTC=  17.0       S + (MJD - 41317.) X 0.0      S\n\
+1979 JAN  1 =JD 2443874.5  TAI-UTC=  18.0       S + (MJD - 41317.) X 0.0      S\n\
+1980 JAN  1 =JD 2444239.5  TAI-UTC=  19.0       S + (MJD - 41317.) X 0.0      S\n\
+1981 JUL  1 =JD 2444786.5  TAI-UTC=  20.0       S + (MJD - 41317.) X 0.0      S\n\
+1982 JUL  1 =JD 2445151.5  TAI-UTC=  21.0       S + (MJD - 41317.) X 0.0      S\n\
+1983 JUL  1 =JD 2445516.5  TAI-UTC=  22.0       S + (MJD - 41317.) X 0.0      S\n\
+1985 JUL  1 =JD 2446247.5  TAI-UTC=  23.0       S + (MJD - 41317.) X 0.0      S\n\
+1988 JAN  1 =JD 2447161.5  TAI-UTC=  24.0       S + (MJD - 41317.) X 0.0      S\n\
+1990 JAN  1 =JD 2447892.5  TAI-UTC=  25.0       S + (MJD - 41317.) X 0.0      S\n\
+1991 JAN  1 =JD 2448257.5  TAI-UTC=  26.0       S + (MJD - 41317.) X 0.0      S\n\
+1992 JUL  1 =JD 2448804.5  TAI-UTC=  27.0       S + (MJD - 41317.) X 0.0      S\n\
+1993 JUL  1 =JD 2449169.5  TAI-UTC=  28.0       S + (MJD - 41317.) X 0.0      S\n\
+1994 JUL  1 =JD 2449534.5  TAI-UTC=  29.0       S + (MJD - 41317.) X 0.0      S\n\
+1996 JAN  1 =JD 2450083.5  TAI-UTC=  30.0       S + (MJD - 41317.) X 0.0      S\n\
+1997 JUL  1 =JD 2450630.5  TAI-UTC=  31.0       S + (MJD - 41317.) X 0.0      S\n\
+1999 JAN  1 =JD 2451179.5  TAI-UTC=  32.0       S + (MJD - 41317.) X 0.0      S\n\
+2006 JAN  1 =JD 2453736.5  TAI-UTC=  33.0       S + (MJD - 41317.) X 0.0      S\n\
+2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0       S + (MJD - 41317.) X 0.0      S\n\
+";
 
-static Leap defaultLeapSecTable[] = {
-      {730, 10},      {912, 11},     {1096, 12},     {1461, 13},
-     {1826, 14},     {2191, 15},     {2557, 16},     {2922, 17},
-     {3287, 18},     {3652, 19},     {4199, 20},     {4564, 21},
-     {4929, 22},     {5660, 23},     {6574, 24},     {7305, 25},
-     {7670, 26},     {8217, 27},     {8582, 28},     {8947, 29},
-     {9496, 30},    {10043, 31},    {10592, 32},    {13149, 33},
-     {14245, 34}
+/// Leap second descriptor.
+struct Leap {
+    long long whenUtc; ///< UTC nanosecs of change
+    long long whenTai; ///< TAI nanosecs of change
+    double offset; ///< TAI - UTC
+    double mjdRef; ///< Intercept for MJD interpolation
+    double drift; ///< Slope of MJD interpolation
 };
 
-/** Table of leap seconds to date since the epoch, in ascending order.
- */
 class LeapTable : public std::vector<Leap> {
 public:
     LeapTable(void);
 };
 
-LeapTable::LeapTable(void) : std::vector<Leap>() {
-    for (size_t i = 0; i < sizeof(defaultLeapSecTable) / sizeof(Leap); ++i) {
-        this->push_back(defaultLeapSecTable[i]);
-    }
+static LeapTable leapSecTable;
+
+LeapTable::LeapTable(void) {
+    dafBase::DateTime::initializeLeapSeconds(leapString);
 }
 
-static LeapTable leapSecTable;
+/** Convert UTC time to TAI time.
+ * \param[in] nsecs Number of nanoseconds since the epoch in UTC
+ * \return Number of nanoseconds since the epoch in TAI
+ */
+static long long utcToTai(long long nsecs) {
+    size_t i;
+    for (i = 0; i < leapSecTable.size(); ++i) {
+        if (nsecs < leapSecTable[i].whenUtc) break;
+    }
+    if (i == 0) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
+                          "DateTime value too early for UTC-TAI conversion");
+    }
+    Leap const& l(leapSecTable[i - 1]);
+    double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
+    double leapSecs = l.offset + (mjd - l.mjdRef) * l.drift;
+    long long leapNSecs = static_cast<long long>(leapSecs * 1.0e9 + 0.5);
+    return nsecs + leapNSecs;
+}
+
+/** Convert TAI time to UTC time.
+ * \param[in] nsecs Number of nanoseconds since the epoch in TAI
+ * \return Number of nanoseconds since the epoch in UTC
+ */
+static long long taiToUtc(long long nsecs) {
+    size_t i;
+    for (i = 0; i < leapSecTable.size(); ++i) {
+        if (nsecs < leapSecTable[i].whenTai) break;
+    }
+    if (i == 0) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
+                        "DateTime value too early for TAI-UTC conversion");
+    }
+    Leap const& l(leapSecTable[i - 1]);
+    double taiSecs = nsecs / 1.0e9;
+    double leapSecs = taiSecs -
+        (taiSecs - l.offset - l.drift * (EPOCH_IN_MJD - l.mjdRef)) /
+        (1.0 + l.drift * 1.0e9 / NSEC_PER_DAY);
+    long long leapNSecs = static_cast<long long>(leapSecs * 1.0e9 + 0.5);
+    return nsecs - leapNSecs;
+}
+
 
 
 /** Constructor.
  * \param[in] nsecs Number of nanoseconds since the epoch in UTC or TAI.
  */
-dafBase::DateTime::DateTime(long long nsecs) : _nsecs(nsecs) {
+dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
+    if (scale == UTC) {
+        _nsecs = utcToTai(_nsecs);
+    }
 }
 
 /** Constructor.
  * \param[in] mjd Modified Julian Day in UTC.
  */
-dafBase::DateTime::DateTime(double mjd) {
+dafBase::DateTime::DateTime(double mjd, Timescale scale) {
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
+    if (scale == UTC) {
+        _nsecs = utcToTai(_nsecs);
+    }
 }
+
+/** Constructor.
+ * \param[in] year Year number.
+ * \param[in] month Month number (Jan = 1).
+ * \param[in] day Day number (1 to 31).
+ * \param[in] hr Hour number (0 to 23).
+ * \param[in] min Minute number (0 to 59).
+ * \param[in] sec Second number (0 to 60).
+ */
+dafBase::DateTime::DateTime(int year, int month, int day,
+                            int hr, int min, int sec, Timescale scale) {
+    struct tm tm;
+    tm.tm_year = year - 1900;
+    tm.tm_mon = month - 1;
+    tm.tm_mday = day;
+    tm.tm_hour = hr;
+    tm.tm_min = min;
+    tm.tm_sec = sec;
+    tm.tm_wday = 0;
+    tm.tm_yday = 0;
+    tm.tm_isdst = 0;
+    tm.tm_gmtoff = 0;
+    time_t secs = mktime(&tm);
+    _nsecs = secs * 1000000000LL;
+    if (scale == UTC) {
+        _nsecs = utcToTai(_nsecs);
+    }
+}
+
 
 /** Accessor.
  * \return Number of nanoseconds since the epoch in UTC or TAI.
  */
-long long dafBase::DateTime::nsecs(void) const {
+long long dafBase::DateTime::nsecs(Timescale scale) const {
+    if (scale == TAI) {
         return _nsecs;
-}
-
-/** Convert UTC time to TAI time.
- * \return A DateTime object with leap seconds removed.
- *
- * The application must remember which time system was used to construct each
- * DateTime.
- *
- * Handles times back to the epoch (and even earlier, to 1968 Feb 1).
- */
-dafBase::DateTime dafBase::DateTime::utc2tai(void) const {
-    if (_nsecs < leapSecTable[0].when * LL_NSEC_PER_DAY) {
-        double leapsecs = (utc2mjd() - 39126.0) * 0.002592 + 4.21317;
-        return DateTime(_nsecs - static_cast<long long>(1.0e9 * leapsecs));
     }
-    for (size_t i = 1; i < leapSecTable.size(); ++i) {
-        if (_nsecs < leapSecTable[i].when * LL_NSEC_PER_DAY) {
-            return DateTime(_nsecs - leapSecTable[i - 1].secs * 1000000000LL);
-        }
+    else {
+        return taiToUtc(_nsecs);
     }
-    return DateTime(_nsecs - leapSecTable.back().secs * 1000000000LL);
 }
 
-/** Convert TAI time to UTC time.
- * \return A DateTime object with leap seconds added.
- *
- * The application must remember which time system was used to construct each
- * DateTime.
- *
- * Handles times back to the epoch (and even earlier, to 1968 Feb 1).
+/** Convert to Modified Julian Day.
+ * \param[in] scale Desired timescale, UTC or TAI.
+ * \return The Modified Julian Day corresponding to the time.
  */
-dafBase::DateTime dafBase::DateTime::tai2utc(void) const {
-    if (_nsecs < leapSecTable[0].when * LL_NSEC_PER_DAY +
-        leapSecTable[0].secs * 1000000000LL) {
-        return DateTime(static_cast<long long>(
-            (static_cast<double>(_nsecs) - 4.21317e9 -
-             (EPOCH_IN_MJD - 39126.0) * 0.002592e9) /
-            (1 - 0.002592e9 / NSEC_PER_DAY)));
+double dafBase::DateTime::mjd(Timescale scale) const {
+    if (scale == TAI) {
+        return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
     }
-    for (size_t i = 1; i < leapSecTable.size(); ++i) {
-        if (_nsecs < leapSecTable[i].when * LL_NSEC_PER_DAY +
-            leapSecTable[i].secs * 1000000000LL) {
-            return DateTime(_nsecs + leapSecTable[i - 1].secs * 1000000000LL);
-        }
+    else {
+        return static_cast<double>(taiToUtc(_nsecs)) / NSEC_PER_DAY +
+            EPOCH_IN_MJD;
     }
-    return DateTime(_nsecs + leapSecTable.back().secs * 1000000000LL);
 }
 
-/** Convert UTC time to Modified Julian Day.
- * \return The Modified Julian Day corresponding to the time, which is assumed
- * to be UTC.
- *
- * The application must remember which time system was used to construct each
- * DateTime.
- */
-double dafBase::DateTime::utc2mjd(void) const {
-    return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
-}
-
-/** Convert TAI time to Modified Julian Day.
- * \return The Modified Julian Day corresponding to the time, which is assumed
- * to be TAI.
- *
- * The application must remember which time system was used to construct each
- * DateTime.
- */
-double dafBase::DateTime::tai2mjd(void) const {
-    return static_cast<double>(tai2utc().nsecs()) / NSEC_PER_DAY + EPOCH_IN_MJD;
-}
-
-/** Convert UTC time to struct tm.
+/** Convert to struct tm.
  * \return Structure with decoded time in UTC.
  */
-struct tm dafBase::DateTime::utc2gmtime(void) const {
+struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(_nsecs / 1000000000LL);
+    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / 1000000000LL);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
 
-/** Convert time to struct timespec.
- * \return Structure with time in seconds and nanoseconds.
+/** Convert to struct timespec.
+ * \return Structure with UTC time in seconds and nanoseconds.
  */
 struct timespec dafBase::DateTime::timespec(void) const {
     struct timespec ts;
-    ts.tv_sec = static_cast<time_t>(_nsecs / 1000000000LL);
-    ts.tv_nsec = static_cast<int>(_nsecs % 1000000000LL);
+    long long nsecs = taiToUtc(_nsecs);
+    ts.tv_sec = static_cast<time_t>(nsecs / 1000000000LL);
+    ts.tv_nsec = static_cast<int>(nsecs % 1000000000LL);
     return ts;
 }
 
@@ -225,21 +247,30 @@ struct timespec dafBase::DateTime::timespec(void) const {
  */
 struct timeval dafBase::DateTime::timeval(void) const {
     struct timeval tv;
-    tv.tv_sec = static_cast<time_t>(_nsecs / 1000000000LL);
-    tv.tv_usec = static_cast<int>((_nsecs % 10000000000LL) / 1000);
+    long long nsecs = taiToUtc(_nsecs);
+    tv.tv_sec = static_cast<time_t>(nsecs / 1000000000LL);
+    tv.tv_usec = static_cast<int>((nsecs % 10000000000LL) / 1000);
     return tv;
 }
 
 /** Initialize leap second table.
   * \param table Vector of {days since epoch, cumulative leap seconds} pairs.
   */
-void dafBase::DateTime::initializeLeapSeconds(
-    std::vector<std::pair<int, int> > const& table) {
+void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;
     leapSecTable.clear();
-    for (size_t i = 0; i < table.size(); ++i) {
-        l.when = table[i].first;
-        l.secs = table[i].second;
+    boost::regex re("^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
+                    " \\+ \\(MJD - ([\\d.]+)\\) X ([\\d.]+)\\s*S$");
+    for (boost::cregex_iterator i = make_regex_iterator(leapString.c_str(), re);
+         i != boost::cregex_iterator(); ++i) {
+        double mjdUtc = strtod((*i)[1].first, 0) - MJD_TO_JD;
+        l.offset = strtod((*i)[2].first, 0);
+        l.mjdRef = strtod((*i)[3].first, 0);
+        l.drift = strtod((*i)[4].first, 0);
+        l.whenUtc = static_cast<long long>(
+            (mjdUtc - EPOCH_IN_MJD) * NSEC_PER_DAY);
+        l.whenTai = l.whenUtc + static_cast<long long>(
+            1.0e9 * (l.offset + (mjdUtc - l.mjdRef) * l.drift));
         leapSecTable.push_back(l);
     }
 }
