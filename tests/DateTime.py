@@ -1,22 +1,51 @@
 #!/usr/bin/env python
 
+import unittest
+
 from lsst.daf.base import DateTime
 
-ts = DateTime(45205.125)
-assert ts.nsecs() == 399006000000000000L
-assert ts.utc2mjd() == 45205.125
-assert ts.utc2tai().nsecs() == 399005979000000000L
+class DateTimeTestCase(unittest.TestCase):
+    """A test case for DateTime."""
 
-ts = DateTime(1192755473000000000L)
-assert ts.nsecs() == 1192755473000000000L
-assert ts.utc2mjd() == 54392.040196759262
-assert ts.utc2tai().nsecs() == 1192755440000000000L
+    def testMJD(self):
+        ts = DateTime(45205.125, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 399006000000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 399006021000000000L)
+        self.assertAlmostEqual(ts.mjd(DateTime.UTC), 45205.125)
+        self.assertAlmostEqual(ts.mjd(DateTime.TAI),
+                45205.125 + 21.0 / 86400.0)
 
-ts = DateTime(47892.0)
-assert ts.nsecs() == 631152000000000000L
-assert ts.utc2mjd() == 47892.0
-assert ts.utc2tai().nsecs() == 631151975000000000L
+    def testNsecs(self):
+        ts = DateTime(1192755473000000000L, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
+        self.assertEqual(ts.nsecs(), 1192755506000000000L)
+        self.assertAlmostEqual(ts.mjd(DateTime.UTC), 54392.040196759262)
 
-ts = DateTime(631151998000000000L)
-assert ts.utc2tai().nsecs() == 631151974000000000L
+    def testBoundaryMJD(self):
+        ts = DateTime(47892.0, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 631152000000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 631152025000000000L)
+        self.assertEqual(ts.mjd(DateTime.UTC), 47892.0)
 
+    def testCrossBoundaryNsecs(self):
+        ts = DateTime(631151998000000000L, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 631151998000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 631152022000000000L)
+
+    def testNsecsTAI(self):
+        ts = DateTime(1192755506000000000L, DateTime.TAI)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
+        self.assertEqual(ts.nsecs(), 1192755506000000000L)
+        self.assertAlmostEqual(ts.mjd(DateTime.UTC), 54392.040196759262)
+
+    def testNsecsDefault(self):
+        ts = DateTime(1192755506000000000L)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
+        self.assertEqual(ts.nsecs(), 1192755506000000000L)
+        self.assertAlmostEqual(ts.mjd(DateTime.UTC), 54392.040196759262)
+
+if __name__ == '__main__':
+    unittest.main()
