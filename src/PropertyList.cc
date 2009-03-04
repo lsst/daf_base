@@ -30,6 +30,60 @@ namespace pexExcept = lsst::pex::exceptions;
 
 using namespace std;
 
+///////////////////////////////////////////////////////////////////////////////
+// Iterator class
+///////////////////////////////////////////////////////////////////////////////
+
+/** Default constructor.
+  */
+dafBase::PropertyListIterator::PropertyListIterator(PropertyList const* plist) :
+    _lpos(plist->_insertOrder.end()), _posMap(), _plist(plist) {
+}
+
+/** Constructor.
+  */
+dafBase::PropertyListIterator::PropertyListIterator(PropertyList const* plist,
+    std::list<std::string>::const_iterator lpos) :
+    _lpos(lpos), _posMap(), _plist(plist) {
+    for (std::list<std::string>::const_iterator i = lpos;
+         i != plist->_insertOrder.end(); --i) {
+        if (_posMap.count(*i) > 0) {
+            _posMap[*i] += 1;
+        }
+        else {
+            _posMap[*i] = 0;
+        }
+    }
+}
+
+bool dafBase::PropertyListIterator::operator==(
+    PropertyListIterator const& pli) const {
+    return _plist == pli._plist && _lpos == pli._lpos;
+}
+
+bool dafBase::PropertyListIterator::operator!=(
+    PropertyListIterator const& pli) const {
+    return _plist == pli._plist && _lpos != pli._lpos;
+}
+
+std::pair<std::string, boost::any>
+dafBase::PropertyListIterator::operator*(void) const {
+    return std::pair<std::string, boost::any>(
+        *_lpos, _plist->_map.at(*_lpos)->at(_posMap.at(*_lpos)));
+}
+
+void dafBase::PropertyListIterator::operator++(void) {
+    ++_lpos;
+    if (_posMap.count(*_lpos) > 0) {
+        _posMap[*_lpos] += 1;
+    }
+    else {
+        _posMap[*_lpos] = 0;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 /** Constructor.
   */
 dafBase::PropertyList::PropertyList(void) : Citizen(typeid(*this)) {
@@ -182,7 +236,7 @@ vector<T> dafBase::PropertyList::getArray(string const& name) const {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
     }
     vector<T> v;
-    for (vector<boost::any>::const_iterator j = i->second->begin();
+    for (typename vector<boost::any>::const_iterator j = i->second->begin();
          j != i->second->end(); ++j) {
         try {
             v.push_back(boost::any_cast<T>(*j));
@@ -320,35 +374,18 @@ std::string dafBase::PropertyList::getAsString(std::string const& name) const {
     return get<string>(name);
 }
 
-void fitsHeader(ostringstream& s,
-                std::string const& name, boost::any const& value,
-                type_info const& type) {
-    s << boost::format("%-8s") % name << " = ";
-    if (type == typeid(bool)) {
-        s << (boost::any_cast<bool>(value) ? "T" : "F");
-    }
+/** Get an iterator to the first key/value pair in the PropertyList.
+  * @return Iterator to first key/value pair.
+  */
+dafBase::PropertyListIterator dafBase::PropertyList::begin(void) const {
+    return PropertyListIterator(this, _insertOrder.begin());
 }
 
-std::string dafBase::PropertyList::toFitsHeaders(void) const {
-    ostringstream s;
-    typedef std::tr1::unordered_map<std::string, int> PosMap;
-    PosMap posMap;
-    for (list<string>::const_iterator i = _insertOrder.begin();
-         i != _insertOrder.end(); ++i) {
-        PosMap::iterator p = posMap.find(*i);
-        int pos;
-        if (p == posMap.end()) {
-            pos = 0;
-        }
-        else {
-            pos = p->second;
-        }
-        AnyMap::const_iterator j = _map.find(*i);
-        boost::any const& v = j->second->at(pos);
-        type_info const& t = v.type();
-        fitsHeader(s, *i, v, t);
-    }
-    return s.str();
+/** Get an iterator "beyond the end".
+  * @return Iterator marking the end of the PropertyList.
+  */
+dafBase::PropertyListIterator dafBase::PropertyList::end(void) const {
+    return PropertyListIterator(this, _insertOrder.end());
 }
 
 /** Generate a string representation of the PropertyList.
@@ -404,7 +441,7 @@ template <typename T>
 void dafBase::PropertyList::set(std::string const& name, T const& value) {
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->push_back(value);
-    _insertOrder.erase(name);
+    _insertOrder.remove(name);
     _map[name] = vp;
     _insertOrder.push_back(name);
 }
@@ -418,9 +455,10 @@ void dafBase::PropertyList::set(std::string const& name,
                                vector<T> const& value) {
     if (value.empty()) return;
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
-    _insertOrder.erase(name);
-    for (vector<T>::const_iterator i = value.begin(); i != value.end(); ++i) {
-        vp.push_back(*i);
+    _insertOrder.remove(name);
+    for (typename vector<T>::const_iterator i = value.begin();
+         i != value.end(); ++i) {
+        vp->push_back(*i);
         _insertOrder.push_back(name);
     }
     _map[name] = vp;
@@ -476,7 +514,7 @@ void dafBase::PropertyList::add(std::string const& name,
             throw LSST_EXCEPT(TypeMismatchException,
                               name + " has mismatched type");
         }
-        for (vector<T>::const_iterator j = value.begin();
+        for (typename vector<T>::const_iterator j = value.begin();
              j != value.end(); ++j) {
             i->second->push_back(*j);
             _insertOrder.push_back(name);
@@ -500,7 +538,7 @@ void dafBase::PropertyList::add(std::string const& name, char const* value) {
   */
 void dafBase::PropertyList::remove(std::string const& name) {
     _map.erase(name);
-    _insertOrder.erase(name);
+    _insertOrder.remove(name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -18,8 +18,10 @@
   */
 
 #include <lsst/tr1/unordered_map.h>
+#include <list>
 #include <string>
 #include <typeinfo>
+#include <utility>
 #include <vector>
 
 #include "boost/any.hpp"
@@ -39,11 +41,33 @@ namespace persistence {
 
 namespace base {
 
+class PropertyList;
+
+class PropertyListIterator {
+public:
+    explicit PropertyListIterator(PropertyList const* plist);
+    PropertyListIterator(PropertyList const* plist,
+                         std::list<std::string>::const_iterator lpos);
+
+    std::pair<std::string, boost::any> operator*(void) const;
+    bool operator==(PropertyListIterator const& pli) const;
+    bool operator!=(PropertyListIterator const& pli) const;
+
+    void operator++(void);
+
+private:
+    std::list<std::string>::const_iterator _lpos;
+    std::tr1::unordered_map<std::string, size_t> _posMap;
+    PropertyList const* _plist;
+};
+
+
 class PropertyList :
     public Persistable, public Citizen, public boost::noncopyable {
 public:
 // Typedefs
     typedef boost::shared_ptr<PropertyList> Ptr;
+    typedef PropertyListIterator const_iterator;
 
 // Constructors
     PropertyList(void);
@@ -81,10 +105,11 @@ public:
     double getAsDouble(std::string const& name) const;  // + float, double
     std::string getAsString(std::string const& name) const; // for strings only
 
-    std::string toFitsHeaders(void) const;
-
     // Use this for debugging, not for serialization/persistence.
     std::string toString(void) const;
+
+    const_iterator begin(void) const;
+    const_iterator end(void) const;
 
 // Modifiers
     template <typename T> void set(std::string const& name, T const& value);
@@ -100,6 +125,8 @@ public:
 
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertyListFormatter);
+
+    friend class PropertyListIterator;
 
     typedef std::tr1::unordered_map<std::string,
             boost::shared_ptr< std::vector<boost::any> > > AnyMap;
