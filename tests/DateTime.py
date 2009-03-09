@@ -3,6 +3,7 @@
 import unittest
 
 from lsst.daf.base import DateTime
+import time
 
 class DateTimeTestCase(unittest.TestCase):
     """A test case for DateTime."""
@@ -46,6 +47,14 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
         self.assertEqual(ts.nsecs(), 1192755506000000000L)
         self.assertAlmostEqual(ts.mjd(DateTime.UTC), 54392.040196759262)
+
+    def testNow(self):
+        for i in xrange(100):
+            secs = time.time()
+            ts = DateTime.now()
+            diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs 
+            self.assert_(diff >= 0)
+            self.assert_(diff < 1e-3)
 
 if __name__ == '__main__':
     unittest.main()
