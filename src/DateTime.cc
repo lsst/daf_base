@@ -148,7 +148,8 @@ static long long taiToUtc(long long nsecs) {
 
 
 /** Constructor.
- * \param[in] nsecs Number of nanoseconds since the epoch in UTC or TAI.
+ * \param[in] nsecs Number of nanoseconds since the epoch.
+ * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
 dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
     if (scale == UTC) {
@@ -157,7 +158,8 @@ dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
 }
 
 /** Constructor.
- * \param[in] mjd Modified Julian Day in UTC.
+ * \param[in] mjd Modified Julian Day.
+ * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
 dafBase::DateTime::DateTime(double mjd, Timescale scale) {
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
@@ -173,6 +175,7 @@ dafBase::DateTime::DateTime(double mjd, Timescale scale) {
  * \param[in] hr Hour number (0 to 23).
  * \param[in] min Minute number (0 to 59).
  * \param[in] sec Second number (0 to 60).
+ * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
 dafBase::DateTime::DateTime(int year, int month, int day,
                             int hr, int min, int sec, Timescale scale) {
@@ -208,7 +211,7 @@ long long dafBase::DateTime::nsecs(Timescale scale) const {
 }
 
 /** Convert to Modified Julian Day.
- * \param[in] scale Desired timescale, UTC or TAI.
+ * \param[in] scale Desired timescale (TAI or UTC, default TAI).
  * \return The Modified Julian Day corresponding to the time.
  */
 double dafBase::DateTime::mjd(Timescale scale) const {
@@ -253,8 +256,18 @@ struct timeval dafBase::DateTime::timeval(void) const {
     return tv;
 }
 
+/** Return current time as a DateTime.
+  * \return DateTime representing the current time.
+  */
+dafBase::DateTime dafBase::DateTime::now(void) {
+    struct timeval tv;
+    int ret = gettimeofday(&tv, 0);
+    long long nsecs = tv.tv_sec * 1000000000LL + tv.tv_usec * 1000LL;
+    return DateTime(nsecs, DateTime::UTC);
+}
+
 /** Initialize leap second table.
-  * \param table Vector of {days since epoch, cumulative leap seconds} pairs.
+  * \param leapString Leap second table from USNO as a single multiline string.
   */
 void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;

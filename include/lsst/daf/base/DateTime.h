@@ -47,8 +47,14 @@ public:
     struct timespec timespec(void) const; // Always UTC
     struct timeval timeval(void) const; // Always UTC
 
+    static DateTime now(void);
+
     static void initializeLeapSeconds(std::string const& leapString);
 
+private:
+    long long _nsecs;
+        ///< Nanoseconds since Unix epoch
+        //
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.
       * @param[in,out] ar   Archive to access.
@@ -58,9 +64,6 @@ public:
         ar & _nsecs;
     };
 
-private:
-    long long _nsecs;
-        ///< Nanoseconds since Unix epoch
 };
 
 }}} // namespace lsst::daf::base
