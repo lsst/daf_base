@@ -262,6 +262,10 @@ struct timeval dafBase::DateTime::timeval(void) const {
 dafBase::DateTime dafBase::DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);
+    if (ret != 0) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+                          "Unable to get current time");
+    }
     long long nsecs = tv.tv_sec * 1000000000LL + tv.tv_usec * 1000LL;
     return DateTime(nsecs, DateTime::UTC);
 }
