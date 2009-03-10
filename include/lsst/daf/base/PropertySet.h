@@ -100,6 +100,8 @@ public:
                                    std::vector<T> const& value);
     void add(std::string const& name, char const* value);
 
+    void copy(std::string const& dest, Ptr const source,
+              std::string const& name);
     void combine(Ptr const source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.

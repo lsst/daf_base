@@ -540,6 +540,41 @@ BOOST_AUTO_TEST_CASE(combineThrow) {
     BOOST_CHECK_THROW(ps.combine(psp), dafBase::TypeMismatchException);
 }
 
+BOOST_AUTO_TEST_CASE(copy) {
+    dafBase::PropertySet ps;
+    ps.set("ps1.pre", 1);
+    ps.set("ps1.post", 2);
+    ps.set("int", 42);
+    ps.set("double", 3.14);
+    ps.set("ps2.plus", 10.24);
+    ps.set("ps2.minus", -10.24);
+    ps.set("ps3.sub.subsub", "foo");
+
+    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    psp->set("ps1.pre", 3);
+    psp->add("ps1.pre", 4);
+    psp->set("int", 2008);
+    psp->set("ps2.foo", "bar");
+    psp->set("ps4.top", "bottom");
+
+    ps.copy("ps1", psp, "ps1");
+
+    BOOST_CHECK(ps.isPropertySetPtr("ps1"));
+    BOOST_CHECK(!ps.isArray("ps1"));
+    BOOST_CHECK(ps.isArray("ps1.pre"));
+    BOOST_CHECK(!ps.isArray("ps1.post"));
+    BOOST_CHECK_EQUAL(ps.valueCount("ps1.pre"), 2U);
+    std::vector<int> v = ps.getArray<int>("ps1.pre");
+    BOOST_CHECK_EQUAL(v[0], 3);
+    BOOST_CHECK_EQUAL(v[1], 4);
+
+    ps.copy("ps5", psp, "ps4");
+
+    BOOST_CHECK(ps.isPropertySetPtr("ps5"));
+    BOOST_CHECK(!ps.isArray("ps5"));
+    BOOST_CHECK(!ps.isArray("ps5.top"));
+}
+
 BOOST_AUTO_TEST_CASE(remove) {
     dafBase::PropertySet ps;
     ps.set("int", 42);

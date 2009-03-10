@@ -637,6 +637,32 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
    add(name, string(value));
 }
 
+/** Replaces a single value vector in the destination with one from the
+  * \a source.
+  * @param[in] dest Destination property name.
+  * @param[in] source PropertySet::Ptr for the source PropertySet.
+  * @param[in] name Property name to extract.
+  * @throws TypeMismatchException Type does not match existing values.
+  * @throws InvalidParameterException Name does not exist in source.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+void dafBase::PropertySet::copy(std::string const& dest,
+                                Ptr const source, std::string const& name) {
+    if (source.get() == 0) {
+        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                          "Missing source");
+    }
+    AnyMap::const_iterator sj = source->find(name);
+    if (sj == source->_map.end()) {
+        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+                          name + " not in source");
+    }
+    remove(dest);
+    boost::shared_ptr< vector<boost::any> > vp(
+        new vector<boost::any>(*(sj->second)));
+    findOrInsert(dest, vp);
+}
+
 /** Appends all value vectors from the \a source to their corresponding
   * properties.  Sets values if a property does not exist.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
