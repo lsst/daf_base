@@ -45,6 +45,9 @@ class lsst::daf::base::Citizen;
     %template(Vector ## typeName) std::vector<type>;
 %enddef
 
+%ignore lsst::daf::base::PropertySet::set(std::string const&, char const*);
+%ignore lsst::daf::base::PropertySet::add(std::string const&, char const*);
+
 VectorAddType(bool, Bool)
 VectorAddType(short, Short)
 VectorAddType(int, Int)
@@ -119,8 +122,55 @@ def getPSValue(self, name):
         return value
     except:
         pass
+    try:
+        value = self.getDateTime(name)
+        return value
+    except:
+        pass
     raise lsst.pex.exceptions.LsstException, \
-        'Unknown DataProperty value type for ' + name
+        'Unknown PropertySet value type for ' + name
+
+def setPSValue(self, name, value):
+    """
+    Set a value in a PropertySet from a single Python value of unknown type.
+    """
+    if isinstance(value, bool):
+        self.setBool(name, value)
+    elif isinstance(value, int):
+	self.setInt(name, value)
+    elif isinstance(value, long):
+        self.setInt64(name, value)
+    elif isinstance(value, float):
+        self.setDouble(name, value)
+    elif isinstance(value, str):
+        self.setString(name, value)
+    elif isinstance(value, lsst.daf.base.DateTime):
+        self.setDateTime(name, value)
+    else:
+        raise lsst.pex.exceptions.LsstException, \
+            'Unknown value type for ' + name
+
+def addPSValue(self, name, value):
+    """
+    Add a value to a PropertySet from a single Python value of unknown type.
+    """
+    if isinstance(value, bool):
+        self.addBool(name, value)
+    elif isinstance(value, int):
+	self.addInt(name, value)
+    elif isinstance(value, long):
+        self.addInt64(name, value)
+    elif isinstance(value, float):
+        self.addDouble(name, value)
+    elif isinstance(value, str):
+        self.addString(name, value)
+    elif isinstance(value, lsst.daf.base.DateTime):
+        self.addDateTime(name, value)
+    else:
+        raise lsst.pex.exceptions.LsstException, \
+            'Unknown value type for ' + name
 
 PropertySet.get = getPSValue
+PropertySet.set = setPSValue
+PropertySet.add = addPSValue
 }

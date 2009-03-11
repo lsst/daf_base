@@ -19,6 +19,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
         ps.setString("string", "bar")
+        ps.set("int2", 2009)
 
         self.assertEqual(ps.getBool("bool"), True)
         self.assertEqual(ps.getShort("short"), 42)
@@ -28,6 +29,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getDouble("double"), 2.718281828459045)
         self.assertEqual(ps.getString("char*"), "foo")
         self.assertEqual(ps.getString("string"), "bar")
+        self.assertEqual(ps.getInt("int2"), 2009)
+        self.assertEqual(ps.get("int2"), 2009)
 
     def testGetDefault(self):
         ps = dafBase.PropertySet()
@@ -72,12 +75,14 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setInt("ints", v)
         ps.addInt("ints", -999)
         ps.add("other", "foo")
+        ps.add("ints", 13)
         w = ps.getArrayInt("ints")
-        self.assertEqual(len(w), 4)
+        self.assertEqual(len(w), 5)
         self.assertEqual(v[0], w[0])
         self.assertEqual(v[1], w[1])
         self.assertEqual(v[2], w[2])
         self.assertEqual(w[3], -999)
+        self.assertEqual(w[4], 13)
         self.assertEqual(ps.getString("other"), "foo")
 
 if __name__ == '__main__':
