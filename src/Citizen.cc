@@ -37,8 +37,11 @@ Citizen::Citizen(const std::type_info &type) :
     _sentinel(magicSentinel),
     _typeName(type.name()) {
     _CitizenId = _nextMemId()++;
-    activeCitizens()[_CitizenId] = this;
-
+    if (_persistentCitizens) {
+        persistentCitizens()[_CitizenId] = this;
+    } else {
+        activeCitizens()[_CitizenId] = this;
+    }
     if (_CitizenId == _newId) {
         _newId += _newCallback(this);
     }
@@ -48,7 +51,11 @@ Citizen::Citizen(Citizen const & citizen) :
     _sentinel(magicSentinel),
     _typeName(citizen._typeName) {
     _CitizenId = _nextMemId()++;
-    activeCitizens()[_CitizenId] = this;
+    if (_persistentCitizens) {
+        persistentCitizens()[_CitizenId] = this;
+    } else {
+        activeCitizens()[_CitizenId] = this;
+    }
 
     if (_CitizenId == _newId) {
         _newId += _newCallback(this);
@@ -63,7 +70,7 @@ Citizen::~Citizen() {
     (void)_checkCorruption();
     _sentinel = 0x0000dead;             // In case we have a dangling pointer
     size_t nActive = activeCitizens().erase(_CitizenId);
-    if (nActive > 1 || (nActive == 0 && permanentCitizens().erase(_CitizenId) != 1)) {
+    if (nActive > 1 || (nActive == 0 && persistentCitizens().erase(_CitizenId) != 1)) {
         (void)_corruptionCallback(this);
     }
 }
@@ -111,7 +118,7 @@ std::string Citizen::repr() const {
 //! Mark a Citizen as persistent and not destroyed until process end.
 void Citizen::markPersistent(void) {
     activeCitizens().erase(_CitizenId);
-    permanentCitizens()[_CitizenId] = this;
+    persistentCitizens()[_CitizenId] = this;
 }
 
 //! \name Census
@@ -195,8 +202,8 @@ bool Citizen::checkCorruption() {
             return true;
         }
     }
-    for (table::iterator cur = permanentCitizens().begin();
-         cur != permanentCitizens().end(); cur++) {
+    for (table::iterator cur = persistentCitizens().begin();
+         cur != persistentCitizens().end(); cur++) {
         if (cur->second->_checkCorruption()) {
             return true;
         }
@@ -310,20 +317,31 @@ Citizen::table& Citizen::activeCitizens(void) {
     return *_activeCitizens;
 }
 
-Citizen::table& Citizen::permanentCitizens(void) {
-    static Citizen::table* _permanentCitizens = new Citizen::table;
-    return *_permanentCitizens;
+Citizen::table& Citizen::persistentCitizens(void) {
+    static Citizen::table* _persistentCitizens = new Citizen::table;
+    return *_persistentCitizens;
 }
 
 //@}
 //
 // Initialise static members
 //
+bool Citizen::_persistentCitizens = false;
+
 Citizen::memId Citizen::_newId = 0;
 Citizen::memId Citizen::_deleteId = 0;
 
 Citizen::memCallback Citizen::_newCallback = defaultNewCallback;
 Citizen::memCallback Citizen::_deleteCallback = defaultDeleteCallback;
 Citizen::memCallback Citizen::_corruptionCallback = defaultCorruptionCallback;
+
+
+PersistentCitizenScope::PersistentCitizenScope() {
+    Citizen::_persistentCitizens = true;
+}
+
+PersistentCitizenScope::~PersistentCitizenScope() {
+    Citizen::_persistentCitizens = false;
+}
 
 }}} // namespace lsst::daf::base

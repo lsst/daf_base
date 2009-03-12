@@ -7,10 +7,15 @@
 #include <string>
 #include <vector>
 
+#include "boost/noncopyable.hpp"
+
 
 namespace lsst {
 namespace daf {
 namespace base {
+
+     class PersistentCitizenScope;
+
 /*! \brief Citizen is a class that should be among all LSST
  * classes base classes, and handles basic memory management
  *
@@ -68,7 +73,8 @@ namespace base {
         //
         static memId& _nextMemId(void);
         static table& activeCitizens();
-        static table& permanentCitizens();
+        static table& persistentCitizens();
+        static bool _persistentCitizens;
         //
         // Callbacks
         //
@@ -80,7 +86,25 @@ namespace base {
         static memCallback _corruptionCallback;        
         //
         bool _checkCorruption() const;
+
+        friend class PersistentCitizenScope;
     };
+
+#ifndef SWIG
+    /**
+     * A PersistentCitizenScope object causes all Citizen objects created during its lifetime
+     * to be marked as persistent. This is useful when constructing static objects that contain
+     * a heirarchy of other Citizens which would otherwise need to be marked persistent on an
+     * individual basis.
+     *
+     * @sa Citizen::markPersistent()
+     */
+    class PersistentCitizenScope : private boost::noncopyable {
+    public:
+        PersistentCitizenScope();
+        ~PersistentCitizenScope();
+    };
+#endif
 
 }}} // namespace lsst::daf::base
 
