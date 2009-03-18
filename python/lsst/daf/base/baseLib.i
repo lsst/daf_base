@@ -156,7 +156,7 @@ def setPSValue(self, name, value):
         self.setDateTime(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for ' + name
+            'Unknown value type for %s: %s' % (name, type(name))
 
 def addPSValue(self, name, value):
     """
@@ -176,7 +176,7 @@ def addPSValue(self, name, value):
         self.addDateTime(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for ' + name
+            'Unknown value type for %s: %s' % (name, type(name))
 
 PropertySet.get = getPSValue
 PropertySet.set = setPSValue
