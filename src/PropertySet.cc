@@ -361,6 +361,7 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     if (t == typeid(int)) return boost::any_cast<int>(v);
     if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
     if (t == typeid(long)) return boost::any_cast<long>(v);
+    if (t == typeid(long long)) return boost::any_cast<long long>(v);
     try {
         return boost::any_cast<int64_t>(v);
     }

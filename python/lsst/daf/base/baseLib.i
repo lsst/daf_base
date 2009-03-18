@@ -47,18 +47,20 @@ class lsst::daf::base::Citizen;
 
 %ignore lsst::daf::base::PropertySet::set(std::string const&, char const*);
 %ignore lsst::daf::base::PropertySet::add(std::string const&, char const*);
+%ignore lsst::daf::base::PropertySet::getAsInt64(std::string const&) const;
 
 VectorAddType(bool, Bool)
 VectorAddType(short, Short)
 VectorAddType(int, Int)
-VectorAddType(long long, Int64)
+VectorAddType(long, Long)
+VectorAddType(long long, LongLong)
 VectorAddType(float, Float)
 VectorAddType(double, Double)
 VectorAddType(std::string, String)
 VectorAddType(lsst::daf::base::DateTime, DateTime)
 
 SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
-    
+
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
@@ -75,7 +77,8 @@ SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
 PropertySetAddType(bool, Bool)
 PropertySetAddType(short, Short)
 PropertySetAddType(int, Int)
-PropertySetAddType(long long, Int64)
+PropertySetAddType(long, Long)
+PropertySetAddType(long long, LongLong)
 PropertySetAddType(float, Float)
 PropertySetAddType(double, Double)
 PropertySetAddType(std::string, String)
@@ -103,7 +106,7 @@ def getPSValue(self, name):
     except:
         pass
     try:
-        value = self.getAsBool(name)
+        value = self.getBool(name)
         return value
     except:
         pass
@@ -113,7 +116,12 @@ def getPSValue(self, name):
     except:
         pass
     try:
-        value = self.getAsInt64(name)
+        value = self.getLong(name)
+        return value
+    except:
+        pass
+    try:
+        value = self.getLongLong(name)
         return value
     except:
         pass
@@ -139,7 +147,7 @@ def setPSValue(self, name, value):
     elif isinstance(value, int):
 	self.setInt(name, value)
     elif isinstance(value, long):
-        self.setInt64(name, value)
+        self.setLongLong(name, value)
     elif isinstance(value, float):
         self.setDouble(name, value)
     elif isinstance(value, str):
@@ -159,7 +167,7 @@ def addPSValue(self, name, value):
     elif isinstance(value, int):
 	self.addInt(name, value)
     elif isinstance(value, long):
-        self.addInt64(name, value)
+        self.addLongLong(name, value)
     elif isinstance(value, float):
         self.addDouble(name, value)
     elif isinstance(value, str):
