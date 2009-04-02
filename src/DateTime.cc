@@ -20,6 +20,7 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 
 #include "lsst/daf/base/DateTime.h"
 
+#include "boost/format.hpp"
 #include "boost/regex.hpp"
 #include <vector>
 
@@ -190,10 +191,38 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     tm.tm_yday = 0;
     tm.tm_isdst = 0;
     tm.tm_gmtoff = 0;
+
+    // Convert to seconds since the epoch, correcting to UTC.
     time_t secs = mktime(&tm);
+    secs -= ::timezone;
+
     _nsecs = secs * 1000000000LL;
     if (scale == UTC) {
         _nsecs = utcToTai(_nsecs);
+    }
+}
+
+/** Constructor.  Accepts a restricted subset of ISO8601:
+  * yyyy-mm-ddThh:mm:ss.nnnnnnnnnZ where the - and : separators are optional,
+  * the fractional seconds are also optional, and the decimal point may be a
+  * comma.
+ * \param[in] iso8601 ISO8601 representation of date and time.  Must be UTC.
+ */
+dafBase::DateTime::DateTime(std::string const& iso8601) {
+    boost::regex re("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
+                    "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,]\\d*)?" "Z");
+    boost::smatch matches;
+    if (!regex_match(iso8601, matches, re)) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
+                          "Not in acceptable ISO8601 format: " + iso8601);
+    }
+    DateTime dt(atoi(matches.str(1).c_str()), atoi(matches.str(2).c_str()),
+                atoi(matches.str(3).c_str()), atoi(matches.str(4).c_str()),
+                atoi(matches.str(5).c_str()), atoi(matches.str(6).c_str()),
+                UTC);
+    _nsecs = dt._nsecs;
+    if (matches[7].matched) {
+        _nsecs += atoi(matches.str(7).c_str() + 1);
     }
 }
 
@@ -254,6 +283,17 @@ struct timeval dafBase::DateTime::timeval(void) const {
     tv.tv_sec = static_cast<time_t>(nsecs / 1000000000LL);
     tv.tv_usec = static_cast<int>((nsecs % 10000000000LL) / 1000);
     return tv;
+}
+
+/** Accessor.
+ * \return ISO8601-formatted string representation.
+ */
+std::string dafBase::DateTime::toString(void) const {
+    struct tm gmt(this->gmtime());
+    return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
+            (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
+            gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
+            (taiToUtc(_nsecs) % 1000000000LL)).str();
 }
 
 /** Return current time as a DateTime.

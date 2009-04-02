@@ -39,9 +39,11 @@ public:
     explicit DateTime(double mjd, Timescale scale = TAI);
     DateTime(int year, int month, int day, int hr, int min, int sec,
              Timescale scale = TAI);
+    explicit DateTime(std::string const& iso8601);
 
     long long nsecs(Timescale scale = TAI) const;
     double mjd(Timescale scale = TAI) const;
+    std::string toString(void) const;
 
     struct tm gmtime(void) const; // Always UTC
     struct timespec timespec(void) const; // Always UTC
@@ -54,7 +56,7 @@ public:
 private:
     long long _nsecs;
         ///< Nanoseconds since Unix epoch
-        //
+
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.
       * @param[in,out] ar   Archive to access.

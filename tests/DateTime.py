@@ -3,6 +3,7 @@
 import unittest
 
 from lsst.daf.base import DateTime
+import lsst.pex.exceptions as pexExcept
 import time
 
 class DateTimeTestCase(unittest.TestCase):
@@ -55,6 +56,38 @@ class DateTimeTestCase(unittest.TestCase):
             diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs 
             self.assert_(diff > -1e-3)
             self.assert_(diff < 1e-3)
+
+    def testIsoEpoch(self):
+        ts = DateTime("19700101T000000Z")
+        self.assertEqual(ts.nsecs(DateTime.UTC), 0L)
+        self.assertEqual(ts.toString(), "1970-01-01T00:00:00.000000000Z")
+
+    def testIsoBasic(self):
+        ts = DateTime("20090402T072639.314159265Z")
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233314159265L)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199314159265L)
+        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.314159265Z")
+
+    def testIsoExpanded(self):
+        ts = DateTime("2009-04-02T07:26:39.314159265Z")
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233314159265L)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199314159265L)
+        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.314159265Z")
+
+    def testIsoNoNSecs(self):
+        ts = DateTime("2009-04-02T07:26:39Z")
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233000000000L)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199000000000L)
+        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.000000000Z")
+
+    def testIsoThrow(self):
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401T"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009-04-01T"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009-04-01T23:36:05"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401T23:36:05-0700"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
+        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
 
 if __name__ == '__main__':
     unittest.main()
