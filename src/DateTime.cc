@@ -35,8 +35,9 @@ static double const EPOCH_IN_MJD = 40587.0;
 /// Nanoseconds per day.
 static double const NSEC_PER_DAY = 86.4e12;
 
-/// Nanoseconds per day as a long long.
-static long long const LL_NSEC_PER_DAY = 86400000000000LL;
+/// Nanoseconds per day/second as a long long.
+static long long const LL_NSEC_PER_SEC = 1000000000LL;
+static long long const LL_NSEC_PER_DAY = 86400 * LL_NSEC_PER_SEC;
 
 /* Leap second table as string.
  *
@@ -196,7 +197,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     time_t secs = mktime(&tm);
     secs -= ::timezone;
 
-    _nsecs = secs * 1000000000LL;
+    _nsecs = secs * LL_NSEC_PER_SEC;
     if (scale == UTC) {
         _nsecs = utcToTai(_nsecs);
     }
@@ -258,7 +259,7 @@ double dafBase::DateTime::mjd(Timescale scale) const {
  */
 struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / 1000000000LL);
+    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
@@ -269,8 +270,8 @@ struct tm dafBase::DateTime::gmtime(void) const {
 struct timespec dafBase::DateTime::timespec(void) const {
     struct timespec ts;
     long long nsecs = taiToUtc(_nsecs);
-    ts.tv_sec = static_cast<time_t>(nsecs / 1000000000LL);
-    ts.tv_nsec = static_cast<int>(nsecs % 1000000000LL);
+    ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
+    ts.tv_nsec = static_cast<int>(nsecs % LL_NSEC_PER_SEC);
     return ts;
 }
 
@@ -280,8 +281,8 @@ struct timespec dafBase::DateTime::timespec(void) const {
 struct timeval dafBase::DateTime::timeval(void) const {
     struct timeval tv;
     long long nsecs = taiToUtc(_nsecs);
-    tv.tv_sec = static_cast<time_t>(nsecs / 1000000000LL);
-    tv.tv_usec = static_cast<int>((nsecs % 10000000000LL) / 1000);
+    tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
+    tv.tv_usec = static_cast<int>((nsecs % LL_NSEC_PER_SEC) / 1000);
     return tv;
 }
 
@@ -293,7 +294,7 @@ std::string dafBase::DateTime::toString(void) const {
     return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
             (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
-            (taiToUtc(_nsecs) % 1000000000LL)).str();
+            (taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
 }
 
 /** Return current time as a DateTime.
@@ -306,7 +307,7 @@ dafBase::DateTime dafBase::DateTime::now(void) {
         throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
                           "Unable to get current time");
     }
-    long long nsecs = tv.tv_sec * 1000000000LL + tv.tv_usec * 1000LL;
+    long long nsecs = tv.tv_sec * LL_NSEC_PER_SEC + tv.tv_usec * 1000LL;
     return DateTime(nsecs, DateTime::UTC);
 }
 
