@@ -218,7 +218,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     if (secs == -1) {
         throw LSST_EXCEPT(
             lsst::pex::exceptions::DomainErrorException,
-            (boost::format("Uncovertable date: %04d-%02d-%02dT%02d:%02d:%02d")
+            (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
              % year % month % day % hr % min % sec).str());
     }
 
