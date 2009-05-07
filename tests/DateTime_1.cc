@@ -3,6 +3,8 @@
 #define BOOST_TEST_MODULE DateTime_1
 #include "boost/test/included/unit_test.hpp"
 
+#include "lsst/pex/exceptions.h"
+
 namespace test = boost::test_tools;
 using lsst::daf::base::DateTime;
 
@@ -34,6 +36,28 @@ BOOST_AUTO_TEST_CASE(Timeval) {
     struct timeval tv(dt.timeval());
     BOOST_CHECK_EQUAL(tv.tv_sec, 1238657199);
     BOOST_CHECK_EQUAL(tv.tv_usec, 314159);
+}
+
+BOOST_AUTO_TEST_CASE(Throw) {
+    // Date too far in the future
+    BOOST_CHECK_THROW(DateTime(40587.0 + 106752.0),
+                      lsst::pex::exceptions::DomainErrorException);
+    // Date too far in the past
+    BOOST_CHECK_THROW(DateTime(40587.0 - 106752.0),
+                      lsst::pex::exceptions::DomainErrorException);
+    // Date before UTC->TAI conversion is valid
+    BOOST_CHECK_THROW(DateTime(-500000000 * 1000000000LL, DateTime::UTC),
+                      lsst::pex::exceptions::DomainErrorException);
+    // Date too far in the past for Unix mktime()
+    BOOST_CHECK_THROW(DateTime(1901, 1, 1, 12, 34, 56),
+                      lsst::pex::exceptions::DomainErrorException);
+    BOOST_CHECK_THROW(DateTime("1901-01-01T12:34:56Z"),
+                      lsst::pex::exceptions::DomainErrorException);
+    // Date too far in the future for Unix mktime()
+    BOOST_CHECK_THROW(DateTime(2039, 1, 1, 12, 34, 56),
+                      lsst::pex::exceptions::DomainErrorException);
+    BOOST_CHECK_THROW(DateTime("2039-01-01T12:34:56Z"),
+                      lsst::pex::exceptions::DomainErrorException);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

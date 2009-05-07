@@ -39,6 +39,10 @@ static double const NSEC_PER_DAY = 86.4e12;
 static long long const LL_NSEC_PER_SEC = 1000000000LL;
 static long long const LL_NSEC_PER_DAY = 86400 * LL_NSEC_PER_SEC;
 
+/// Maximum number of days expressible as signed 64-bit nanoseconds.
+/// 2^64 / 2 / 1e9 / 86400
+static double const MAX_DAYS = 106751.99;
+
 /* Leap second table as string.
  *
  * Source: http://maia.usno.navy.mil/ser7/tai-utc.dat
@@ -115,8 +119,11 @@ static long long utcToTai(long long nsecs) {
         if (nsecs < leapSecTable[i].whenUtc) break;
     }
     if (i == 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
-                          "DateTime value too early for UTC-TAI conversion");
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainErrorException,
+            (boost::format(
+                    "DateTime value too early for UTC-TAI conversion: %1%"
+                    ) % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
     double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
@@ -135,8 +142,11 @@ static long long taiToUtc(long long nsecs) {
         if (nsecs < leapSecTable[i].whenTai) break;
     }
     if (i == 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
-                        "DateTime value too early for TAI-UTC conversion");
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainErrorException,
+            (boost::format(
+                    "DateTime value too early for TAI-UTC conversion: %1%"
+                    ) % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
     double taiSecs = nsecs / 1.0e9;
@@ -164,6 +174,16 @@ dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
  * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
 dafBase::DateTime::DateTime(double mjd, Timescale scale) {
+    if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainErrorException,
+            (boost::format("MJD too far in the future: %1%") % mjd).str());
+    }
+    if (mjd < EPOCH_IN_MJD - MAX_DAYS) {
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainErrorException,
+            (boost::format("MJD too far in the past: %1%") % mjd).str());
+    }
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
     if (scale == UTC) {
         _nsecs = utcToTai(_nsecs);
@@ -195,6 +215,13 @@ dafBase::DateTime::DateTime(int year, int month, int day,
 
     // Convert to seconds since the epoch, correcting to UTC.
     time_t secs = mktime(&tm);
+    if (secs == -1) {
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainErrorException,
+            (boost::format("Uncovertable date: %04d-%02d-%02dT%02d:%02d:%02d")
+             % year % month % day % hr % min % sec).str());
+    }
+
     secs -= ::timezone;
 
     _nsecs = secs * LL_NSEC_PER_SEC;
