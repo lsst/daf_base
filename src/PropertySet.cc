@@ -19,6 +19,7 @@ static char const* SVNid __attribute__((unused)) = "$Id$";
 #include "lsst/daf/base/PropertySet.h"
 
 #include <algorithm>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
@@ -452,6 +453,7 @@ dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {
 std::string dafBase::PropertySet::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     ostringstream s;
+    s << std::showpoint; // Always show a decimal point for floats
     vector<string> nv = names();
     sort(nv.begin(), nv.end());
     for (vector<string>::const_iterator i = nv.begin(); i != nv.end(); ++i) {
@@ -476,8 +478,8 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
             else if (t == typeid(unsigned long)) s << boost::any_cast<unsigned long>(v);
             else if (t == typeid(long long)) s << boost::any_cast<long long>(v);
             else if (t == typeid(unsigned long long)) s << boost::any_cast<unsigned long long>(v);
-            else if (t == typeid(float)) s << boost::any_cast<float>(v);
-            else if (t == typeid(double)) s << boost::any_cast<double>(v);
+            else if (t == typeid(float)) s << std::setprecision(7) << boost::any_cast<float>(v);
+            else if (t == typeid(double)) s << std::setprecision(14) << boost::any_cast<double>(v);
             else if (t == typeid(string)) s << '"' << boost::any_cast<string>(v) << '"';
             else if (t == typeid(Ptr)) {
                 if (topLevelOnly) {
