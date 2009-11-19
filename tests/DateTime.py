@@ -54,8 +54,7 @@ class DateTimeTestCase(unittest.TestCase):
             secs = time.time()
             ts = DateTime.now()
             diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs 
-            self.assert_(diff > -1e-3)
-            self.assert_(diff < 1e-3)
+            self.assertAlmostEqual(diff, 0, places=3)
 
     def testIsoEpoch(self):
         ts = DateTime("19700101T000000Z")
