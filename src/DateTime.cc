@@ -13,11 +13,6 @@
  * \ingroup daf_base
  */
 
-#ifndef __GNUC__
-#  define __attribute__(x) /*NOTHING*/
-#endif
-static char const* SVNid __attribute__((unused)) = "$Id$";
-
 #include "lsst/daf/base/DateTime.h"
 
 #include "boost/format.hpp"
@@ -165,7 +160,7 @@ static long long taiToUtc(long long nsecs) {
  */
 dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
     if (scale == UTC) {
-        _nsecs = utcToTai(_nsecs);
+        _nsecs = ::utcToTai(_nsecs);
     }
 }
 
@@ -186,7 +181,7 @@ dafBase::DateTime::DateTime(double mjd, Timescale scale) {
     }
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
     if (scale == UTC) {
-        _nsecs = utcToTai(_nsecs);
+        _nsecs = ::utcToTai(_nsecs);
     }
 }
 
@@ -226,7 +221,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
 
     _nsecs = secs * LL_NSEC_PER_SEC;
     if (scale == UTC) {
-        _nsecs = utcToTai(_nsecs);
+        _nsecs = ::utcToTai(_nsecs);
     }
 }
 
@@ -263,7 +258,7 @@ long long dafBase::DateTime::nsecs(Timescale scale) const {
         return _nsecs;
     }
     else {
-        return taiToUtc(_nsecs);
+        return ::taiToUtc(_nsecs);
     }
 }
 
@@ -276,7 +271,7 @@ double dafBase::DateTime::mjd(Timescale scale) const {
         return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
     }
     else {
-        return static_cast<double>(taiToUtc(_nsecs)) / NSEC_PER_DAY +
+        return static_cast<double>(::taiToUtc(_nsecs)) / NSEC_PER_DAY +
             EPOCH_IN_MJD;
     }
 }
@@ -286,7 +281,7 @@ double dafBase::DateTime::mjd(Timescale scale) const {
  */
 struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
+    time_t secs = static_cast<time_t>(::taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
@@ -296,7 +291,7 @@ struct tm dafBase::DateTime::gmtime(void) const {
  */
 struct timespec dafBase::DateTime::timespec(void) const {
     struct timespec ts;
-    long long nsecs = taiToUtc(_nsecs);
+    long long nsecs = ::taiToUtc(_nsecs);
     ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     ts.tv_nsec = static_cast<int>(nsecs % LL_NSEC_PER_SEC);
     return ts;
@@ -307,7 +302,7 @@ struct timespec dafBase::DateTime::timespec(void) const {
  */
 struct timeval dafBase::DateTime::timeval(void) const {
     struct timeval tv;
-    long long nsecs = taiToUtc(_nsecs);
+    long long nsecs = ::taiToUtc(_nsecs);
     tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     tv.tv_usec = static_cast<int>((nsecs % LL_NSEC_PER_SEC) / 1000);
     return tv;
@@ -321,7 +316,7 @@ std::string dafBase::DateTime::toString(void) const {
     return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
             (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
-            (taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
+            (::taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
 }
 
 /** Return current time as a DateTime.

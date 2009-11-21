@@ -74,7 +74,7 @@ namespace base {
         static memId& _nextMemId(void);
         static table& activeCitizens();
         static table& persistentCitizens();
-        static bool _persistentCitizens;
+        static bool _shouldPersistCitizens;
         //
         // Callbacks
         //

@@ -11,11 +11,6 @@
   * Contact: Kian-Tat Lim (ktl@slac.stanford.edu)
   */
 
-#ifndef __GNUC__
-#  define __attribute__(x) /*NOTHING*/
-#endif
-static char const* SVNid __attribute__((unused)) = "$Id$";
-
 #include "lsst/daf/base/PropertySet.h"
 
 #include <algorithm>
@@ -637,7 +632,7 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::add(std::string const& name, char const* value) {
-   add(name, string(value));
+    add(name, string(value));
 }
 
 /** Replaces a single value vector in the destination with one from the

@@ -12,11 +12,6 @@
  * \ingroup daf_base
  */
 
-#ifndef __GNUC__
-#  define __attribute__(x) /*NOTHING*/
-#endif
-static char const* SVNid __attribute__((unused)) = "$Id$";
-
 #include "lsst/daf/base/Persistable.h"
 
 namespace lsst {

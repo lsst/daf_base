@@ -15,8 +15,8 @@ namespace rhl {
 
 class Shoe : public lsst::daf::base::Citizen {
 public:
-    Shoe(int i = 0) : Citizen(typeid(this)), _i(i) { }
-    ~Shoe() { }
+    explicit Shoe(int i = 0) : Citizen(typeid(this)), _i(i) { };
+    ~Shoe() { };
 private:
     int _i;
 };
@@ -26,38 +26,44 @@ private:
 using namespace rhl;
 
 class MyClass : public lsst::daf::base::Citizen {
-  public:
-    MyClass(const char *typeName = 0) :
-        Citizen(typeid(this)),
-        ptr(new int) {
-        *ptr = 0;
-    }
-    int add_one() { return ++*ptr; }
+public:
+    explicit MyClass(char const* typeName = 0);
+    int addOne();
 private:
     boost::scoped_ptr<int> ptr;         // no need to track this alloc
 };
+
+MyClass::MyClass(char const* typeName) :
+    lsst::daf::base::Citizen(typeid(this)),
+    ptr(new int) {
+    *ptr = 0;
+}
+
+int MyClass::addOne() {
+    return ++*ptr;
+}
 
 using namespace lsst::daf::base;
 
 MyClass *foo() {
     boost::scoped_ptr<Shoe> x(new Shoe(1));
-    MyClass *my_instance = new MyClass();
+    MyClass *myInstance = new MyClass();
 
     std::cout << "In foo\n";
     Citizen::census(std::cout);
 
-    return my_instance;
+    return myInstance;
 }
 
-Citizen::memId newCallback(const Citizen *ptr) {
+Citizen::memId newCallback(Citizen const* ptr) {
     std::cout << boost::format("\tRHL Allocating memId %s\n") % ptr->repr();
-    
+
     return 2;                           // trace every other subsequent allocs
 }
 
-Citizen::memId deleteCallback(const Citizen *ptr) {
+Citizen::memId deleteCallback(Citizen const* ptr) {
     std::cout << boost::format("\tRHL deleting memId %s\n") % ptr->repr();
-    
+
     return 0;
 }
 
@@ -68,19 +74,21 @@ int main() {
     (void)Citizen::setNewCallback(newCallback);
     (void)Citizen::setDeleteCallback(deleteCallback);
 #endif
-    const Citizen::memId firstId = Citizen::getNextMemId();
+    Citizen::memId const firstId = Citizen::getNextMemId();
     Shoe x;
-    x.markPersistent();                 // x isn't going to be deleted until main exists, so don't list as a leak
+
+    // x isn't going to be deleted until main exists, so don't list as a leak
+    x.markPersistent();
     
     boost::scoped_ptr<Shoe> y(new Shoe);
     boost::scoped_ptr<Shoe> z(new Shoe(10));
     
-    MyClass *mine = foo();
+    MyClass *mine = ::foo();
 
     std::cout << boost::format("In main (%d objects)\n") % Citizen::census(0);
 
-    boost::scoped_ptr<const std::vector<const Citizen *> > leaks(Citizen::census());
-    for (std::vector<const Citizen *>::const_iterator cur = leaks->begin();
+    boost::scoped_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
+    for (std::vector<Citizen const*>::const_iterator cur = leaks->begin();
          cur != leaks->end(); cur++) {
         std::cerr << boost::format("    %s\n") % (*cur)->repr();
     }
