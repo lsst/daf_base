@@ -66,8 +66,8 @@ Citizen::~Citizen() {
         _deleteId += _deleteCallback(this);
     }
 
-    (void)_checkCorruption();
-    _sentinel = 0x0000dead;             // In case we have a dangling pointer
+    (void)_hasBeenCorrupted();  // may execute callback
+    _sentinel = 0x0000dead;     // In case we have a dangling pointer
     size_t nActive = activeCitizens().erase(_CitizenId);
     if (nActive > 1 || (nActive == 0 && persistentCitizens().erase(_CitizenId) != 1)) {
         (void)_corruptionCallback(this);
@@ -184,7 +184,7 @@ std::vector<Citizen const*> const* Citizen::census() {
 //! Check for corruption
 //! Return true if the block is corrupted, but
 //! only after calling the corruptionCallback
-bool Citizen::_checkCorruption() const {
+bool Citizen::_hasBeenCorrupted() const {
     if (_sentinel == static_cast<int>(magicSentinel)) {
         return false;
     }
@@ -194,16 +194,16 @@ bool Citizen::_checkCorruption() const {
 }
 
 //! Check all allocated blocks for corruption
-bool Citizen::checkCorruption() {
+bool Citizen::hasBeenCorrupted() {
     for (table::iterator cur = activeCitizens().begin();
          cur != activeCitizens().end(); cur++) {
-        if (cur->second->_checkCorruption()) {
+        if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
     }
     for (table::iterator cur = persistentCitizens().begin();
          cur != persistentCitizens().end(); cur++) {
-        if (cur->second->_checkCorruption()) {
+        if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
     }

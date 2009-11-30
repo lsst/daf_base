@@ -48,7 +48,7 @@ namespace base {
         static void census(std::ostream &stream, memId startingMemId = 0);
         static const std::vector<const Citizen *> *census();
 
-        static bool checkCorruption();
+        static bool hasBeenCorrupted();
         
         memId getId() const;
         
@@ -85,7 +85,7 @@ namespace base {
         static memCallback _deleteCallback;        
         static memCallback _corruptionCallback;        
         //
-        bool _checkCorruption() const;
+        bool _hasBeenCorrupted() const;
 
         friend class PersistentCitizenScope;
     };

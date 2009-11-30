@@ -99,7 +99,7 @@ int main() {
     ((int *)y.get())[0] = 0;            // deliberately corrupt the block
     try {
         std::cerr << "Checking corruption\n";
-        (void)Citizen::checkCorruption();
+        (void)Citizen::hasBeenCorrupted();
     } catch(lsst::pex::exceptions::MemoryException& e) {
         std::cerr << "Memory check: " << e <<
             "Proceeding with trepidation\n";

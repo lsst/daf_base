@@ -3,14 +3,14 @@
 #define BOOST_TEST_MODULE PropertySet_1
 #include "boost/test/included/unit_test.hpp"
 
-namespace test = boost::test_tools;
-namespace dafBase = lsst::daf::base;
-
 #include <algorithm>
 
 #include "lsst/pex/exceptions/Runtime.h"
 
 #define INT64CONST(x) static_cast<int64_t>(x ## LL)
+
+namespace test = boost::test_tools;
+namespace dafBase = lsst::daf::base;
 
 BOOST_AUTO_TEST_SUITE(PropertySetSuite)
 
