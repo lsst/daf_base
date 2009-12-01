@@ -50,7 +50,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertAlmostEqual(ts.mjd(DateTime.UTC), 54392.040196759262)
 
     def testNow(self):
-        for i in xrange(100):
+        for i in xrange(100):       # pylint: disable-msg=W0612
             secs = time.time()
             ts = DateTime.now()
             diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs 
