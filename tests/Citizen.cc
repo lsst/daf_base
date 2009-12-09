@@ -34,7 +34,7 @@ using namespace lsst::daf::base;
 
 /************************************************************************************************************/
 
-BOOST_AUTO_TEST_SUITE(CitizenSuite)
+BOOST_AUTO_TEST_SUITE(CitizenSuite) /* parasoft-suppress LsstDm-3-2c-3 LsstDm-3-6a-4 "Boost test harness macros" */
 
 MyClass *foo() {
     boost::scoped_ptr<Shoe> x(new Shoe(1));
@@ -45,7 +45,7 @@ MyClass *foo() {
     return my_instance;
 }
 
-BOOST_AUTO_TEST_CASE(all) {
+BOOST_AUTO_TEST_CASE(all) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
     Shoe x;
     const Citizen::memId firstId = Citizen::getNextMemId();
         // after allocating x
