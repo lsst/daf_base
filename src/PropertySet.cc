@@ -222,7 +222,7 @@ type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
   * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
-T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress LsstDm-3-24b-5 "allow template over bool" */
+T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
@@ -247,7 +247,7 @@ T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress Lss
   * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
-T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-24b-5 "allow template over bool" */
+T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     AnyMap::const_iterator i = find(name);
     if (i == _map.end()) {
         return defaultValue;
@@ -297,7 +297,7 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
   * @throws NotFoundException Property does not exist.
   * @throws TypeMismatchException Value is not a bool.
   */
-bool dafBase::PropertySet::getAsBool(std::string const& name) const { /* parasoft-suppress LsstDm-3-24b-5 "for symmetry with other types" */
+bool dafBase::PropertySet::getAsBool(std::string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "for symmetry with other types" */
     return get<bool>(name);
 }
 

@@ -12,15 +12,15 @@
 namespace test = boost::test_tools;
 namespace dafBase = lsst::daf::base;
 
-BOOST_AUTO_TEST_SUITE(PropertySetSuite) /* parasoft-suppress LsstDm-3-2c-3 LsstDm-3-6a-4 "Boost test harness macros" */
+BOOST_AUTO_TEST_SUITE(PropertySetSuite) /* parasoft-suppress LsstDm-3-2a LsstDm-3-6a LsstDm-4-6 "Boost test harness macros" */
 
-BOOST_AUTO_TEST_CASE(construct) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(construct) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     BOOST_CHECK_EQUAL(!psp, false);
 }
 
-BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     boost::shared_ptr<dafBase::Persistable> pp =
         boost::dynamic_pointer_cast<dafBase::Persistable, dafBase::PropertySet>(psp);
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 Ls
     BOOST_CHECK_EQUAL(!cp, false);
 }
 
-BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     ps.set("char", '*');
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-
     BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "bar");
 }
 
-BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     ps.set("char", '*');
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4
     BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "xyzzy");
 }
 
-BOOST_AUTO_TEST_CASE(getDefault) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(getDefault) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
 
@@ -120,14 +120,14 @@ BOOST_AUTO_TEST_CASE(getDefault) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a
     BOOST_CHECK_EQUAL(ps.get<int>("foo", 2008), 2008);
 }
 
-BOOST_AUTO_TEST_CASE(exists) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(exists) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
     BOOST_CHECK_EQUAL(ps.exists("int"), true);
     BOOST_CHECK_EQUAL(ps.exists("foo"), false);
 }
 
-BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     short s = 42;
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-
     BOOST_CHECK_THROW(ps.get<std::string>("int"), dafBase::TypeMismatchException);
 }
 
-BOOST_AUTO_TEST_CASE(getVector) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(getVector) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     std::vector<int> v;
     v.push_back(42);
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(getVector) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-
     }
 }
 
-BOOST_AUTO_TEST_CASE(addScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(addScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     std::vector<int> v;
     v.push_back(42);
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(addScalar) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-
     BOOST_CHECK_EQUAL(ps.get<std::string>("other"), "foo");
 }
 
-BOOST_AUTO_TEST_CASE(addVector) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(addVector) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     std::vector<int> v;
     v.push_back(42);
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(addVector) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-
     }
 }
 
-BOOST_AUTO_TEST_CASE(typeOf) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(typeOf) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     ps.set("char", '*');
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(typeOf) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 L
     BOOST_CHECK(ps.typeOf("string") == typeid(std::string));
 }
 
-BOOST_AUTO_TEST_CASE(arrayProperties) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(arrayProperties) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     std::vector<int> v;
     v.push_back(42);
@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE(arrayProperties) { /* parasoft-suppress LsstDm-3-1-3 LsstDm
     BOOST_CHECK(ps.typeOf("ints2") == typeid(int));
 }
 
-BOOST_AUTO_TEST_CASE(hierarchy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(hierarchy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
 
@@ -326,7 +326,7 @@ BOOST_AUTO_TEST_CASE(hierarchy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-
     BOOST_CHECK(!ps.exists("ps4"));
 }
 
-BOOST_AUTO_TEST_CASE(variousThrows) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(variousThrows) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
     BOOST_CHECK_THROW(ps.set("int.sub", "foo"),
@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(variousThrows) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3
     BOOST_CHECK_NO_THROW(ps.remove("int.sub"));
 }
 
-BOOST_AUTO_TEST_CASE(names) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(names) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
     ps.set("ps1.post", 2);
@@ -379,7 +379,7 @@ BOOST_AUTO_TEST_CASE(names) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 Ls
     BOOST_CHECK_EQUAL(v[7], "ps2.plus");
 }
 
-BOOST_AUTO_TEST_CASE(paramNames) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(paramNames) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
     ps.set("ps1.post", 2);
@@ -404,7 +404,7 @@ BOOST_AUTO_TEST_CASE(paramNames) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a
     BOOST_CHECK_EQUAL(v[5], "ps2.plus");
 }
 
-BOOST_AUTO_TEST_CASE(propertySetNames) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(propertySetNames) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
     ps.set("ps1.post", 2);
@@ -429,7 +429,7 @@ BOOST_AUTO_TEST_CASE(propertySetNames) { /* parasoft-suppress LsstDm-3-1-3 LsstD
     BOOST_CHECK_EQUAL(v[3], "ps3.sub");
 }
 
-BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     ps.set("char", 'A');
@@ -481,7 +481,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 Ls
                       dafBase::TypeMismatchException);
 }
 
-BOOST_AUTO_TEST_CASE(combine) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(combine) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
     ps.set("ps1.post", 2);
@@ -530,7 +530,7 @@ BOOST_AUTO_TEST_CASE(combine) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 
     BOOST_CHECK_EQUAL(v[1], 2008);
 }
 
-BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
 
@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-
     BOOST_CHECK_THROW(ps.combine(psp), dafBase::TypeMismatchException);
 }
 
-BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
     ps.set("ps1.post", 2);
@@ -575,7 +575,7 @@ BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 Lss
     BOOST_CHECK(!ps.isArray("ps5.top"));
 }
 
-BOOST_AUTO_TEST_CASE(remove) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(remove) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
     ps.set("double", 3.14159);
@@ -619,7 +619,7 @@ BOOST_AUTO_TEST_CASE(remove) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 L
     BOOST_CHECK_EQUAL(ps.nameCount(false), 0U);
 }
 
-BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3
     BOOST_CHECK_EQUAL(psp2->getAsString("top.bottom"), "x");
 }
 
-BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("bool", true);
     ps.set("char", '*');
@@ -710,7 +710,7 @@ BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3
         );
 }
 
-BOOST_AUTO_TEST_CASE(cycle) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(cycle) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 42);
     psp->set("a.double", 3.14159);

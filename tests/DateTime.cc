@@ -8,9 +8,9 @@
 namespace test = boost::test_tools;
 using lsst::daf::base::DateTime;
 
-BOOST_AUTO_TEST_SUITE(DateTimeSuite) /* parasoft-suppress LsstDm-3-2c-3 LsstDm-3-6a-4 "Boost test harness macros" */
+BOOST_AUTO_TEST_SUITE(DateTimeSuite) /* parasoft-suppress LsstDm-3-2a LsstDm-3-6a LsstDm-4-6 "Boost test harness macros" */
 
-BOOST_AUTO_TEST_CASE(Gmtime) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(Gmtime) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-2a LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     DateTime dt("20090402T072639.314159265Z");
     struct tm t(dt.gmtime());
     BOOST_CHECK_EQUAL(t.tm_sec, 39);
@@ -24,21 +24,21 @@ BOOST_AUTO_TEST_CASE(Gmtime) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 L
     BOOST_CHECK_EQUAL(t.tm_isdst, 0);
 }
 
-BOOST_AUTO_TEST_CASE(Timespec) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(Timespec) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-2a LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     DateTime dt("20090402T072639.314159265Z");
     struct timespec ts(dt.timespec());
     BOOST_CHECK_EQUAL(ts.tv_sec, 1238657199);
     BOOST_CHECK_EQUAL(ts.tv_nsec, 314159265);
 }
 
-BOOST_AUTO_TEST_CASE(Timeval) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(Timeval) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-2a LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     DateTime dt("20090402T072639.314159265Z");
     struct timeval tv(dt.timeval());
     BOOST_CHECK_EQUAL(tv.tv_sec, 1238657199);
     BOOST_CHECK_EQUAL(tv.tv_usec, 314159);
 }
 
-BOOST_AUTO_TEST_CASE(Throw) { /* parasoft-suppress LsstDm-3-1-3 LsstDm-3-4a-3 LsstDm-5-25-2 "Boost test harness macros" */
+BOOST_AUTO_TEST_CASE(Throw) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-2a LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     // Date too far in the future
     BOOST_CHECK_THROW(DateTime(40587.0 + 106752.0),
                       lsst::pex::exceptions::DomainErrorException);
