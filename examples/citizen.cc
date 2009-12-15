@@ -30,17 +30,17 @@ public:
     explicit MyClass(char const* typeName = 0);
     int addOne();
 private:
-    boost::scoped_ptr<int> ptr;         // no need to track this alloc
+    boost::scoped_ptr<int> _ptr;         // no need to track this alloc
 };
 
 MyClass::MyClass(char const* typeName) :
     lsst::daf::base::Citizen(typeid(this)),
-    ptr(new int) {
-    *ptr = 0;
+    _ptr(new int) {
+    *_ptr = 0;
 }
 
 int MyClass::addOne() {
-    return ++*ptr;
+    return ++*_ptr;
 }
 
 using namespace lsst::daf::base;

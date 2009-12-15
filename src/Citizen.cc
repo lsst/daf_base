@@ -37,9 +37,9 @@ Citizen::Citizen(std::type_info const& type) :
     _typeName(type.name()) {
     _CitizenId = _nextMemId()++;
     if (_shouldPersistCitizens) {
-        persistentCitizens()[_CitizenId] = this;
+        _persistentCitizens()[_CitizenId] = this;
     } else {
-        activeCitizens()[_CitizenId] = this;
+        _activeCitizens()[_CitizenId] = this;
     }
     if (_CitizenId == _newId) {
         _newId += _newCallback(this);
@@ -51,9 +51,9 @@ Citizen::Citizen(Citizen const& citizen) :
     _typeName(citizen._typeName) {
     _CitizenId = _nextMemId()++;
     if (_shouldPersistCitizens) {
-        persistentCitizens()[_CitizenId] = this;
+        _persistentCitizens()[_CitizenId] = this;
     } else {
-        activeCitizens()[_CitizenId] = this;
+        _activeCitizens()[_CitizenId] = this;
     }
 
     if (_CitizenId == _newId) {
@@ -68,8 +68,8 @@ Citizen::~Citizen() {
 
     (void)_hasBeenCorrupted();  // may execute callback
     _sentinel = 0x0000dead;     // In case we have a dangling pointer
-    size_t nActive = activeCitizens().erase(_CitizenId);
-    if (nActive > 1 || (nActive == 0 && persistentCitizens().erase(_CitizenId) != 1)) {
+    size_t nActive = _activeCitizens().erase(_CitizenId);
+    if (nActive > 1 || (nActive == 0 && _persistentCitizens().erase(_CitizenId) != 1)) {
         (void)_corruptionCallback(this);
     }
 }
@@ -116,8 +116,8 @@ std::string Citizen::repr() const {
 
 //! Mark a Citizen as persistent and not destroyed until process end.
 void Citizen::markPersistent(void) {
-    activeCitizens().erase(_CitizenId);
-    persistentCitizens()[_CitizenId] = this;
+    _activeCitizens().erase(_CitizenId);
+    _persistentCitizens()[_CitizenId] = this;
 }
 
 //! \name Census
@@ -132,12 +132,12 @@ int Citizen::census(
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     if (startingMemId == 0) {              // easy
-        return activeCitizens().size();
+        return _activeCitizens().size();
     }
 
     int n = 0;
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         if (cur->second->_CitizenId >= startingMemId) {
             n++;
         }
@@ -152,8 +152,8 @@ void Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         if (cur->second->_CitizenId >= startingMemId) {
             stream << cur->second->repr() << "\n";
         }
@@ -170,10 +170,10 @@ void Citizen::census(
 std::vector<Citizen const*> const* Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
-    vec->reserve(activeCitizens().size());
+    vec->reserve(_activeCitizens().size());
 
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         vec->push_back(dynamic_cast<Citizen const*>(cur->second));
     }
         
@@ -195,14 +195,14 @@ bool Citizen::_hasBeenCorrupted() const {
 
 //! Check all allocated blocks for corruption
 bool Citizen::hasBeenCorrupted() {
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
     }
-    for (table::iterator cur = persistentCitizens().begin();
-         cur != persistentCitizens().end(); cur++) {
+    for (table::iterator cur = _persistentCitizens().begin();
+         cur != _persistentCitizens().end(); cur++) {
         if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
@@ -311,12 +311,12 @@ Citizen::memId defaultCorruptionCallback(Citizen const* ptr //!< About-to-be del
     return ptr->getId();                // NOTREACHED
 }
 
-Citizen::table& Citizen::activeCitizens(void) {
+Citizen::table& Citizen::_activeCitizens(void) {
     static Citizen::table* activeCitizensTable = new Citizen::table;
     return *activeCitizensTable;
 }
 
-Citizen::table& Citizen::persistentCitizens(void) {
+Citizen::table& Citizen::_persistentCitizens(void) {
     static Citizen::table* persistentCitizensTable = new Citizen::table;
     return *persistentCitizensTable;
 }

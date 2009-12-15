@@ -114,14 +114,14 @@ private:
     typedef std::tr1::unordered_map<std::string,
             boost::shared_ptr< std::vector<boost::any> > > AnyMap;
 
-    AnyMap::iterator find(std::string const& name);
-    AnyMap::const_iterator find(std::string const& name) const;
-    void findOrInsert(std::string const& name,
+    AnyMap::iterator _find(std::string const& name);
+    AnyMap::const_iterator _find(std::string const& name) const;
+    void _findOrInsert(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
-    void cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
-    void cycleCheckAnyVec(std::vector<boost::any> const& v,
+    void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
+    void _cycleCheckAnyVec(std::vector<boost::any> const& v,
                           std::string const& name);
-    void cycleCheckPtr(Ptr const& v, std::string const& name);
+    void _cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
 };

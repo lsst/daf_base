@@ -12,7 +12,7 @@
 
 class Shoe : public lsst::daf::base::Citizen {
 public:
-    Shoe(int i=0) : Citizen(typeid(this)), _i(i) { }
+    explicit Shoe(int i=0) : Citizen(typeid(this)), _i(i) { }
     ~Shoe() { }
 private:
     int _i;
@@ -22,12 +22,12 @@ class MyClass : public lsst::daf::base::Citizen {
 public:
     explicit MyClass(char const* typeName=0);
 private:
-    boost::scoped_ptr<int> ptr;         // no need to track this alloc
+    boost::scoped_ptr<int> _ptr;         // no need to track this alloc
 };
 
 MyClass::MyClass(char const* typeName) :
-    Citizen(typeid(this)), ptr(new int) {
-    *ptr = 0;
+    Citizen(typeid(this)), _ptr(new int) {
+    *_ptr = 0;
 }
 
 using namespace lsst::daf::base;
