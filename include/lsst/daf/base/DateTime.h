@@ -43,7 +43,7 @@ public:
     explicit DateTime(std::string const& iso8601);
 
     long long nsecs(Timescale scale = TAI) const;
-    double getDate(DateSystem system = MJD, Timescale scale = TAI) const;
+    double get(DateSystem system = MJD, Timescale scale = TAI) const;
     std::string toString(void) const;
 
     struct tm gmtime(void) const; // Always UTC
