@@ -64,7 +64,7 @@ private:
       */
     template <class Archive> void serialize(Archive ar, int const version) {
         ar & _nsecs;
-    };
+    }
 
 };
 

@@ -27,7 +27,7 @@ using namespace rhl;
 
 class MyClass : public lsst::daf::base::Citizen {
   public:
-    MyClass(const char *typeName = 0) :
+    MyClass(const char * = 0) :
         Citizen(typeid(this)),
         ptr(new int) {
         *ptr = 0;

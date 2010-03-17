@@ -39,6 +39,11 @@ namespace persistence {
 
 namespace base {
 
+#if defined(__ICC)
+#pragma warning (push)
+#pragma warning (disable: 444)
+#endif
+
 class PropertySet :
     public Persistable, public Citizen, public boost::noncopyable {
 public:
@@ -109,7 +114,7 @@ public:
     void remove(std::string const& name);
 
 private:
-    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter);
+    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
     typedef std::tr1::unordered_map<std::string,
             boost::shared_ptr< std::vector<boost::any> > > AnyMap;
@@ -125,6 +130,10 @@ private:
 
     AnyMap _map;
 };
+
+#if defined(__ICC)
+#pragma warning (pop)
+#endif    
 
 template<> void PropertySet::add<PropertySet::Ptr>(
     std::string const& name, Ptr const& value);

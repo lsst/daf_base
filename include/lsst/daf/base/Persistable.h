@@ -60,7 +60,7 @@ public:
       * Inline to allow expansion wherever needed.
       */
     template <class Archive>
-    void serialize(Archive& ar, unsigned int const version) { };
+    void serialize(Archive& , unsigned int const) { }
 };
 
 /** Macro used to connect the persistable class with the Formatter and
@@ -78,7 +78,7 @@ public:
     template <class Archive> \
     void serialize(Archive& ar, unsigned int const version) { \
         lsst::daf::persistence::delegateSerialize<formatter, Archive>(ar, version, this); \
-    };
+    }
 
 }}} // namespace lsst::daf::base
 
