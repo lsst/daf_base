@@ -91,48 +91,46 @@ def getPSValue(self, name):
     trying each Python-compatible type in turn until no exception is raised.
     """
     try:
-        value = self.getAsString(name)
-        return value
+        value = self.getArrayString(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getAsPropertySetPtr(name)
-        return value
+        return self.getAsPropertySetPtr(name)
     except:
         pass
     try:
-        value = self.getAsPersistablePtr(name)
-        return value
+        return self.getAsPersistablePtr(name)
     except:
         pass
     try:
-        value = self.getBool(name)
-        return value
+        value = self.getArrayBool(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getAsInt(name)
-        return value
+        value = self.getArrayInt(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getLong(name)
-        return value
+        value = self.getArrayLong(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getLongLong(name)
-        return value
+        value = self.getArrayLongLong(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getAsDouble(name)
-        return value
+        value = self.getArrayDouble(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     try:
-        value = self.getDateTime(name)
-        return value
+        value = self.getArrayDateTime(name)
+        return value[0] if len(value) == 1 else value
     except:
         pass
     raise lsst.pex.exceptions.LsstException, \
