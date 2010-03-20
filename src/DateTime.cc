@@ -46,6 +46,9 @@ static long long const LL_NSEC_PER_DAY = 86400 * LL_NSEC_PER_SEC;
 
 /// Maximum number of days expressible as signed 64-bit nanoseconds.
 /// 2^64 / 2 / 1e9 / 86400
+/// NOTE: long long nsecs will wrap:
+/// -- earliest date representable = sep 21, 1677 00:00:00
+/// -- latest date representable   = apr 12, 2262 00:00:00
 static double const MAX_DAYS = 106751.99;
 
 
@@ -213,28 +216,6 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
  */
 void dafBase::DateTime::setNsecsFromMjd(double mjd, dafBase::DateTime::Timescale scale) {
 
-    // set the double, regardless of the range
-    _nsecsD = (mjd - EPOCH_IN_MJD) * NSEC_PER_DAY;
-    if (scale == dafBase::DateTime::UTC) {
-        _nsecsD = utcToTai(_nsecsD);
-    }
-    
-    // set the longlong if it's within MAX_DAYS (otherwise set nan?)
-    // --> quiet_NaN() isn't supported for long long, so set to 0
-    // --> It's quite unlikely a genuine 0 will be passed in, and the
-    //     'double' _nsecsD will work fine in any case.
-    if ( (mjd > EPOCH_IN_MJD + MAX_DAYS) || (mjd < EPOCH_IN_MJD - MAX_DAYS)) {
-        _nsecs = 0;
-    } else {
-        _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
-        if (scale == dafBase::DateTime::UTC) {
-            _nsecs = utcToTai(_nsecs);
-        }
-    }
-
-    // This is the original code which threw exceptions outside the
-    //   numeric limits of long long nanoseconds.
-#if 0    
     if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
         throw LSST_EXCEPT(
                           lsst::pex::exceptions::DomainErrorException,
@@ -249,7 +230,7 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, dafBase::DateTime::Timescale
     if (scale == dafBase::DateTime::UTC) {
         _nsecs = utcToTai(_nsecs);
     }
-#endif
+
 }
     
 /**
@@ -318,52 +299,40 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
 dafBase::DateTime::DateTime(int year, int month, int day,
                             int hr, int min, int sec, Timescale scale) {
 
-    // set a double precision _nsecsD
-    double const jd = calendarToJd(year, month, day, hr, min, sec);
-    double const secsD = (jd - MJD_TO_JD - EPOCH_IN_MJD)*86400.0 - ::timezone;
-    _nsecsD = secsD*1.0e9;
-    if (scale == UTC) {
-        _nsecsD = utcToTai(_nsecsD);
-    }
 
+    struct tm tm;
+    tm.tm_year = year - 1900;
+    tm.tm_mon = month - 1;
+    tm.tm_mday = day;
+    tm.tm_hour = hr;
+    tm.tm_min = min;
+    tm.tm_sec = sec;
+    tm.tm_wday = 0;
+    tm.tm_yday = 0;
+    tm.tm_isdst = 0;
+    tm.tm_gmtoff = 0;
     
-    // KT's original code
+    // Convert to seconds since the epoch, correcting to UTC.
+    time_t secs = mktime(&tm);
+    
     // long long nsecs will blow out beyond sep 21, 1677 0:00:00, and apr 12 2262 00:00:00
     // (refering to the values of EPOCH_IN_MJD +/- MAX_DAYS ... exceeds 64 bits.)
     // However, a tm struct is only 32 bits, and saturates at:
     //    low end - Dec 13 1901, 20:45:52
     //    hi end  - Jan 19 2038, 03:14:07
-
-    if ( year < 1902 || year > 2037 ) {
-        _nsecs = 0;  // note quiet_NaN() not supported for long long
-    } else {
-        struct tm tm;
-        tm.tm_year = year - 1900;
-        tm.tm_mon = month - 1;
-        tm.tm_mday = day;
-        tm.tm_hour = hr;
-        tm.tm_min = min;
-        tm.tm_sec = sec;
-        tm.tm_wday = 0;
-        tm.tm_yday = 0;
-        tm.tm_isdst = 0;
-        tm.tm_gmtoff = 0;
-        
-        // Convert to seconds since the epoch, correcting to UTC.
-        time_t secs = mktime(&tm);
-        if (secs == -1) {
-            throw LSST_EXCEPT(
-                              lsst::pex::exceptions::DomainErrorException,
-                              (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
-                               % year % month % day % hr % min % sec).str());
-        }
-        
-        secs -= ::timezone;
-        
-        _nsecs = secs * LL_NSEC_PER_SEC;
-        if (scale == UTC) {
-            _nsecs = utcToTai(_nsecs);
-        }
+    
+    if (secs == -1) {
+        throw LSST_EXCEPT(
+                          lsst::pex::exceptions::DomainErrorException,
+                          (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
+                           % year % month % day % hr % min % sec).str());
+    }
+    
+    secs -= ::timezone;
+    
+    _nsecs = secs * LL_NSEC_PER_SEC;
+    if (scale == UTC) {
+        _nsecs = utcToTai(_nsecs);
     }
 
 }
@@ -439,15 +408,11 @@ long long dafBase::DateTime::nsecs(Timescale scale) const {
  */
 double dafBase::DateTime::_getMjd(Timescale scale) const {
 
-    // There are limits on _nsecs as it's a 64 bit (long long) int
-    // If a DateTime exceeds the valid range, the constructor set _nsecs = 0
-    // ... But the _nsecsD (double) will be valid in this range.
-    double nsecsTmp = (_nsecs == 0) ? _nsecsD : static_cast<double>(_nsecs);
     if (scale == TAI) {
-        return static_cast<double>(nsecsTmp) / NSEC_PER_DAY + EPOCH_IN_MJD;
+        return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
     }
     else {
-        return static_cast<double>(taiToUtc(nsecsTmp)) / NSEC_PER_DAY +
+        return static_cast<double>(taiToUtc(_nsecs)) / NSEC_PER_DAY +
             EPOCH_IN_MJD;
     }
 }

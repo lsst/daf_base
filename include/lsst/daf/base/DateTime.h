@@ -55,9 +55,7 @@ public:
     static void initializeLeapSeconds(std::string const& leapString);
 
 private:
-    long long _nsecs;
-    double _nsecsD;
-        ///< Nanoseconds since Unix epoch
+    long long _nsecs;  ///< Nanoseconds since Unix epoch
 
     double _getMjd(Timescale scale) const;
     double _getJd(Timescale scale) const;
