@@ -35,14 +35,18 @@ namespace base {
 class DateTime {
 public:
     enum Timescale { TAI, UTC };
+    enum DateSystem { JD, MJD, EPOCH };
     explicit DateTime(long long nsecs = 0LL, Timescale scale = TAI);
-    explicit DateTime(double mjd, Timescale scale = TAI);
+    explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
     DateTime(int year, int month, int day, int hr, int min, int sec,
              Timescale scale = TAI);
     explicit DateTime(std::string const& iso8601);
 
     long long nsecs(Timescale scale = TAI) const;
-    double mjd(Timescale scale = TAI) const;
+    double mjd(Timescale scale = TAI) const {  // depricated, please use get(MJD)
+        return _getMjd(scale);
+    }
+    double get(DateSystem system = MJD, Timescale scale = TAI) const;
     std::string toString(void) const;
 
     struct tm gmtime(void) const; // Always UTC
@@ -54,9 +58,16 @@ public:
     static void initializeLeapSeconds(std::string const& leapString);
 
 private:
-    long long _nsecs;
-        ///< Nanoseconds since Unix epoch
+    long long _nsecs;  ///< Nanoseconds since Unix epoch
 
+    double _getMjd(Timescale scale) const;
+    double _getJd(Timescale scale) const;
+    double _getEpoch(Timescale scale) const;
+
+    void setNsecsFromMjd(double mjd, Timescale scale);
+    void setNsecsFromJd(double jd, Timescale scale);
+    void setNsecsFromEpoch(double epoch, Timescale scale);
+    
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.
       * @param[in,out] ar   Archive to access.
