@@ -37,7 +37,7 @@ namespace base {
 
         Citizen(const std::type_info &);
         Citizen(Citizen const &);
-        virtual ~Citizen();
+        ~Citizen();
 
         Citizen & operator=(Citizen const &) { return *this; }
         //
@@ -99,20 +99,11 @@ namespace base {
      *
      * @sa Citizen::markPersistent()
      */
-#if defined(__ICC)
-#pragma warning (push)
-#pragma warning (disable: 444)
-#endif
-
     class PersistentCitizenScope : private boost::noncopyable {
     public:
         PersistentCitizenScope();
         ~PersistentCitizenScope();
     };
-
-#if defined(__ICC)
-#pragma warning (pop)
-#endif
 #endif
 
 }}} // namespace lsst::daf::base
