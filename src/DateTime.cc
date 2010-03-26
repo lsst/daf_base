@@ -264,7 +264,7 @@ dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
 }
 
 /** Constructor.
- * \param[in] mjd Modified Julian Day.
+ * \param[in] date Date.
  * \param[in] system The requested date system (JD, MJD, or Julian epoch)
  * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
