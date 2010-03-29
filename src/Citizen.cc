@@ -23,38 +23,37 @@ namespace base {
 //
 class CitizenInit {
 public:
-    CitizenInit() : _dummy(1) {
-    }
+    CitizenInit() : _dummy(1) { }
 private:
     volatile int _dummy;
 };
-    
+ 
 CitizenInit one;
 //
 // Con/Destructors
 //
-Citizen::Citizen(const std::type_info &type) :
+Citizen::Citizen(std::type_info const& type) :
     _sentinel(magicSentinel),
     _typeName(type.name()) {
     _CitizenId = _nextMemId()++;
-    if (_persistentCitizens) {
-        persistentCitizens()[_CitizenId] = this;
+    if (_shouldPersistCitizens) {
+        _persistentCitizens()[_CitizenId] = this;
     } else {
-        activeCitizens()[_CitizenId] = this;
+        _activeCitizens()[_CitizenId] = this;
     }
     if (_CitizenId == _newId) {
         _newId += _newCallback(this);
     }
 }
 
-Citizen::Citizen(Citizen const & citizen) :
+Citizen::Citizen(Citizen const& citizen) :
     _sentinel(magicSentinel),
     _typeName(citizen._typeName) {
     _CitizenId = _nextMemId()++;
-    if (_persistentCitizens) {
-        persistentCitizens()[_CitizenId] = this;
+    if (_shouldPersistCitizens) {
+        _persistentCitizens()[_CitizenId] = this;
     } else {
-        activeCitizens()[_CitizenId] = this;
+        _activeCitizens()[_CitizenId] = this;
     }
 
     if (_CitizenId == _newId) {
@@ -67,10 +66,10 @@ Citizen::~Citizen() {
         _deleteId += _deleteCallback(this);
     }
 
-    (void)_checkCorruption();
-    _sentinel = 0x0000dead;             // In case we have a dangling pointer
-    size_t nActive = activeCitizens().erase(_CitizenId);
-    if (nActive > 1 || (nActive == 0 && persistentCitizens().erase(_CitizenId) != 1)) {
+    (void)_hasBeenCorrupted();  // may execute callback
+    _sentinel = 0x0000dead;     // In case we have a dangling pointer
+    size_t nActive = _activeCitizens().erase(_CitizenId);
+    if (nActive > 1 || (nActive == 0 && _persistentCitizens().erase(_CitizenId) != 1)) {
         (void)_corruptionCallback(this);
     }
 }
@@ -117,8 +116,8 @@ std::string Citizen::repr() const {
 
 //! Mark a Citizen as persistent and not destroyed until process end.
 void Citizen::markPersistent(void) {
-    activeCitizens().erase(_CitizenId);
-    persistentCitizens()[_CitizenId] = this;
+    _activeCitizens().erase(_CitizenId);
+    _persistentCitizens()[_CitizenId] = this;
 }
 
 //! \name Census
@@ -133,12 +132,12 @@ int Citizen::census(
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     if (startingMemId == 0) {              // easy
-        return activeCitizens().size();
+        return _activeCitizens().size();
     }
 
     int n = 0;
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         if (cur->second->_CitizenId >= startingMemId) {
             n++;
         }
@@ -153,8 +152,8 @@ void Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
         if (cur->second->_CitizenId >= startingMemId) {
             stream << cur->second->repr() << "\n";
         }
@@ -164,18 +163,18 @@ void Citizen::census(
 //! Return a (newly allocated) std::vector of active Citizens
 //
 //! You are responsible for deleting it; or you can say
-//!    boost::scoped_ptr<const std::vector<const Citizen *> >
-//!					leaks(Citizen::census());
+//!    boost::scoped_ptr<std::vector<Citizen const*> const>
+//!        leaks(Citizen::census());
 //! and not bother
 //
-const std::vector<const Citizen *> *Citizen::census() {
-    std::vector<const Citizen *> *vec =
-        new std::vector<const Citizen *>(0);
-    vec->reserve(activeCitizens().size());
+std::vector<Citizen const*> const* Citizen::census() {
+    std::vector<Citizen const*>* vec =
+        new std::vector<Citizen const*>(0);
+    vec->reserve(_activeCitizens().size());
 
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
-        vec->push_back(dynamic_cast<const Citizen *>(cur->second));
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
+        vec->push_back(dynamic_cast<Citizen const*>(cur->second));
     }
         
     return vec;
@@ -185,7 +184,7 @@ const std::vector<const Citizen *> *Citizen::census() {
 //! Check for corruption
 //! Return true if the block is corrupted, but
 //! only after calling the corruptionCallback
-bool Citizen::_checkCorruption() const {
+bool Citizen::_hasBeenCorrupted() const {
     if (_sentinel == static_cast<int>(magicSentinel)) {
         return false;
     }
@@ -195,16 +194,16 @@ bool Citizen::_checkCorruption() const {
 }
 
 //! Check all allocated blocks for corruption
-bool Citizen::checkCorruption() {
-    for (table::iterator cur = activeCitizens().begin();
-         cur != activeCitizens().end(); cur++) {
-        if (cur->second->_checkCorruption()) {
+bool Citizen::hasBeenCorrupted() {
+    for (table::iterator cur = _activeCitizens().begin();
+         cur != _activeCitizens().end(); cur++) {
+        if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
     }
-    for (table::iterator cur = persistentCitizens().begin();
-         cur != persistentCitizens().end(); cur++) {
-        if (cur->second->_checkCorruption()) {
+    for (table::iterator cur = _persistentCitizens().begin();
+         cur != _persistentCitizens().end(); cur++) {
+        if (cur->second->_hasBeenCorrupted()) {
             return true;
         }
     }
@@ -272,7 +271,7 @@ Citizen::memCallback Citizen::setDeleteCallback(
     
 //! Set the CorruptionCallback function
 Citizen::memCallback Citizen::setCorruptionCallback(
-	Citizen::memCallback func //!< function be called when block is found to be corrupted
+    Citizen::memCallback func //!< function be called when block is found to be corrupted
                                                    ) {
     Citizen::memCallback old = _corruptionCallback;
     _corruptionCallback = func;
@@ -286,7 +285,7 @@ Citizen::memCallback Citizen::setCorruptionCallback(
 //! may well be changed behind our back
 //@{
 //! Default NewCallback
-Citizen::memId defaultNewCallback(const Citizen *ptr //!< Just-allocated Citizen
+Citizen::memId defaultNewCallback(Citizen const* ptr //!< Just-allocated Citizen
                                  ) {
     static int dId = 0;             // how much to incr memId
     std::cerr << boost::format("Allocating memId %s\n") % ptr->repr();
@@ -295,7 +294,7 @@ Citizen::memId defaultNewCallback(const Citizen *ptr //!< Just-allocated Citizen
 }
 
 //! Default DeleteCallback
-Citizen::memId defaultDeleteCallback(const Citizen *ptr //!< About-to-be deleted Citizen
+Citizen::memId defaultDeleteCallback(Citizen const* ptr //!< About-to-be deleted Citizen
                                     ) {
     static int dId = 0;             // how much to incr memId
     std::cerr << boost::format("Deleting memId %s\n") % ptr->repr();
@@ -304,7 +303,7 @@ Citizen::memId defaultDeleteCallback(const Citizen *ptr //!< About-to-be deleted
 }
 
 //! Default CorruptionCallback
-Citizen::memId defaultCorruptionCallback(const Citizen *ptr //!< About-to-be deleted Citizen
+Citizen::memId defaultCorruptionCallback(Citizen const* ptr //!< About-to-be deleted Citizen
                               ) {
     throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                       str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
@@ -312,21 +311,21 @@ Citizen::memId defaultCorruptionCallback(const Citizen *ptr //!< About-to-be del
     return ptr->getId();                // NOTREACHED
 }
 
-Citizen::table& Citizen::activeCitizens(void) {
-    static Citizen::table* _activeCitizens = new Citizen::table;
-    return *_activeCitizens;
+Citizen::table& Citizen::_activeCitizens(void) {
+    static Citizen::table* activeCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
+    return *activeCitizensTable;
 }
 
-Citizen::table& Citizen::persistentCitizens(void) {
-    static Citizen::table* _persistentCitizens = new Citizen::table;
-    return *_persistentCitizens;
+Citizen::table& Citizen::_persistentCitizens(void) {
+    static Citizen::table* persistentCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
+    return *persistentCitizensTable;
 }
 
 //@}
 //
 // Initialise static members
 //
-bool Citizen::_persistentCitizens = false;
+bool Citizen::_shouldPersistCitizens = false;
 
 Citizen::memId Citizen::_newId = 0;
 Citizen::memId Citizen::_deleteId = 0;
@@ -337,11 +336,11 @@ Citizen::memCallback Citizen::_corruptionCallback = defaultCorruptionCallback;
 
 
 PersistentCitizenScope::PersistentCitizenScope() {
-    Citizen::_persistentCitizens = true;
+    Citizen::_shouldPersistCitizens = true;
 }
 
 PersistentCitizenScope::~PersistentCitizenScope() {
-    Citizen::_persistentCitizens = false;
+    Citizen::_shouldPersistCitizens = false;
 }
 
 }}} // namespace lsst::daf::base
