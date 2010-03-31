@@ -48,7 +48,7 @@ for d in (
 env['IgnoreFiles'] = r"(~$|\.pyc$|^\.svn$|\.o$)"
 
 Alias("install", [
-    env.InstallAs(os.path.join(env['prefix'], "doc", "doxygen"), os.path.join("doc", "htmlDir")),
+    env.Install(env['prefix'], "doc"),
     env.Install(env['prefix'], "examples"),
     env.Install(env['prefix'], "include"),
     env.Install(env['prefix'], "lib"),
