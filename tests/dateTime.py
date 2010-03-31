@@ -15,6 +15,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), 399006021000000000L)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.TAI), 45205.125 + 21.0/86400.0)
+        # Following interface is deprecated
         self.assertAlmostEqual(ts.mjd(DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.mjd(DateTime.TAI), 45205.125 + 21.0/86400.0)
 
@@ -51,11 +52,11 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
 
     def testNow(self):
-        for i in xrange(100):
+        for i in xrange(100):       # pylint: disable-msg=W0612
             secs = time.time()
             ts = DateTime.now()
             diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs 
-            self.assertAlmostEqual(diff, 0, places=3)
+            self.assertAlmostEqual(diff, 0, places=2)
 
     def testIsoEpoch(self):
         ts = DateTime("19700101T000000Z")
