@@ -27,7 +27,7 @@
 namespace dafBase = lsst::daf::base;
 namespace pexEx   = lsst::pex::exceptions;
 
-/// Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
+// Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
 static double const MJD_TO_JD = 2400000.5;
 static double const EPOCH_IN_MJD = 40587.0;
 static double const JD2000 = 2451544.50;
@@ -37,19 +37,21 @@ static double const NSEC_PER_DAY = 86.4e12;
 
 /// Nanoseconds per day/second as a long long.
 static long long const LL_NSEC_PER_SEC = 1000000000LL;
-static long long const LL_NSEC_PER_DAY = 86400 * LL_NSEC_PER_SEC;
+// static long long const LL_NSEC_PER_DAY = 86400 * LL_NSEC_PER_SEC;
 
-/// Maximum number of days expressible as signed 64-bit nanoseconds.
-/// 2^64 / 2 / 1e9 / 86400
-/// NOTE: long long nsecs will wrap:
-/// -- earliest date representable = sep 21, 1677 00:00:00
-/// -- latest date representable   = apr 12, 2262 00:00:00
+// Maximum number of days expressible as signed 64-bit nanoseconds.
+// 2^64 / 2 / 1e9 / 86400
+// NOTE: long long nsecs will wrap:
+// -- earliest date representable = sep 21, 1677 00:00:00
+// -- latest date representable   = apr 12, 2262 00:00:00
 static double const MAX_DAYS = 106751.99;
 
 
+#ifdef CAL_TO_JD
 static double const HOURS_PER_DAY = 24.0;
 static double const MIN_PER_DAY   = 1440.0;
 static double const SEC_PER_DAY   = 86400.0;
+#endif
 
 
 /* Leap second table as string.
@@ -169,6 +171,7 @@ static NsType taiToUtc(NsType nsecs) {
 }
 
 
+#ifdef CAL_TO_JD
 
 namespace {
 /**
@@ -202,6 +205,8 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
 }
 } // end anonymous namespace
 
+#endif // CAL_TO_JD
+
 /**
  * @brief a function to convert MJD to interal nsecs
  * @param[in] mjd The Modified Julian Day
@@ -228,7 +233,7 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
 }
     
 /**
- * @brief a function to convert JD to interal nsecs
+ * @brief a function to convert JD to internal nsecs
  * @param[in] jd The Julian Day
  * @param[in] scale The time scale (TAI, or UTC)
  */
@@ -362,7 +367,7 @@ dafBase::DateTime::DateTime(std::string const& iso8601) {
  * @param[in] scale The time scale (UTC, or TAI)
  *
  * @note The NSECS can't be requested here as they're in long long form.
- *       A factory could be constructed, but it's more trouble that it's worth at this point.
+ *       A factory could be constructed, but it's more trouble than it's worth at this point.
  */
 double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
     switch (system) {

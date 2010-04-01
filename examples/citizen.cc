@@ -33,7 +33,7 @@ private:
     boost::scoped_ptr<int> _ptr;         // no need to track this alloc
 };
 
-MyClass::MyClass(char const* typeName) :
+MyClass::MyClass(char const* /* typeName */) :
     lsst::daf::base::Citizen(typeid(this)),
     _ptr(new int) {
     *_ptr = 0;
