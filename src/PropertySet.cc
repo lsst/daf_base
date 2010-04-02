@@ -499,6 +499,8 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
                 s << std::setprecision(14) << boost::any_cast<double>(v);
             } else if (t == typeid(string)) {
                 s << '"' << boost::any_cast<string>(v) << '"';
+            } else if (t == typeid(dafBase::DateTime)) {
+                s << boost::any_cast<dafBase::DateTime>(v).toString();
             } else if (t == typeid(Ptr)) {
                 if (topLevelOnly) {
                     s << "{ ... }";

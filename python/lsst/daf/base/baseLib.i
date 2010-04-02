@@ -72,6 +72,9 @@ SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
     %template(add ## typeName) lsst::daf::base::PropertySet::add<type>;
     %template(get ## typeName) lsst::daf::base::PropertySet::get<type>;
     %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type>;
+    %extend lsst::daf::base::PropertySet {
+static std::type_info const TYPE_ ## typeName = typeid(type);
+}
 %enddef
 
 PropertySetAddType(bool, Bool)

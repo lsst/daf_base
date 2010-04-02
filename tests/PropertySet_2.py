@@ -20,17 +20,30 @@ class PropertySetTestCase(unittest.TestCase):
         ps.set("char*", "foo")
         ps.setString("string", "bar")
         ps.set("int2", 2009)
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
 
+        self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
         self.assertEqual(ps.getBool("bool"), True)
+        self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
         self.assertEqual(ps.getShort("short"), 42)
+        self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.getInt("int"), 2008)
+        self.assertEqual(ps.typeOf("int64_t"),
+                dafBase.PropertySet.TYPE_LongLong)
         self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeefL)
+        self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
+        self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
         self.assertEqual(ps.getDouble("double"), 2.718281828459045)
+        self.assertEqual(ps.typeOf("char*"), dafBase.PropertySet.TYPE_String)
         self.assertEqual(ps.getString("char*"), "foo")
+        self.assertEqual(ps.typeOf("string"), dafBase.PropertySet.TYPE_String)
         self.assertEqual(ps.getString("string"), "bar")
+        self.assertEqual(ps.typeOf("int2"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.getInt("int2"), 2009)
         self.assertEqual(ps.get("int2"), 2009)
+        self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
+        self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265L)
 
     def testGetDefault(self):
         ps = dafBase.PropertySet()
@@ -85,6 +98,12 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(w[4], 13)
         self.assertEqual(ps.getString("other"), "foo")
 
+    def testDateTimeToString(self):
+        ps = dafBase.PropertySet()
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        self.assertEqual(ps.toString(),
+                "dt = 2009-04-02T07:26:39.314159265Z\n")
+
 if __name__ == '__main__':
     unittest.main()
 
@@ -135,32 +154,6 @@ if __name__ == '__main__':
 #         BOOST_CHECK_EQUAL(v[i], w[i]);
 #         BOOST_CHECK_EQUAL(vv[i], w[i + 3]);
 #     }
-# }
-# 
-# BOOST_AUTO_TEST_CASE(typeOf) {
-#     dafBase::PropertySet ps;
-#     ps.set("bool", true);
-#     ps.set("char", '*');
-#     short s = 42;
-#     ps.set("short", s);
-#     ps.set("int", 2008);
-#     ps.set("int64_t", 0xfeeddeadbeefLL);
-#     float f = 3.14159;
-#     ps.set("float", f);
-#     double d = 2.718281828459045;
-#     ps.set("double", d);
-#     ps.set("char*", "foo");
-#     ps.set("string", std::string("bar"));
-# 
-#     BOOST_CHECK(ps.typeOf("bool") == typeid(bool));
-#     BOOST_CHECK(ps.typeOf("char") == typeid(char));
-#     BOOST_CHECK(ps.typeOf("short") == typeid(short));
-#     BOOST_CHECK(ps.typeOf("int") == typeid(int));
-#     BOOST_CHECK(ps.typeOf("int64_t") == typeid(int64_t));
-#     BOOST_CHECK(ps.typeOf("float") == typeid(float));
-#     BOOST_CHECK(ps.typeOf("double") == typeid(double));
-#     BOOST_CHECK(ps.typeOf("char*") == typeid(std::string));
-#     BOOST_CHECK(ps.typeOf("string") == typeid(std::string));
 # }
 # 
 # BOOST_AUTO_TEST_CASE(arrayProperties) {
