@@ -53,6 +53,8 @@ static double const MIN_PER_DAY   = 1440.0;
 static double const SEC_PER_DAY   = 86400.0;
 #endif
 
+// Difference between Terrestrial Time and TAI.
+static double const TT_MINUS_TAI_NSECS = 32184000000LL;
 
 /* Leap second table as string.
  *
@@ -100,6 +102,10 @@ static std::string leapString =
 2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0       S + (MJD - 41317.) X 0.0      S\n\
 ";
 
+// Anonymous namespace for structures, classes, and formerly file-static
+// functions.
+namespace {
+
 /// Leap second descriptor.
 struct Leap {
     long long whenUtc; ///< UTC nanosecs of change
@@ -114,7 +120,7 @@ public:
     LeapTable(void);
 };
 
-static LeapTable leapSecTable;
+LeapTable leapSecTable;
 
 LeapTable::LeapTable(void) {
     dafBase::DateTime::initializeLeapSeconds(leapString);
@@ -125,7 +131,7 @@ LeapTable::LeapTable(void) {
  * \return Number of nanoseconds since the epoch in TAI
  */
 template<typename NsType>
-static NsType utcToTai(NsType nsecs) {
+NsType utcToTai(NsType nsecs) {
     size_t i;
     for (i = 0; i < leapSecTable.size(); ++i) {
         if (nsecs < leapSecTable[i].whenUtc) break;
@@ -149,7 +155,7 @@ static NsType utcToTai(NsType nsecs) {
  * \return Number of nanoseconds since the epoch in UTC
  */
 template<typename NsType>
-static NsType taiToUtc(NsType nsecs) {
+NsType taiToUtc(NsType nsecs) {
     size_t i;
     for (i = 0; i < leapSecTable.size(); ++i) {
         if (nsecs < leapSecTable[i].whenTai) break;
@@ -172,8 +178,6 @@ static NsType taiToUtc(NsType nsecs) {
 
 
 #ifdef CAL_TO_JD
-
-namespace {
 /**
  * A function to compute the Julian day from a calendar date.
  * \param[in] year Year number.
@@ -203,9 +207,10 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
 
     return jd;
 }
-} // end anonymous namespace
 
 #endif // CAL_TO_JD
+} // end anonymous namespace
+
 
 /**
  * @brief a function to convert MJD to interal nsecs
@@ -228,6 +233,8 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
     if (scale == UTC) {
         _nsecs = utcToTai(_nsecs);
+    } else if (scale == TT) {
+        _nsecs -= TT_MINUS_TAI_NSECS;
     }
 
 }
@@ -258,7 +265,9 @@ void dafBase::DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
  */
 dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
     if (scale == UTC) {
-        _nsecs = ::utcToTai(_nsecs);
+        _nsecs = utcToTai(_nsecs);
+    } else if (scale == TT) {
+        _nsecs -= TT_MINUS_TAI_NSECS;
     }
 }
 
@@ -331,7 +340,9 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     
     _nsecs = secs * LL_NSEC_PER_SEC;
     if (scale == UTC) {
-        _nsecs = ::utcToTai(_nsecs);
+        _nsecs = utcToTai(_nsecs);
+    } else if (scale == TT) {
+        _nsecs -= TT_MINUS_TAI_NSECS;
     }
 
 }
@@ -394,8 +405,10 @@ double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
 long long dafBase::DateTime::nsecs(Timescale scale) const {
     if (scale == TAI) {
         return _nsecs;
+    } else if (scale == TT) {
+        return _nsecs + TT_MINUS_TAI_NSECS;
     } else {
-        return ::taiToUtc(_nsecs);
+        return taiToUtc(_nsecs);
     }
 }
 
@@ -406,12 +419,15 @@ long long dafBase::DateTime::nsecs(Timescale scale) const {
  */
 double dafBase::DateTime::_getMjd(Timescale scale) const {
 
+    double nsecs;
     if (scale == TAI) {
-        return static_cast<double>(_nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
+        nsecs = static_cast<double>(_nsecs);
+    } else if (scale == TT) {
+        nsecs = static_cast<double>(_nsecs) + TT_MINUS_TAI_NSECS;
     } else {
-        return static_cast<double>(::taiToUtc(_nsecs)) / NSEC_PER_DAY +
-            EPOCH_IN_MJD;
+        nsecs = static_cast<double>(taiToUtc(_nsecs));
     }
+    return nsecs / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
 
 
@@ -439,7 +455,7 @@ double dafBase::DateTime::_getEpoch(Timescale scale) const {
  */
 struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(::taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
+    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
@@ -449,32 +465,32 @@ struct tm dafBase::DateTime::gmtime(void) const {
  */
 struct timespec dafBase::DateTime::timespec(void) const {
     struct timespec ts;
-    long long nsecs = ::taiToUtc(_nsecs);
+    long long nsecs = taiToUtc(_nsecs);
     ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     ts.tv_nsec = static_cast<int>(nsecs % LL_NSEC_PER_SEC);
     return ts;
 }
 
 /** Convert time to struct timeval.
- * \return Structure with time in seconds and microseconds.
+ * \return Structure with UTC time in seconds and microseconds.
  */
 struct timeval dafBase::DateTime::timeval(void) const {
     struct timeval tv;
-    long long nsecs = ::taiToUtc(_nsecs);
+    long long nsecs = taiToUtc(_nsecs);
     tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     tv.tv_usec = static_cast<int>((nsecs % LL_NSEC_PER_SEC) / 1000);
     return tv;
 }
 
 /** Accessor.
- * \return ISO8601-formatted string representation.
+ * \return ISO8601-formatted string representation.  Always UTC.
  */
 std::string dafBase::DateTime::toString(void) const {
     struct tm gmt(this->gmtime());
     return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
             (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
-            (::taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
+            (taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
 }
 
 /** Return current time as a DateTime.

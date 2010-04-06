@@ -90,5 +90,12 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
         self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
 
+    def testNsecsTT(self):
+        ts = DateTime(1192755538184000000L, DateTime.TT)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000L)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
+        self.assertEqual(ts.nsecs(), 1192755506000000000L)
+        self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
+
 if __name__ == '__main__':
     unittest.main()

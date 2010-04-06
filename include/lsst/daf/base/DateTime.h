@@ -34,7 +34,7 @@ namespace base {
 
 class DateTime {
 public:
-    enum Timescale { TAI, UTC };
+    enum Timescale { TAI, UTC, TT };
     enum DateSystem { JD, MJD, EPOCH };
     explicit DateTime(long long nsecs = 0LL, Timescale scale = TAI);
     explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
