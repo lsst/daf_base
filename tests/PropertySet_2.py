@@ -1,6 +1,7 @@
 import unittest
 
 import lsst.daf.base as dafBase
+import lsst.pex.exceptions as pexExcept
 
 class PropertySetTestCase(unittest.TestCase):
     """A test case for PropertySet."""
@@ -103,6 +104,13 @@ class PropertySetTestCase(unittest.TestCase):
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
         self.assertEqual(ps.toString(),
                 "dt = 2009-04-02T07:26:39.314159265Z\n")
+
+    def testGetScalarThrow(self):
+        ps = dafBase.PropertySet()
+        ps.setBool("bool", True)
+        ps.setShort("short", 42)
+        ps.setInt("int", 2008)
+        self.assertRaises(pexExcept.LsstException, ps.get("foo"))
 
 if __name__ == '__main__':
     unittest.main()

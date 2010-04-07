@@ -93,6 +93,9 @@ def getPSValue(self, name):
     Extract a single Python value of unknown type from a PropertySet by
     trying each Python-compatible type in turn until no exception is raised.
     """
+    if not self.exists(name):
+    	raise lsst.pex.exceptions.LsstException, name + " not found"
+
     try:
         value = self.getArrayString(name)
         return value[0] if len(value) == 1 else value
