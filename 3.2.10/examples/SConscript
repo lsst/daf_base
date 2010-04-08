@@ -1,5 +1,0 @@
-# -*- python -*-
-Import('env')
-import glob
-
-env.Program(glob.glob("*.cc"), LIBS=env.getlibs(env["eups_product"]))
