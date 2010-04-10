@@ -26,20 +26,6 @@ SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::ba
 %include "persistenceMacros.i"
 %lsst_persistable(lsst::daf::base::PropertySet);
 
-class lsst::daf::base::Citizen;
-
-%template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
-
-// Swig versions 1.3.33 - 1.3.36 have problems with std::vector<lsst::daf::base::Citizen const *>,
-// so replace Citizen::census() with a function that casts to something swig understands.
-%extend lsst::daf::base::Citizen {
-    static std::vector<lsst::daf::base::Citizen *> const * census() {
-        return reinterpret_cast<std::vector<lsst::daf::base::Citizen *> const *>(
-                lsst::daf::base::Citizen::census());
-    }
-    %ignore census();
-}
-
 // This has to come before PropertySet.h
 %define VectorAddType(type, typeName)
     %template(Vector ## typeName) std::vector<type>;
@@ -60,11 +46,26 @@ VectorAddType(std::string, String)
 VectorAddType(lsst::daf::base::DateTime, DateTime)
 
 SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
+%rename(_census) lsst::daf::base::Citizen::census(); // not %ignore -- we'll get census() back latter
+%ignore lsst::daf::base::Citizen::operator=;
 
 %include "lsst/daf/base/Citizen.h"
 %include "lsst/daf/base/DateTime.h"
 %include "lsst/daf/base/Persistable.h"
 %include "lsst/daf/base/PropertySet.h"
+
+// Swig versions 1.3.33 - 1.3.36 have problems with std::vector<lsst::daf::base::Citizen const *>,
+// so replace Citizen::census() with a function that casts to something swig understands.
+%template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
+
+%extend lsst::daf::base::Citizen {
+    %rename(census) census();           // get census() back
+
+    static std::vector<lsst::daf::base::Citizen *> const& census() {
+        return reinterpret_cast<std::vector<lsst::daf::base::Citizen *> const&>(
+                *lsst::daf::base::Citizen::census());
+    }
+}
 
 // This has to come after PropertySet.h
 %define PropertySetAddType(type, typeName)
