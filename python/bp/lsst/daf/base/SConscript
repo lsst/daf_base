@@ -1,0 +1,10 @@
+# -*- python -*-
+import re
+Import("env")
+
+pkg = env["eups_product"]
+env.CheckBoostPython()
+pyplib = env.LoadableModuleIncomplete("baseLib", Split("baseLib.cc"),
+                                      CCFLAGS=re.sub("-Wall", "", " ".join(env['CCFLAGS'])),
+                                      LIBS=env.libs[pkg] + env.getlibs("python boost_python"))
+Return("pylib")

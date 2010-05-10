@@ -1,7 +1,7 @@
-setupRequired(utils >= 3.4.1)
-setupRequired(pex_exceptions >= 3.2.1)
+setupRequired(utils >= boost.python)
+setupRequired(pex_exceptions >= boost.python)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 
-envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
+envAppend(PYTHONPATH, ${PRODUCT_DIR}/${LSST_PYTHON_PREFIX})

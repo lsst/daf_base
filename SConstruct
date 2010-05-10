@@ -28,12 +28,13 @@ env.libs[pkg] += env.getlibs(" ".join(dependencies))
 #
 # Build/install things
 #
+pylib = SConscript("%s/lsst/%s/SConscript" % (env["PYTHON_PREFIX"], pkg.replace("_", "/")))
+Export("pylib")
 for d in (
     ".",
     "doc",
     "examples",
     "lib",
-    "python/lsst/" + pkg.replace("_", "/"),
     "tests",
 ):
     if d != ".":
@@ -41,7 +42,7 @@ for d in (
             SConscript(os.path.join(d, "SConscript"))
         except Exception, e:
             print >> sys.stderr, "In processing file %s:" % (os.path.join(d, "SConscript"))
-            print >> sys.stderr, traceback.format_exc()
+            print >> sys.stderr, e
     Clean(d, Glob(os.path.join(d, "*~")))
     Clean(d, Glob(os.path.join(d, "*.pyc")))
 
