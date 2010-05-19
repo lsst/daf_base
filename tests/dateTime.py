@@ -97,5 +97,52 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(), 1192755506000000000L)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
 
+    def testFracSecs(self):
+        ts = DateTime("2004-03-01T12:39:45.1Z")
+        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.100000000Z')
+        ts = DateTime("2004-03-01T12:39:45.01Z")
+        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.010000000Z')
+        ts = DateTime("2004-03-01T12:39:45.000000001Z") # nanosecond
+        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000001Z')
+        ts = DateTime("2004-03-01T12:39:45.0000000001Z") # too small
+        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000000Z')
+
+    def testNegative(self):
+        ts = DateTime("1969-03-01T00:00:32Z")
+        self.assertEqual(ts.toString(), '1969-03-01T00:00:32.000000000Z')
+        ts = DateTime("1969-01-01T00:00:00Z")
+        self.assertEqual(ts.toString(), '1969-01-01T00:00:00.000000000Z')
+        ts = DateTime("1969-01-01T00:00:40Z")
+        self.assertEqual(ts.toString(), '1969-01-01T00:00:40.000000000Z')
+        ts = DateTime("1969-01-01T00:00:38Z")
+        self.assertEqual(ts.toString(), '1969-01-01T00:00:38.000000000Z')
+        ts = DateTime("1969-03-01T12:39:45Z")
+        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.000000000Z')
+        ts = DateTime("1969-03-01T12:39:45.000000001Z")
+        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.000000001Z')
+
+        # Note slight inaccuracy in UTC-TAI-UTC round-trip
+        ts = DateTime("1969-03-01T12:39:45.12345Z")
+        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.123449996Z')
+        ts = DateTime("1969-03-01T12:39:45.123456Z")
+        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.123455996Z')
+
+        ts = DateTime()
+        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918240Z')
+
+        ts = DateTime(-1L, DateTime.TAI)
+        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918239Z')
+        ts = DateTime(0L, DateTime.TAI)
+        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918240Z')
+        ts = DateTime(1L, DateTime.TAI)
+        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918241Z')
+
+        ts = DateTime(-1L, DateTime.UTC)
+        self.assertEqual(ts.toString(), '1969-12-31T23:59:59.999999999Z')
+        ts = DateTime(0L, DateTime.UTC)
+        self.assertEqual(ts.toString(), '1970-01-01T00:00:00.000000000Z')
+        ts = DateTime(1L, DateTime.UTC)
+        self.assertEqual(ts.toString(), '1970-01-01T00:00:00.000000001Z')
+
 if __name__ == '__main__':
     unittest.main()

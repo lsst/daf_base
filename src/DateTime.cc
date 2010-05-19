@@ -355,7 +355,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
  */
 dafBase::DateTime::DateTime(std::string const& iso8601) {
     boost::regex re("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                    "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,]\\d*)?" "Z");
+                    "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
         throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
@@ -367,7 +367,17 @@ dafBase::DateTime::DateTime(std::string const& iso8601) {
                 UTC);
     _nsecs = dt._nsecs;
     if (matches[7].matched) {
-        _nsecs += atoi(matches.str(7).c_str() + 1);
+        std::string frac = matches.str(8);
+        int places = frac.size();
+        if (places > 9) { // truncate fractional nanosec
+            frac.erase(9);
+        }
+        int value = atoi(frac.c_str());
+        while (places < 9) {
+            value *= 10;
+            ++places;
+        }
+        _nsecs += value;
     }
 }
 
@@ -450,12 +460,21 @@ double dafBase::DateTime::_getEpoch(Timescale scale) const {
 
 
 
-/** Convert to struct tm.
+/** Convert to struct tm.  Truncate fractional seconds.
  * \return Structure with decoded time in UTC.
  */
 struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
+    long long nsecs = taiToUtc(_nsecs);
+    // Round to negative infinity
+    long long frac = nsecs % LL_NSEC_PER_SEC;
+    if (nsecs < 0 && frac < 0) {
+        nsecs -= LL_NSEC_PER_SEC + frac;
+    }
+    else {
+        nsecs -= frac;
+    }
+    time_t secs = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
@@ -487,10 +506,13 @@ struct timeval dafBase::DateTime::timeval(void) const {
  */
 std::string dafBase::DateTime::toString(void) const {
     struct tm gmt(this->gmtime());
+    long long nsecs = taiToUtc(_nsecs) % LL_NSEC_PER_SEC;
+    if (nsecs < 0) {
+        nsecs += LL_NSEC_PER_SEC;
+    }
     return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
             (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
-            gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
-            (taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
+            gmt.tm_hour % gmt.tm_min % gmt.tm_sec % nsecs).str();
 }
 
 /** Return current time as a DateTime.
