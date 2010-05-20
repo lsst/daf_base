@@ -168,10 +168,10 @@ NsType taiToUtc(NsType nsecs) {
                     ) % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
-    double taiSecs = nsecs / 1.0e9;
-    double leapSecs = taiSecs -
-        (taiSecs - l.offset - l.drift * (EPOCH_IN_MJD - l.mjdRef)) /
-        (1.0 + l.drift * 1.0e9 / NSEC_PER_DAY);
+    double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
+    double leapSecs = l.offset + (mjd - l.mjdRef) * l.drift;
+    // Correct for TAI MJD vs. UTC MJD.
+    leapSecs /= 1.0 + l.drift * 1.0e9 / NSEC_PER_DAY;
     NsType leapNSecs = static_cast<NsType>(leapSecs * 1.0e9 + 0.5);
     return nsecs - leapNSecs;
 }
