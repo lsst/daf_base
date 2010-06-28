@@ -97,47 +97,40 @@ def getPSValue(self, name):
     if not self.exists(name):
     	raise lsst.pex.exceptions.LsstException, name + " not found"
 
-    try:
+    t = self.typeOf(name)
+    if t == self.TYPE_Bool:
+        value = self.getArrayBool(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_Short:
+        value = self.getArrayShort(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_Int:
+        value = self.getArrayInt(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_Long:
+        value = self.getArrayLong(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_LongLong:
+        value = self.getArrayLongLong(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_Float:
+        value = self.getArrayFloat(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_Double:
+        value = self.getArrayDouble(name)
+        return value[0] if len(value) == 1 else value
+    elif t == self.TYPE_String:
         value = self.getArrayString(name)
         return value[0] if len(value) == 1 else value
-    except:
-        pass
+    elif t == self.TYPE_DateTime:
+        value = self.getArrayDateTime(name)
+        return value[0] if len(value) == 1 else value
     try:
         return self.getAsPropertySetPtr(name)
     except:
         pass
     try:
         return self.getAsPersistablePtr(name)
-    except:
-        pass
-    try:
-        value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 else value
-    except:
-        pass
-    try:
-        value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 else value
-    except:
-        pass
-    try:
-        value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 else value
-    except:
-        pass
-    try:
-        value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 else value
-    except:
-        pass
-    try:
-        value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 else value
-    except:
-        pass
-    try:
-        value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 else value
     except:
         pass
     raise lsst.pex.exceptions.LsstException, \
