@@ -1,4 +1,27 @@
 // -*- lsst-c++ -*-
+
+/* 
+ * LSST Data Management System
+ * Copyright 2008, 2009, 2010 LSST Corporation.
+ * 
+ * This product includes software developed by the
+ * LSST Project (http://www.lsst.org/).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the LSST License Statement and 
+ * the GNU General Public License along with this program.  If not, 
+ * see <http://www.lsstcorp.org/LegalNotices/>.
+ */
+ 
 #ifndef LSST_DAF_BASE_PROPERTYSET
 #define LSST_DAF_BASE_PROPERTYSET
 
@@ -38,6 +61,11 @@ namespace persistence {
 
 
 namespace base {
+
+#if defined(__ICC)
+#pragma warning (push)
+#pragma warning (disable: 444)
+#endif
 
 class PropertySet :
     public Persistable, public Citizen, public boost::noncopyable {
@@ -100,6 +128,8 @@ public:
                                    std::vector<T> const& value);
     void add(std::string const& name, char const* value);
 
+    void copy(std::string const& dest, Ptr const source,
+              std::string const& name);
     void combine(Ptr const source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.
@@ -107,22 +137,26 @@ public:
     void remove(std::string const& name);
 
 private:
-    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter);
+    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
     typedef std::tr1::unordered_map<std::string,
             boost::shared_ptr< std::vector<boost::any> > > AnyMap;
 
-    AnyMap::iterator find(std::string const& name);
-    AnyMap::const_iterator find(std::string const& name) const;
-    void findOrInsert(std::string const& name,
+    AnyMap::iterator _find(std::string const& name);
+    AnyMap::const_iterator _find(std::string const& name) const;
+    void _findOrInsert(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
-    void cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
-    void cycleCheckAnyVec(std::vector<boost::any> const& v,
+    void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
+    void _cycleCheckAnyVec(std::vector<boost::any> const& v,
                           std::string const& name);
-    void cycleCheckPtr(Ptr const& v, std::string const& name);
+    void _cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
 };
+
+#if defined(__ICC)
+#pragma warning (pop)
+#endif    
 
 template<> void PropertySet::add<PropertySet::Ptr>(
     std::string const& name, Ptr const& value);
