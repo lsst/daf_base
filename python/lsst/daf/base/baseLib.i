@@ -46,7 +46,6 @@ Access to the classes from the daf_base library
 
 SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
 SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
-SWIG_SHARED_PTR_DERIVED(PropertyList, lsst::daf::base::Persistable, lsst::daf::base::PropertyList)
 SWIG_SHARED_PTR_DERIVED(PropertyList, lsst::daf::base::PropertySet, lsst::daf::base::PropertyList)
 
 %include "persistenceMacros.i"
