@@ -68,7 +68,8 @@ dafBase::PropertyList::~PropertyList(void) {
   */
 dafBase::PropertySet::Ptr dafBase::PropertyList::deepCopy(void) const {
     Ptr n(new PropertyList);
-    n->combine(boost::shared_ptr<PropertySet const>(this), false);
+    n->PropertySet::combine(this->PropertySet::deepCopy());
+    n->_comments = _comments;
     return n;
 }
 
@@ -156,6 +157,10 @@ std::string dafBase::PropertyList::toString(bool topLevelOnly,
     for (std::list<std::string>::const_iterator i = _order.begin();
          i != _order.end(); ++i) {
         s << _format(*i);
+        std::string const& comment = _comments.find(*i)->second;
+        if (comment.size()) {
+            s << "// " << comment << std::endl;
+        }
     }
     return s.str();
 }
