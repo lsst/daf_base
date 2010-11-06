@@ -27,5 +27,6 @@
 #include "lsst/daf/base/DateTime.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/daf/base/PropertySet.h"
+#include "lsst/daf/base/PropertyList.h"
 
 #endif
