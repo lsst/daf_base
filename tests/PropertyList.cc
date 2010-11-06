@@ -172,6 +172,25 @@ BOOST_AUTO_TEST_CASE(getDefault) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a L
     BOOST_CHECK_EQUAL(pl.get<int>("foo", 2008), 2008);
 }
 
+BOOST_AUTO_TEST_CASE(comments) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
+    dafBase::PropertyList pl;
+    pl.set("int", 42);
+    BOOST_CHECK_EQUAL(pl.get<int>("int"), 42);
+    BOOST_CHECK_EQUAL(pl.getComment("int"), "");
+    pl.set("int", 31, "test");
+    BOOST_CHECK_EQUAL(pl.get<int>("int"), 31);
+    BOOST_CHECK_EQUAL(pl.getComment("int"), "test");
+    pl.set("int", 20, std::string("test2"));
+    BOOST_CHECK_EQUAL(pl.get<int>("int"), 20);
+    BOOST_CHECK_EQUAL(pl.getComment("int"), "test2");
+    pl.set("int", 9);
+    BOOST_CHECK_EQUAL(pl.get<int>("int"), 9);
+    BOOST_CHECK_EQUAL(pl.getComment("int"), "test2");
+    pl.set("int", -2, "");
+    BOOST_CHECK_EQUAL(pl.get<int>("int"), -2);
+    BOOST_CHECK_EQUAL(pl.getComment("int"), "");
+}
+
 BOOST_AUTO_TEST_CASE(exists) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertyList pl;
     pl.set("int", 42);
