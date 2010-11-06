@@ -170,6 +170,9 @@ std::string dafBase::PropertyList::toString(bool topLevelOnly,
 // Modifiers
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+// Normal versions of set/add with placement control
+
 /** Replace all values for a property name (possibly hierarchical) with a new
   * value.
   * @param[in] name Property name to set, possibly hierarchical.
@@ -266,6 +269,10 @@ void dafBase::PropertyList::add(
         _moveToEnd(name);
     }
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Commented versions of set/add
 
 /** Replace all values for a property name (possibly hierarchical) with a new
   * value.
@@ -365,6 +372,111 @@ void dafBase::PropertyList::add(
     PropertySet::add(name, value);
     _commentOrderFix(name, comment, inPlace);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Char const* commented versions of set/add
+
+/** Replace all values for a property name (possibly hierarchical) with a new
+  * value.
+  * @param[in] name Property name to set, possibly hierarchical.
+  * @param[in] value Value to set.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+template <typename T>
+void dafBase::PropertyList::set(
+    std::string const& name, T const& value,
+    char const* comment, bool inPlace) {
+    PropertySet::set(name, value);
+    _commentOrderFix(name, comment, inPlace);
+}
+
+/** Replace all values for a property name (possibly hierarchical) with a
+  * string value.
+  * @param[in] name Property name to set, possibly hierarchical.
+  * @param[in] value Character string value to set.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+void dafBase::PropertyList::set(
+    std::string const& name, char const* value,
+    char const* comment, bool inPlace) {
+    set(name, string(value), comment, inPlace);
+}
+
+/** Replace all values for a property name (possibly hierarchical) with a
+  * vector of new values.
+  * @param[in] name Property name to set, possibly hierarchical.
+  * @param[in] value Vector of values to set.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+template <typename T>
+void dafBase::PropertyList::set(
+    std::string const& name, vector<T> const& value,
+    char const* comment, bool inPlace) {
+    PropertySet::set(name, value);
+    _commentOrderFix(name, comment, inPlace);
+}
+
+/** Appends a single value to the vector of values for a property name
+  * (possibly hierarchical).  Sets the value if the property does not exist.
+  * @param[in] name Property name to append to, possibly hierarchical.
+  * @param[in] value Value to append.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws TypeMismatchException Type does not match existing values.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+template <typename T>
+void dafBase::PropertyList::add(
+    std::string const& name, T const& value,
+    char const* comment, bool inPlace) {
+    PropertySet::add(name, value);
+    _commentOrderFix(name, comment, inPlace);
+}
+
+/** Appends a <tt>char const*</tt> value to the vector of values for a
+  * property name (possibly hierarchical).  Sets the value if the property
+  * does not exist.
+  * @param[in] name Property name to append to, possibly hierarchical.
+  * @param[in] value String value to append.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws TypeMismatchException Type does not match existing values.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+
+void dafBase::PropertyList::add(
+    std::string const& name, char const* value,
+    char const* comment, bool inPlace) {
+    add(name, string(value), comment, inPlace);
+}
+
+/** Appends a vector of values to the vector of values for a property name
+  * (possibly hierarchical).  Sets the values if the property does not exist.
+  * @param[in] name Property name to append to, possibly hierarchical.
+  * @param[in] value Vector of values to append.
+  * @param[in] comment Comment to set.
+  * @param[in] inPlace If false, property is moved to end of list.
+  * @throws TypeMismatchException Type does not match existing values.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @note
+  * May only partially add the vector if an exception occurs.
+  */
+template <typename T>
+void dafBase::PropertyList::add(
+    std::string const& name, vector<T> const& value,
+    char const* comment, bool inPlace) {
+    PropertySet::add(name, value);
+    _commentOrderFix(name, comment, inPlace);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Other modifiers
 
 /** Replaces a single value vector in the destination with one from the
   * \a source.
@@ -482,7 +594,11 @@ void dafBase::PropertyList::_commentOrderFix(
     template void dafBase::PropertyList::set<t>(string const& name, t const& value, string const& comment, bool inPlace); \
     template void dafBase::PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
     template void dafBase::PropertyList::add<t>(string const& name, t const& value, string const& comment, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace);
+    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
+    template void dafBase::PropertyList::set<t>(string const& name, t const& value, char const* comment, bool inPlace); \
+    template void dafBase::PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace); \
+    template void dafBase::PropertyList::add<t>(string const& name, t const& value, char const* comment, bool inPlace); \
+    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace);
 
 INSTANTIATE(bool)
 INSTANTIATE(char)

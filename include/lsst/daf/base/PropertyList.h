@@ -134,6 +134,25 @@ public:
         std::string const& name, char const* value,
         std::string const& comment, bool inPlace=true);
 
+    template <typename T> void set(
+        std::string const& name, T const& value,
+        char const* comment, bool inPlace=true);
+    template <typename T> void set(
+        std::string const& name, std::vector<T> const& value,
+        char const* comment, bool inPlace=true);
+    void set(
+        std::string const& name, char const* value,
+        char const* comment, bool inPlace=true);
+    template <typename T> void add(
+        std::string const& name, T const& value,
+        char const* comment, bool inPlace=true);
+    template <typename T> void add(
+        std::string const& name, std::vector<T> const& value,
+        char const* comment, bool inPlace=true);
+    void add(
+        std::string const& name, char const* value,
+        char const* comment, bool inPlace=true);
+
     virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
                       std::string const& name, bool inPlace=true);
     virtual void combine(PropertySet::ConstPtr source, bool inPlace=true);
