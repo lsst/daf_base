@@ -69,6 +69,7 @@ dafBase::PropertyList::~PropertyList(void) {
 dafBase::PropertySet::Ptr dafBase::PropertyList::deepCopy(void) const {
     Ptr n(new PropertyList);
     n->PropertySet::combine(this->PropertySet::deepCopy());
+    n->_order = _order;
     n->_comments = _comments;
     return n;
 }
