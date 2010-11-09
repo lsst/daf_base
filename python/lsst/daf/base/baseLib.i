@@ -212,7 +212,7 @@ def _PS_addValue(self, name, value):
         self.addDateTime(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(name))
+            'Unknown value type for %s: %s' % (name, type(value))
 
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
@@ -314,7 +314,7 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
             self.setDateTime(name, value, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(name))
+                'Unknown value type for %s: %s' % (name, type(value))
     else:
         if t == bool:
             self.setBool(name, value, comment, inPlace)
@@ -330,7 +330,7 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
             self.setDateTime(name, value, comment, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(name))
+                'Unknown value type for %s: %s' % (name, type(value))
 
 def _PL_addValue(self, name, value, comment=None, inPlace=True):
     """
@@ -355,7 +355,7 @@ def _PL_addValue(self, name, value, comment=None, inPlace=True):
             self.addDateTime(name, value, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(name))
+                'Unknown value type for %s: %s' % (name, type(value))
     else:
         if t == bool:
             self.addBool(name, value, comment, inPlace)
@@ -371,7 +371,7 @@ def _PL_addValue(self, name, value, comment=None, inPlace=True):
             self.addDateTime(name, value, comment, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(name))
+                'Unknown value type for %s: %s' % (name, type(value))
 
 PropertyList.get = _PL_getValue
 PropertyList.set = _PL_setValue
