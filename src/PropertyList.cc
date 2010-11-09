@@ -484,6 +484,7 @@ void dafBase::PropertyList::add(
   * @param[in] dest Destination property name.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
   * @param[in] name Property name to extract.
+  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Name does not exist in source.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
@@ -506,6 +507,7 @@ void dafBase::PropertyList::copy(
 /** Appends all value vectors from the \a source to their corresponding
   * properties.  Sets values if a property does not exist.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
+  * @param[in] inPlace If false, existing properties are moved to end of list.
   * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   * @note
