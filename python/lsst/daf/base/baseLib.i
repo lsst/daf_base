@@ -339,7 +339,7 @@ def _PL_addValue(self, name, value, comment=None, inPlace=True):
     if hasattr(value, "__iter__"):
         exemplar = value[0]
     else:
-        exemplar = type(value)
+        exemplar = value
     if comment is None:
         if isinstance(exemplar, bool):
             self.addBool(name, value, inPlace)
