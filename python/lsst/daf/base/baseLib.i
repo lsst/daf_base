@@ -171,20 +171,20 @@ def _PS_setValue(self, name, value):
     Set a value in a PropertySet from a single Python value of unknown type.
     """
     if hasattr(value, "__iter__"):
-        t = type(value[0])
+        exemplar = value[0]
     else:
-        t = type(value)
-    if t == bool:
+        exemplar = value
+    if isinstance(exemplar, bool):
         self.setBool(name, value)
-    elif t == int:
+    elif isinstance(exemplar, int):
         self.setInt(name, value)
-    elif t == long:
+    elif isinstance(exemplar, long):
         self.setLongLong(name, value)
-    elif t == float:
+    elif isinstance(exemplar, float):
         self.setDouble(name, value)
-    elif t == str:
+    elif isinstance(exemplar, str):
         self.setString(name, value)
-    elif t == lsst.daf.base.DateTime:
+    elif isinstance(exemplar, lsst.daf.base.DateTime):
         self.setDateTime(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
@@ -195,24 +195,24 @@ def _PS_addValue(self, name, value):
     Add a value to a PropertySet from a single Python value of unknown type.
     """
     if hasattr(value, "__iter__"):
-        t = type(value[0])
+        exemplar = value[0]
     else:
-        t = type(value)
-    if t == bool:
+        exemplar = value
+    if isinstance(exemplar, bool):
         self.addBool(name, value)
-    elif t == int:
+    elif isinstance(exemplar, int):
         self.addInt(name, value)
-    elif t == long:
+    elif isinstance(exemplar, long):
         self.addLongLong(name, value)
-    elif t == float:
+    elif isinstance(exemplar, float):
         self.addDouble(name, value)
-    elif t == str:
+    elif isinstance(exemplar, str):
         self.addString(name, value)
-    elif t == lsst.daf.base.DateTime:
+    elif isinstance(exemplar, lsst.daf.base.DateTime):
         self.addDateTime(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(value))
+            'Unknown value type for %s: %s' % (name, type(exemplar))
 
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
@@ -296,37 +296,37 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
     List a value in a PropertyList from a single Python value of unknown type.
     """
     if hasattr(value, "__iter__"):
-        t = type(value[0])
+        exemplar = value[0]
     else:
-        t = type(value)
+        exemplar = value
     if comment is None:
-        if t == bool:
+        if isinstance(exemplar, bool):
             self.setBool(name, value, inPlace)
-        elif t == int:
+        elif isinstance(exemplar, int):
             self.setInt(name, value, inPlace)
-        elif t == long:
+        elif isinstance(exemplar, long):
             self.setLongLong(name, value, inPlace)
-        elif t == float:
+        elif isinstance(exemplar, float):
             self.setDouble(name, value, inPlace)
-        elif t == str:
+        elif isinstance(exemplar, str):
             self.setString(name, value, inPlace)
-        elif t == lsst.daf.base.DateTime:
+        elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.setDateTime(name, value, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
                 'Unknown value type for %s: %s' % (name, type(value))
     else:
-        if t == bool:
+        if isinstance(exemplar, bool):
             self.setBool(name, value, comment, inPlace)
-        elif t == int:
+        elif isinstance(exemplar, int):
             self.setInt(name, value, comment, inPlace)
-        elif t == long:
+        elif isinstance(exemplar, long):
             self.setLongLong(name, value, comment, inPlace)
-        elif t == float:
+        elif isinstance(exemplar, float):
             self.setDouble(name, value, comment, inPlace)
-        elif t == str:
+        elif isinstance(exemplar, str):
             self.setString(name, value, comment, inPlace)
-        elif t == lsst.daf.base.DateTime:
+        elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.setDateTime(name, value, comment, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
@@ -337,37 +337,37 @@ def _PL_addValue(self, name, value, comment=None, inPlace=True):
     Add a value to a PropertyList from a single Python value of unknown type.
     """
     if hasattr(value, "__iter__"):
-        t = type(value[0])
+        exemplar = value[0]
     else:
-        t = type(value)
+        exemplar = type(value)
     if comment is None:
-        if t == bool:
+        if isinstance(exemplar, bool):
             self.addBool(name, value, inPlace)
-        elif t == int:
+        elif isinstance(exemplar, int):
             self.addInt(name, value, inPlace)
-        elif t == long:
+        elif isinstance(exemplar, long):
             self.addLongLong(name, value, inPlace)
-        elif t == float:
+        elif isinstance(exemplar, float):
             self.addDouble(name, value, inPlace)
-        elif t == str:
+        elif isinstance(exemplar, str):
             self.addString(name, value, inPlace)
-        elif t == lsst.daf.base.DateTime:
+        elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.addDateTime(name, value, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
                 'Unknown value type for %s: %s' % (name, type(value))
     else:
-        if t == bool:
+        if isinstance(exemplar, bool):
             self.addBool(name, value, comment, inPlace)
-        elif t == int:
+        elif isinstance(exemplar, int):
             self.addInt(name, value, comment, inPlace)
-        elif t == long:
+        elif isinstance(exemplar, long):
             self.addLongLong(name, value, comment, inPlace)
-        elif t == float:
+        elif isinstance(exemplar, float):
             self.addDouble(name, value, comment, inPlace)
-        elif t == str:
+        elif isinstance(exemplar, str):
             self.addString(name, value, comment, inPlace)
-        elif t == lsst.daf.base.DateTime:
+        elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.addDateTime(name, value, comment, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
