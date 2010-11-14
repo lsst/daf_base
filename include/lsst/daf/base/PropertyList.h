@@ -100,28 +100,50 @@ public:
                     std::string const& indent = "") const;
 
 // Modifiers
+    // First, direct overloads.
+    template <typename T> void set(std::string const& name, T const& value) {
+        set(name, value, true);
+    }
     template <typename T> void set(
-        std::string const& name, T const& value, bool inPlace=true);
-    template <typename T> void set(
-        std::string const& name, std::vector<T> const& value,
-        bool inPlace=true);
-    void set(
-        std::string const& name, char const* value, bool inPlace=true);
+        std::string const& name, std::vector<T> const& value) {
+        set(name, value, true);
+    }
+    virtual void set(std::string const& name, char const* value) {
+        set(name, value, true);
+    }
+    template <typename T> void add(std::string const& name, T const& value) {
+        add(name, value, true);
+    }
     template <typename T> void add(
-        std::string const& name, T const& value, bool inPlace=true);
-    template <typename T> void add(
-        std::string const& name, std::vector<T> const& value,
-        bool inPlace=true);
-    void add(
-        std::string const& name, char const* value, bool inPlace=true);
+        std::string const& name, std::vector<T> const& value) {
+        add(name, value, true);
+    }
+    virtual void add(std::string const& name, char const* value) {
+        add(name, value, true);
+    }
 
+    // Then, add boolean for leaving properties in place.
+    template <typename T> void set(
+        std::string const& name, T const& value, bool inPlace);
+    template <typename T> void set(
+        std::string const& name, std::vector<T> const& value, bool inPlace);
+    virtual void set(
+        std::string const& name, char const* value, bool inPlace);
+    template <typename T> void add(
+        std::string const& name, T const& value, bool inPlace);
+    template <typename T> void add(
+        std::string const& name, std::vector<T> const& value, bool inPlace);
+    virtual void add(
+        std::string const& name, char const* value, bool inPlace);
+
+    // Then, add comment string.
     template <typename T> void set(
         std::string const& name, T const& value,
         std::string const& comment, bool inPlace=true);
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
         std::string const& comment, bool inPlace=true);
-    void set(
+    virtual void set(
         std::string const& name, char const* value,
         std::string const& comment, bool inPlace=true);
     template <typename T> void add(
@@ -130,32 +152,54 @@ public:
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
         std::string const& comment, bool inPlace=true);
-    void add(
+    virtual void add(
         std::string const& name, char const* value,
         std::string const& comment, bool inPlace=true);
 
+    // Need explicit char const* overloads since otherwise it gets
+    // auto-converted to bool instead of std::string.
     template <typename T> void set(
         std::string const& name, T const& value,
-        char const* comment, bool inPlace=true);
+        char const* comment, bool inPlace=true) {
+        set(name, value, std::string(comment), inPlace);
+    }
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
-        char const* comment, bool inPlace=true);
-    void set(
+        char const* comment, bool inPlace=true) {
+        set(name, value, std::string(comment), inPlace);
+    }
+    virtual void set(
         std::string const& name, char const* value,
-        char const* comment, bool inPlace=true);
+        char const* comment, bool inPlace=true) {
+        set(name, value, std::string(comment), inPlace);
+    }
     template <typename T> void add(
         std::string const& name, T const& value,
-        char const* comment, bool inPlace=true);
+        char const* comment, bool inPlace=true) {
+        add(name, value, std::string(comment), inPlace);
+    }
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
-        char const* comment, bool inPlace=true);
-    void add(
+        char const* comment, bool inPlace=true) {
+        add(name, value, std::string(comment), inPlace);
+    }
+    virtual void add(
         std::string const& name, char const* value,
-        char const* comment, bool inPlace=true);
+        char const* comment, bool inPlace=true) {
+        add(name, value, std::string(comment), inPlace);
+    }
 
     virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
-                      std::string const& name, bool inPlace=true);
-    virtual void combine(PropertySet::ConstPtr source, bool inPlace=true);
+                      std::string const& name) {
+        copy(dest, source, name, true);
+    }
+    virtual void combine(PropertySet::ConstPtr source) {
+        combine(source, true);
+    }
+
+    virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
+                      std::string const& name, bool inPlace);
+    virtual void combine(PropertySet::ConstPtr source, bool inPlace);
 
     virtual void remove(std::string const& name);
 

@@ -191,6 +191,22 @@ BOOST_AUTO_TEST_CASE(comments) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
     BOOST_CHECK_EQUAL(pl.getComment("int"), "");
 }
 
+BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
+    dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
+    plp->set("int", 31, "test");
+    BOOST_CHECK_EQUAL(plp->get<int>("int"), 31);
+    dafBase::PropertySet::Ptr psp = plp;
+    dafBase::PropertySet::Ptr psp2 = psp->deepCopy();
+    BOOST_CHECK_EQUAL(psp2->get<int>("int"), 31);
+    dafBase::PropertyList::Ptr plp2 =
+        boost::dynamic_pointer_cast<dafBase::PropertyList,
+        dafBase::PropertySet>(psp2);
+    BOOST_CHECK_EQUAL(!plp2, false);
+    BOOST_CHECK_EQUAL(plp2->get<int>("int"), 31);
+    BOOST_CHECK_EQUAL(plp2->getComment("int"), "test");
+}
+
+
 BOOST_AUTO_TEST_CASE(exists) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertyList pl;
     pl.set("int", 42);
@@ -389,5 +405,27 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
 
     BOOST_CHECK_THROW(pl.combine(psp), dafBase::TypeMismatchException);
 }
+
+BOOST_AUTO_TEST_CASE(combineAsPS) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
+    dafBase::PropertyList::Ptr plp1(new dafBase::PropertyList);
+    dafBase::PropertyList::Ptr plp2(new dafBase::PropertyList);
+    plp1->set("int", 42, "comment");
+    plp2->set("float", 3.14159, "stuff");
+    dafBase::PropertySet::Ptr psp =
+        boost::static_pointer_cast<dafBase::PropertySet,
+        dafBase::PropertyList>(plp1);
+    psp.get()->set("foo", 36);
+    psp.get()->combine(plp2);
+    dafBase::PropertyList::Ptr newPlp =
+        boost::dynamic_pointer_cast<dafBase::PropertyList,
+        dafBase::PropertySet>(psp);
+    BOOST_CHECK_EQUAL(!newPlp, false);
+    BOOST_CHECK_EQUAL(newPlp->get<int>("int"), 42);
+    BOOST_CHECK_EQUAL(newPlp->get<int>("foo"), 36);
+    BOOST_CHECK_EQUAL(newPlp->get<double>("float"), 3.14159);
+    BOOST_CHECK_EQUAL(newPlp->getComment("int"), "comment");
+    BOOST_CHECK_EQUAL(newPlp->getComment("float"), "stuff");
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
