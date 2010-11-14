@@ -123,11 +123,11 @@ public:
     template <typename T> void set(std::string const& name, T const& value);
     template <typename T> void set(std::string const& name,
                                    std::vector<T> const& value);
-    virtual void set(std::string const& name, char const* value);
+    void set(std::string const& name, char const* value);
     template <typename T> void add(std::string const& name, T const& value);
     template <typename T> void add(std::string const& name,
                                    std::vector<T> const& value);
-    virtual void add(std::string const& name, char const* value);
+    void add(std::string const& name, char const* value);
 
     virtual void copy(std::string const& dest, ConstPtr source,
                       std::string const& name);

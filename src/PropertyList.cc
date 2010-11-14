@@ -374,6 +374,7 @@ void dafBase::PropertyList::add(
     _commentOrderFix(name, comment, inPlace);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // Other modifiers
 
