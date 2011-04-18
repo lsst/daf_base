@@ -1,5 +1,28 @@
 // -*- lsst-c++ -*-
 
+/* 
+ * LSST Data Management System
+ * Copyright 2008, 2009, 2010 LSST Corporation.
+ * 
+ * This product includes software developed by the
+ * LSST Project (http://www.lsst.org/).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the LSST License Statement and 
+ * the GNU General Public License along with this program.  If not, 
+ * see <http://www.lsstcorp.org/LegalNotices/>.
+ */
+ 
+
 /** @file
   * @ingroup daf_base
   *
@@ -452,79 +475,94 @@ dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {
 std::string dafBase::PropertySet::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     ostringstream s;
-    s << std::showpoint; // Always show a decimal point for floats
     vector<string> nv = names();
     sort(nv.begin(), nv.end());
     for (vector<string>::const_iterator i = nv.begin(); i != nv.end(); ++i) {
-        AnyMap::const_iterator j = _map.find(*i);
-        s << indent << j->first << " = ";
-        boost::shared_ptr< vector<boost::any> > vp = j->second;
-        if (vp->size() > 1) {
-            s << "[ ";
-        }
+        boost::shared_ptr< vector<boost::any> > vp = _map.find(*i)->second;
         type_info const& t = vp->back().type();
-        for (vector<boost::any>::const_iterator k = vp->begin();
-             k != vp->end(); ++k) {
-            if (k != vp->begin()) {
-                s << ", ";
-            }
-            boost::any const& v(*k);
-            if (t == typeid(bool)) {
-                s << boost::any_cast<bool>(v);
-            } else if (t == typeid(char)) {
-                s << '\'' << boost::any_cast<char>(v) << '\'';
-            } else if (t == typeid(signed char)) {
-                s << '\'' << boost::any_cast<signed char>(v) << '\'';
-            } else if (t == typeid(unsigned char)) {
-                s << '\'' << boost::any_cast<unsigned char>(v) << '\'';
-            } else if (t == typeid(short)) {
-                s << boost::any_cast<short>(v);
-            } else if (t == typeid(unsigned short)) {
-                s << boost::any_cast<unsigned short>(v);
-            } else if (t == typeid(int)) {
-                s << boost::any_cast<int>(v);
-            } else if (t == typeid(unsigned int)) {
-                s << boost::any_cast<unsigned int>(v);
-            } else if (t == typeid(long)) {
-                s << boost::any_cast<long>(v);
-            } else if (t == typeid(unsigned long)) {
-                s << boost::any_cast<unsigned long>(v);
-            } else if (t == typeid(long long)) {
-                s << boost::any_cast<long long>(v);
-            } else if (t == typeid(unsigned long long)) {
-                s << boost::any_cast<unsigned long long>(v);
-            } else if (t == typeid(float)) {
-                s << std::setprecision(7) << boost::any_cast<float>(v);
-            } else if (t == typeid(double)) {
-                s << std::setprecision(14) << boost::any_cast<double>(v);
-            } else if (t == typeid(string)) {
-                s << '"' << boost::any_cast<string>(v) << '"';
-            } else if (t == typeid(dafBase::DateTime)) {
-                s << boost::any_cast<dafBase::DateTime>(v).toString();
-            } else if (t == typeid(Ptr)) {
-                if (topLevelOnly) {
-                    s << "{ ... }";
-                } else {
-                    Ptr p = boost::any_cast<Ptr>(v);
-                    if (p.get() == 0) {
-                        s << "{ NULL }";
-                    } else {
-                        s << '{' << endl;
-                        s << p->toString(false, indent + "..");
-                        s << indent << '}';
-                    }
-                }
-            } else if (t == typeid(Persistable::Ptr)) {
-                s << "<Persistable>";
+        if (t == typeid(Ptr)) {
+            s << indent << *i << " = ";
+            if (topLevelOnly) {
+                s << "{ ... }";
             } else {
-                s << "<Unknown>";
+                Ptr p = boost::any_cast<Ptr>(vp->back());
+                if (p.get() == 0) {
+                    s << "{ NULL }";
+                } else {
+                    s << '{' << endl;
+                    s << p->toString(false, indent + "..");
+                    s << indent << '}';
+                }
             }
+            s << endl;
         }
-        if (j->second->size() > 1) {
-            s << " ]";
+        else {
+            s << indent << _format(*i);
         }
-        s << endl;
     }
+    return s.str();
+}
+
+std::string dafBase::PropertySet::_format(std::string const& name) const {
+    ostringstream s;
+    s << std::showpoint; // Always show a decimal point for floats
+    AnyMap::const_iterator j = _map.find(name);
+    s << j->first << " = ";
+    boost::shared_ptr< vector<boost::any> > vp = j->second;
+    if (vp->size() > 1) {
+        s << "[ ";
+    }
+    type_info const& t = vp->back().type();
+    for (vector<boost::any>::const_iterator k = vp->begin();
+         k != vp->end(); ++k) {
+        if (k != vp->begin()) {
+            s << ", ";
+        }
+        boost::any const& v(*k);
+        if (t == typeid(bool)) {
+            s << boost::any_cast<bool>(v);
+        } else if (t == typeid(char)) {
+            s << '\'' << boost::any_cast<char>(v) << '\'';
+        } else if (t == typeid(signed char)) {
+            s << '\'' << boost::any_cast<signed char>(v) << '\'';
+        } else if (t == typeid(unsigned char)) {
+            s << '\'' << boost::any_cast<unsigned char>(v) << '\'';
+        } else if (t == typeid(short)) {
+            s << boost::any_cast<short>(v);
+        } else if (t == typeid(unsigned short)) {
+            s << boost::any_cast<unsigned short>(v);
+        } else if (t == typeid(int)) {
+            s << boost::any_cast<int>(v);
+        } else if (t == typeid(unsigned int)) {
+            s << boost::any_cast<unsigned int>(v);
+        } else if (t == typeid(long)) {
+            s << boost::any_cast<long>(v);
+        } else if (t == typeid(unsigned long)) {
+            s << boost::any_cast<unsigned long>(v);
+        } else if (t == typeid(long long)) {
+            s << boost::any_cast<long long>(v);
+        } else if (t == typeid(unsigned long long)) {
+            s << boost::any_cast<unsigned long long>(v);
+        } else if (t == typeid(float)) {
+            s << std::setprecision(7) << boost::any_cast<float>(v);
+        } else if (t == typeid(double)) {
+            s << std::setprecision(14) << boost::any_cast<double>(v);
+        } else if (t == typeid(string)) {
+            s << '"' << boost::any_cast<string>(v) << '"';
+        } else if (t == typeid(dafBase::DateTime)) {
+            s << boost::any_cast<dafBase::DateTime>(v).toString();
+        } else if (t == typeid(Ptr)) {
+            s << "{ ... }";
+        } else if (t == typeid(Persistable::Ptr)) {
+            s << "<Persistable>";
+        } else {
+            s << "<Unknown>";
+        }
+    }
+    if (j->second->size() > 1) {
+        s << " ]";
+    }
+    s << endl;
     return s.str();
 }
 
@@ -542,7 +580,7 @@ template <typename T>
 void dafBase::PropertySet::set(std::string const& name, T const& value) {
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->push_back(value);
-    _findOrInsert(name, vp);
+    _set(name, vp);
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
@@ -557,7 +595,7 @@ void dafBase::PropertySet::set(std::string const& name,
     if (value.empty()) return;
     boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->insert(vp->end(), value.begin(), value.end());
-    _findOrInsert(name, vp);
+    _set(name, vp);
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
@@ -672,7 +710,7 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::copy(std::string const& dest,
-                                Ptr const source, std::string const& name) {
+                                ConstPtr source, std::string const& name) {
     if (source.get() == 0) {
         throw LSST_EXCEPT(pexExcept::InvalidParameterException,
                           "Missing source");
@@ -685,7 +723,7 @@ void dafBase::PropertySet::copy(std::string const& dest,
     remove(dest);
     boost::shared_ptr< vector<boost::any> > vp(
         new vector<boost::any>(*(sj->second)));
-    _findOrInsert(dest, vp);
+    _set(dest, vp);
 }
 
 /** Appends all value vectors from the \a source to their corresponding
@@ -696,7 +734,7 @@ void dafBase::PropertySet::copy(std::string const& dest,
   * @note
   * May only partially combine the PropertySets if an exception occurs.
   */
-void dafBase::PropertySet::combine(Ptr const source) {
+void dafBase::PropertySet::combine(ConstPtr source) {
     if (source.get() == 0) {
         return;
     }
@@ -708,7 +746,7 @@ void dafBase::PropertySet::combine(Ptr const source) {
         if (dj == _map.end()) {
             boost::shared_ptr< vector<boost::any> > vp(
                 new vector<boost::any>(*(sj->second)));
-            _findOrInsert(*i, vp);
+            _set(*i, vp);
         }
         else {
             if (sj->second->back().type() != dj->second->back().type()) {
@@ -803,6 +841,18 @@ dafBase::PropertySet::_find(std::string const& name) const {
         return _map.end();
     }
     return x;
+}
+
+/** Finds the property name (possibly hierarchical) and sets or replaces its
+  * value with the given vector of values.  Hook for subclass overrides of
+  * top-level setting.
+  * @param[in] name Property name to find, possibly hierarchical.
+  * @param[in] vp shared_ptr to vector of values.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+void dafBase::PropertySet::_set(
+    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+    _findOrInsert(name, vp);
 }
 
 /** Finds the property name (possibly hierarchical) and sets or replaces its

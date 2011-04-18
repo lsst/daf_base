@@ -1,4 +1,27 @@
 // -*- lsst-c++ -*-
+
+/* 
+ * LSST Data Management System
+ * Copyright 2008, 2009, 2010 LSST Corporation.
+ * 
+ * This product includes software developed by the
+ * LSST Project (http://www.lsst.org/).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the LSST License Statement and 
+ * the GNU General Public License along with this program.  If not, 
+ * see <http://www.lsstcorp.org/LegalNotices/>.
+ */
+ 
 #ifndef LSST_DAF_BASE_PROPERTYSET
 #define LSST_DAF_BASE_PROPERTYSET
 
@@ -49,13 +72,14 @@ class PropertySet :
 public:
 // Typedefs
     typedef boost::shared_ptr<PropertySet> Ptr;
+    typedef boost::shared_ptr<PropertySet const> ConstPtr;
 
 // Constructors
     PropertySet(void);
     virtual ~PropertySet(void);
 
 // Accessors
-    Ptr deepCopy(void) const;
+    virtual Ptr deepCopy(void) const;
     // Returns a PropertySet::Ptr pointing to a new deep copy.
 
     size_t nameCount(bool topLevelOnly = true) const;
@@ -92,7 +116,7 @@ public:
     Persistable::Ptr getAsPersistablePtr(std::string const& name) const;
 
     // Use this for debugging, not for serialization/persistence.
-    std::string toString(bool topLevelOnly = false,
+    virtual std::string toString(bool topLevelOnly = false,
                     std::string const& indent = "") const;
 
 // Modifiers
@@ -105,13 +129,18 @@ public:
                                    std::vector<T> const& value);
     void add(std::string const& name, char const* value);
 
-    void copy(std::string const& dest, Ptr const source,
-              std::string const& name);
-    void combine(Ptr const source);
+    virtual void copy(std::string const& dest, ConstPtr source,
+                      std::string const& name);
+    virtual void combine(ConstPtr source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.
 
-    void remove(std::string const& name);
+    virtual void remove(std::string const& name);
+
+protected:
+    virtual void _set(std::string const& name,
+                      boost::shared_ptr< std::vector<boost::any> > vp);
+    virtual std::string _format(std::string const& name) const;
 
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
@@ -121,7 +150,7 @@ private:
 
     AnyMap::iterator _find(std::string const& name);
     AnyMap::const_iterator _find(std::string const& name) const;
-    void _findOrInsert(std::string const& name,
+    virtual void _findOrInsert(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
     void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
     void _cycleCheckAnyVec(std::vector<boost::any> const& v,

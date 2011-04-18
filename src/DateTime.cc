@@ -1,5 +1,28 @@
 // -*- lsst-c++ -*-
 
+/* 
+ * LSST Data Management System
+ * Copyright 2008, 2009, 2010 LSST Corporation.
+ * 
+ * This product includes software developed by the
+ * LSST Project (http://www.lsst.org/).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the LSST License Statement and 
+ * the GNU General Public License along with this program.  If not, 
+ * see <http://www.lsstcorp.org/LegalNotices/>.
+ */
+ 
+
 
 /** \file
  * \brief Implementation of DateTime class.
@@ -168,10 +191,10 @@ NsType taiToUtc(NsType nsecs) {
                     ) % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
-    double taiSecs = nsecs / 1.0e9;
-    double leapSecs = taiSecs -
-        (taiSecs - l.offset - l.drift * (EPOCH_IN_MJD - l.mjdRef)) /
-        (1.0 + l.drift * 1.0e9 / NSEC_PER_DAY);
+    double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
+    double leapSecs = l.offset + (mjd - l.mjdRef) * l.drift;
+    // Correct for TAI MJD vs. UTC MJD.
+    leapSecs /= 1.0 + l.drift * 1.0e9 / NSEC_PER_DAY;
     NsType leapNSecs = static_cast<NsType>(leapSecs * 1.0e9 + 0.5);
     return nsecs - leapNSecs;
 }
@@ -355,7 +378,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
  */
 dafBase::DateTime::DateTime(std::string const& iso8601) {
     boost::regex re("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                    "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,]\\d*)?" "Z");
+                    "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
         throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
@@ -367,7 +390,17 @@ dafBase::DateTime::DateTime(std::string const& iso8601) {
                 UTC);
     _nsecs = dt._nsecs;
     if (matches[7].matched) {
-        _nsecs += atoi(matches.str(7).c_str() + 1);
+        std::string frac = matches.str(8);
+        int places = frac.size();
+        if (places > 9) { // truncate fractional nanosec
+            frac.erase(9);
+        }
+        int value = atoi(frac.c_str());
+        while (places < 9) {
+            value *= 10;
+            ++places;
+        }
+        _nsecs += value;
     }
 }
 
@@ -450,12 +483,21 @@ double dafBase::DateTime::_getEpoch(Timescale scale) const {
 
 
 
-/** Convert to struct tm.
+/** Convert to struct tm.  Truncate fractional seconds.
  * \return Structure with decoded time in UTC.
  */
 struct tm dafBase::DateTime::gmtime(void) const {
     struct tm gmt;
-    time_t secs = static_cast<time_t>(taiToUtc(_nsecs) / LL_NSEC_PER_SEC);
+    long long nsecs = taiToUtc(_nsecs);
+    // Round to negative infinity
+    long long frac = nsecs % LL_NSEC_PER_SEC;
+    if (nsecs < 0 && frac < 0) {
+        nsecs -= LL_NSEC_PER_SEC + frac;
+    }
+    else {
+        nsecs -= frac;
+    }
+    time_t secs = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
     return gmt;
 }
@@ -487,10 +529,13 @@ struct timeval dafBase::DateTime::timeval(void) const {
  */
 std::string dafBase::DateTime::toString(void) const {
     struct tm gmt(this->gmtime());
+    long long nsecs = taiToUtc(_nsecs) % LL_NSEC_PER_SEC;
+    if (nsecs < 0) {
+        nsecs += LL_NSEC_PER_SEC;
+    }
     return (boost::format("%04d-%02d-%02dT%02d:%02d:%02d.%09dZ") %
             (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
-            gmt.tm_hour % gmt.tm_min % gmt.tm_sec %
-            (taiToUtc(_nsecs) % LL_NSEC_PER_SEC)).str();
+            gmt.tm_hour % gmt.tm_min % gmt.tm_sec % nsecs).str();
 }
 
 /** Return current time as a DateTime.
