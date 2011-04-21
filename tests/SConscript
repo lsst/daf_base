@@ -1,18 +1,16 @@
 # -*- python -*-
 Import("env")
-import glob
 
-for src in glob.glob("*.cc"):
-    env.Program(src, LIBS=env.getlibs(env["eups_product"]))
+for src in Glob("*.cc"):
+    env.Program(src, LIBS=env.getLibs("main test"))
 
 #
 # Tests
 #
-import lsst.tests
+import lsst.scons.tests
 
-tests = lsst.tests.Control(env, verbose = True)
+tests = lsst.scons.tests.Control(env, verbose = True)
 tests.run("*.cc")
 
 for target in tests.run("*.py"):
-     env.Depends(target,
-        "../python/lsst/daf/base/baseLib%s" % (env['LDMODULESUFFIX']))
+     env.Depends(target, "#python/lsst/daf/base/baseLib%s" % (env['LDMODULESUFFIX']))

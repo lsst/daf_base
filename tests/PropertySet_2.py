@@ -132,7 +132,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        self.assertRaises(pexExcept.LsstException, ps.get, "foo")
+        self.assertRaises(pexExcept.Exception, ps.get, "foo")
 
 if __name__ == '__main__':
     unittest.main()

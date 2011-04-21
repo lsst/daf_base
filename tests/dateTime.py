@@ -105,13 +105,13 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(), "2009-04-02T07:26:39.000000000Z")
 
     def testIsoThrow(self):
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401T"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009-04-01T"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009-04-01T23:36:05"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("20090401T23:36:05-0700"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
-        self.assertRaises(pexExcept.LsstCppException, lambda: DateTime("2009/04/01T23:36:05Z"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("20090401"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("20090401T"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("2009-04-01T"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("2009-04-01T23:36:05"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("20090401T23:36:05-0700"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("2009/04/01T23:36:05Z"))
+        self.assertRaises(pexExcept.DomainErrorException, lambda: DateTime("2009/04/01T23:36:05Z"))
 
     def testNsecsTT(self):
         ts = DateTime(1192755538184000000L, DateTime.TT)

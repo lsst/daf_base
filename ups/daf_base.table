@@ -1,7 +1,8 @@
-setupRequired(utils >= boost.python)
-setupRequired(pex_exceptions >= boost.python)
+setupRequired(utils == bp)
+setupRequired(pex_exceptions == bp)
 
 envAppend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envAppend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 
-envAppend(PYTHONPATH, ${PRODUCT_DIR}/${LSST_PYTHON_PREFIX})
+envAppend(PYTHONPATH, ${PRODUCT_DIR}/python)
+envAppend(BPDOX_PATH, ${PRODUCT_DIR}/doc/xml)
