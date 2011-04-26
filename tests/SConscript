@@ -13,4 +13,4 @@ tests = lsst.scons.tests.Control(env, verbose = True)
 tests.run("*.cc")
 
 for target in tests.run("*.py"):
-     env.Depends(target, "#python/lsst/daf/base/baseLib%s" % (env['LDMODULESUFFIX']))
+     env.Depends(target, "#python/lsst/daf/base/_base%s" % (env['LDMODULESUFFIX']))

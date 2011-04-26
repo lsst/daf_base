@@ -1,10 +1,10 @@
-from . import baseLib
+from . import _base
 import lsst.bputils
 import lsst.pex.exceptions
 
-lsst.bputils.rescope(baseLib, globals(), names=("Citizen", "DateTime", "Persistable"))
+lsst.bputils.rescope(_base, globals(), names=("Citizen", "DateTime", "Persistable"))
 
-@lsst.bputils.extend(baseLib.PropertySet)
+@lsst.bputils.extend(_base.PropertySet)
 class PropertySet:
 
     def get(self, name):
@@ -102,7 +102,7 @@ class PropertySet:
             raise lsst.pex.exceptions.Exception, \
                 'Unknown value type for %s: %s' % (name, type(exemplar))
 
-@lsst.bputils.extend(baseLib.PropertyList)
+@lsst.bputils.extend(_base.PropertyList)
 class PropertyList:
 
     def get(self, name):

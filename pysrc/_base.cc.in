@@ -30,7 +30,7 @@ struct PyCitizen {
         bp::list result;
         boost::scoped_ptr< CensusVector const > v(Citizen::census());
         for (CensusVector::const_iterator i = v->begin(); i != v->end(); ++i) {
-            result.append(*i);
+            result.append(bp::ptr(*i));
         }
         return result;
     }
@@ -346,7 +346,7 @@ void declareBase() {
 
 }}} // namespace lsst::daf::base
 
-BOOST_PYTHON_MODULE(baseLib) {
+BOOST_PYTHON_MODULE(_base) {
     bp::import("lsst.pex.exceptions"); // need to import this so we can subclass LogicErrorException
     lsst::daf::base::declareBase();
 }
