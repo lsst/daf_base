@@ -282,7 +282,7 @@ void dafBase::DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
     
 
 
-/** Constructor.
+/** Constructor.  @bpdox{label:nsecs}
  * \param[in] nsecs Number of nanoseconds since the epoch.
  * \param[in] scale Timescale of input (TAI or UTC, default TAI).
  */
@@ -294,7 +294,7 @@ dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecs) {
     }
 }
 
-/** Constructor.
+/** Constructor.  @bpdox{label:double}
  * \param[in] date Date.
  * \param[in] system The requested date system (JD, MJD, or Julian epoch)
  * \param[in] scale Timescale of input (TAI or UTC, default TAI).
@@ -318,7 +318,7 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
 
 
 
-/** Constructor.
+/** Constructor.  @bpdox{label:ints}
  * \param[in] year Year number.
  * \param[in] month Month number (Jan = 1).
  * \param[in] day Day number (1 to 31).
@@ -370,7 +370,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
 
 }
 
-/** Constructor.  Accepts a restricted subset of ISO8601:
+/** Constructor.  Accepts a restricted subset of ISO8601:  @bpdox{label:string}
   * yyyy-mm-ddThh:mm:ss.nnnnnnnnnZ where the - and : separators are optional,
   * the fractional seconds are also optional, and the decimal point may be a
   * comma.

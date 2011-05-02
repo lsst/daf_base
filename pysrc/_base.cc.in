@@ -48,13 +48,13 @@ struct PyCitizen {
             .%%auto_method(init)%%
             .def(
                 "census", &census1, bp::arg("startingMemId"),
-                %%doc(Citizen::census[1])%%
+                %%doc(Citizen::census[stream])%%
             )
             .def(
                 "census", &census2,
-                %%doc(Citizen::census[2])%%
+                %%doc(Citizen::census[vector])%%
             )
-            .%%auto_method(census[0])%% // Note: includes a call to staticmethod("census")
+            .%%auto_method(census[count])%% // Note: includes a call to staticmethod("census")
             .enable_shared_ptr()
             ;
     }
@@ -81,20 +81,20 @@ struct PyDateTime {
              .def(
                  bp::init< double, DateTime::DateSystem, DateTime::Timescale >(
                      (bp::arg("date"), bp::arg("system")=DateTime::MJD, bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[1])%%
+                     %%doc(DateTime::DateTime[double])%%
                  )
              )
              .def(
                  bp::init< int, int, int, int, int, int, DateTime::Timescale >(
                      (bp::arg("year"), bp::arg("month"), bp::arg("day"), bp::arg("hr"), 
                       bp::arg("min"), bp::arg("sec"), bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[2])%%
+                     %%doc(DateTime::DateTime[ints])%%
                  )
              )
              .def(
                  bp::init< std::string const & >(
                      (bp::arg("iso8601")),
-                     %%doc(DateTime::DateTime[3])%%
+                     %%doc(DateTime::DateTime[string])%%
                  )
              )
             // This constructor (below) needs to go last, because a single int or long argument in
@@ -104,7 +104,7 @@ struct PyDateTime {
             .def(
                  bp::init< long long, DateTime::Timescale >(
                      (bp::arg("nsecs")=0LL, bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[0])%%
+                     %%doc(DateTime::DateTime[nsecs])%%
                  )
              )
             ;
@@ -145,12 +145,12 @@ struct PyPropertySet {
         typedef void (PropertySet::*ScalarAccessor)(std::string const &, T const &);
         cls.def(
             ("get" + name).c_str(), (BasicGetter)&PropertySet::get<T>, bp::arg("name"),
-            %%doc(PropertySet::get[0])%%
+            %%doc(PropertySet::get[nodefault])%%
         );
         cls.def(
             ("get" + name).c_str(), (DefaultGetter)&PropertySet::get<T>,
             (bp::arg("name"), bp::arg("default")),
-            %%doc(PropertySet::get[1])%%
+            %%doc(PropertySet::get[withdefault])%%
         );
         // Note: we wrap the vector ones first, so they'll get tried last when overloading...
         // because a Python str is a sequence of str, it matches std::vector<std::string>
@@ -158,22 +158,22 @@ struct PyPropertySet {
         cls.def(
             ("set" + name).c_str(), (VectorAccessor)&PropertySet::set<T>, 
             (bp::arg("name"), bp::arg("value")),
-            %%doc(PropertySet::set[1])%%
+            %%doc(PropertySet::set[vector])%%
         );
         cls.def(
             ("add" + name).c_str(), (VectorAccessor)&PropertySet::add<T>,
             (bp::arg("name"), bp::arg("value")),
-            %%doc(PropertySet::add[1])%%
+            %%doc(PropertySet::add[vector])%%
         );
         cls.def(
             ("set" + name).c_str(), (ScalarAccessor)&PropertySet::set<T>, 
             (bp::arg("name"), bp::arg("value")),
-            %%doc(PropertySet::set[0])%%
+            %%doc(PropertySet::set[scalar])%%
         );
         cls.def(
             ("add" + name).c_str(), (ScalarAccessor)&PropertySet::add<T>,
             (bp::arg("name"), bp::arg("value")),
-            %%doc(PropertySet::add[0])%%
+            %%doc(PropertySet::add[scalar])%%
         );
         cls.def(
             ("getArray" + name).c_str(), &PropertySet::getArray<T>, 
@@ -254,52 +254,52 @@ struct PyPropertyList {
         );
         cls.def(
             ("get" + name).c_str(), (BasicGetter)&PropertyList::get<T>, bp::arg("name"),
-            %%doc(PropertyList::get[0])%%
+            %%doc(PropertyList::get[nodefault])%%
         );
         cls.def(
             ("get" + name).c_str(), (DefaultGetter)&PropertyList::get<T>,
             (bp::arg("name"), bp::arg("default")),
-            %%doc(PropertyList::get[1])%%
+            %%doc(PropertyList::get[withdefault])%%
         );
         cls.def(
             ("set" + name).c_str(), (VectorAccessor)&PropertyList::set<T>, 
             (bp::arg("name"), bp::arg("value"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::set[1])%%
+            %%doc(PropertyList::set[vector])%%
         );
         cls.def(
             ("add" + name).c_str(), (VectorAccessor)&PropertyList::add<T>,
             (bp::arg("name"), bp::arg("value"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::add[1])%%
+            %%doc(PropertyList::add[vector])%%
         );
         cls.def(
             ("set" + name).c_str(), (ScalarAccessor)&PropertyList::set<T>, 
             (bp::arg("name"), bp::arg("value"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::set[0])%%
-        );
-        cls.def(
-            ("set" + name).c_str(), (VectorAccessorC)&PropertyList::set<T>, 
-            (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::set[4])%%
-        );
-        cls.def(
-            ("add" + name).c_str(), (VectorAccessorC)&PropertyList::add<T>,
-            (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::add[4])%%
+            %%doc(PropertyList::set[scalar])%%
         );
         cls.def(
             ("add" + name).c_str(), (ScalarAccessor)&PropertyList::add<T>,
             (bp::arg("name"), bp::arg("value"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::add[0])%%
+            %%doc(PropertyList::add[scalar])%%
+        );
+        cls.def(
+            ("set" + name).c_str(), (VectorAccessorC)&PropertyList::set<T>, 
+            (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
+            %%doc(PropertyList::set[vector_c])%%
+        );
+        cls.def(
+            ("add" + name).c_str(), (VectorAccessorC)&PropertyList::add<T>,
+            (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
+            %%doc(PropertyList::add[vector_c])%%
         );
         cls.def(
             ("set" + name).c_str(), (ScalarAccessorC)&PropertyList::set<T>, 
             (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::set[3])%%
+            %%doc(PropertyList::set[scalar_c])%%
         );
         cls.def(
             ("add" + name).c_str(), (ScalarAccessorC)&PropertyList::add<T>,
             (bp::arg("name"), bp::arg("value"), bp::arg("comment"), bp::arg("inPlace")=true),
-            %%doc(PropertyList::add[3])%%
+            %%doc(PropertyList::add[scalar_c])%%
         );
         cls.def(
             ("getArray" + name).c_str(), &PropertyList::getArray<T>, 

@@ -74,7 +74,7 @@ dafBase::PropertySet::Ptr dafBase::PropertyList::deepCopy(void) const {
 
 // The following throw an exception if the type does not match exactly.
 
-/** Get the last value for a property name (possibly hierarchical).
+/** Get the last value for a property name (possibly hierarchical). @bpdox{label:nodefault}
   * Note that the type must be explicitly specified for this template:
   * @code int i = propertyList.get<int>("foo") @endcode
   * @param[in] name Property name to examine, possibly hierarchical.
@@ -87,7 +87,7 @@ T dafBase::PropertyList::get(std::string const& name) const { /* parasoft-suppre
     return PropertySet::get<T>(name);
 }
 
-/** Get the last value for a property name (possibly hierarchical).
+/** Get the last value for a property name (possibly hierarchical). @bpdox{label:withdefault}
   * Returns the provided @a defaultValue if the property does not exist.
   * Note that the type must be explicitly specified for this template:
   * @code int i = propertyList.get<int>("foo", 42) @endcode
@@ -173,7 +173,7 @@ std::string dafBase::PropertyList::toString(bool topLevelOnly,
 // Normal versions of set/add with placement control
 
 /** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
+  * value. @bpdox{label:scalar}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
   * @param[in] inPlace If false, property is moved to end of list.
@@ -189,7 +189,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
+  * string value. @bpdox{label:string}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string (converted to \c std::string ).
   * @param[in] inPlace If false, property is moved to end of list.
@@ -204,7 +204,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
+  * vector of new values. @bpdox{label:vector}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
   * @param[in] inPlace If false, property is moved to end of list.
@@ -220,7 +220,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
+  * (possibly hierarchical).  Sets the value if the property does not exist. @bpdox{label:scalar}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
   * @param[in] inPlace If false, property is moved to end of list.
@@ -238,7 +238,7 @@ void dafBase::PropertyList::add(
 
 /** Appends a <tt>char const*</tt> value to the vector of values for a
   * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
+  * does not exist.  @bpdox{label:string}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
   * @param[in] inPlace If false, property is moved to end of list.
@@ -251,7 +251,7 @@ void dafBase::PropertyList::add(
 }
 
 /** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
+  * (possibly hierarchical).  Sets the values if the property does not exist. @bpdox{label:vector}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
   * @param[in] inPlace If false, property is moved to end of list.
@@ -274,7 +274,7 @@ void dafBase::PropertyList::add(
 // Commented versions of set/add
 
 /** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
+  * value. @bpdox{label:scalar_c}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
   * @param[in] comment Comment to set.
@@ -290,7 +290,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
+  * string value. @bpdox{label:string_c}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string value to set.
   * @param[in] comment Comment to set.
@@ -304,7 +304,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
+  * vector of new values. @bpdox{label:vector_c}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
   * @param[in] comment Comment to set.
@@ -320,7 +320,7 @@ void dafBase::PropertyList::set(
 }
 
 /** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
+  * (possibly hierarchical).  Sets the value if the property does not exist. @bpdox{label:scalar_c}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
   * @param[in] comment Comment to set.
@@ -338,7 +338,7 @@ void dafBase::PropertyList::add(
 
 /** Appends a <tt>char const*</tt> value to the vector of values for a
   * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
+  * does not exist. @bpdox{label:string_c}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value String value to append.
   * @param[in] comment Comment to set.
@@ -354,7 +354,7 @@ void dafBase::PropertyList::add(
 }
 
 /** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
+  * (possibly hierarchical).  Sets the values if the property does not exist. @bpdox{label:vector_c}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
   * @param[in] comment Comment to set.

@@ -148,8 +148,8 @@ void Citizen::markPersistent(void) {
 //@{
 //
 //
-//! How many active Citizens are there?
-//
+//! How many active Citizens are there? @bpdox{label:count}
+//  
 int Citizen::census(
     int,                                //<! the int argument allows overloading
     memId startingMemId                 //!< Don't print Citizens with lower IDs
@@ -169,7 +169,7 @@ int Citizen::census(
     return n;    
 }
 //
-//! Print a list of all active Citizens to stream
+//! Print a list of all active Citizens to stream.  @bpdox{label:stream}
 //
 void Citizen::census(
     std::ostream &stream,               //!< stream to print to
@@ -183,7 +183,7 @@ void Citizen::census(
     }
 }
 //
-//! Return a (newly allocated) std::vector of active Citizens
+//! Return a (newly allocated) std::vector of active Citizens.  @bpdox{label:vector}
 //
 //! You are responsible for deleting it; or you can say
 //!    boost::scoped_ptr<std::vector<Citizen const*> const>

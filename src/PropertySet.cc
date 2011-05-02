@@ -231,7 +231,7 @@ std::type_info const& dafBase::PropertySet::typeOf(std::string const& name) cons
 
 // The following throw an exception if the type does not match exactly.
 
-/** Get the last value for a property name (possibly hierarchical).
+/** Get the last value for a property name (possibly hierarchical). @bpdox{label:nodefault}
   * Note that the type must be explicitly specified for this template:
   * @code int i = propertySet.get<int>("foo") @endcode
   * @param[in] name Property name to examine, possibly hierarchical.
@@ -255,7 +255,7 @@ T dafBase::PropertySet::get(std::string const& name) const { /* parasoft-suppres
     return boost::any_cast<T>(i->second->back());
 }
 
-/** Get the last value for a property name (possibly hierarchical).
+/** Get the last value for a property name (possibly hierarchical). @bpdox{label:withdefault}
   * Returns the provided @a defaultValue if the property does not exist.
   * Note that the type must be explicitly specified for this template:
   * @code int i = propertySet.get<int>("foo", 42) @endcode
@@ -569,7 +569,7 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
 ///////////////////////////////////////////////////////////////////////////////
 
 /** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
+  * value. @bpdox{label:scalar}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
@@ -582,7 +582,7 @@ void dafBase::PropertySet::set(std::string const& name, T const& value) {
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
+  * vector of new values. @bpdox{label:vector}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
@@ -597,7 +597,7 @@ void dafBase::PropertySet::set(std::string const& name,
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
+  * string value. @bpdox{label::string}
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string (converted to \c std::string ).
   */
@@ -606,7 +606,7 @@ void dafBase::PropertySet::set(std::string const& name, char const* value) {
 }
 
 /** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
+  * (possibly hierarchical).  Sets the value if the property does not exist. @bpdox{label:scalar}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
   * @throws TypeMismatchException Type does not match existing values.
@@ -645,7 +645,7 @@ template <> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
 }
 
 /** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
+  * (possibly hierarchical).  Sets the values if the property does not exist. @bpdox{label:vector}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
   * @throws TypeMismatchException Type does not match existing values.
@@ -688,7 +688,7 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
 
 /** Appends a <tt>char const*</tt> value to the vector of values for a
   * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
+  * does not exist. @bpdox{label:string}
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Character string value to append.
   * @throws TypeMismatchException Type does not match existing values.
