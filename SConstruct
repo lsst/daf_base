@@ -2,7 +2,7 @@
 #
 # Setup our environment
 #
-import glob, os.path, sys
+import os.path
 import lsst.scons.SConsUtils as scons
 
 env = scons.makeEnv("daf_base",

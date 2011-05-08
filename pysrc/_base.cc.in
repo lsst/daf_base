@@ -1,12 +1,8 @@
-#include <boost/python.hpp>
-#include "boost/python/const_aware.hpp"
-#include "boost/python/to_python/copy_to_tuple.hpp"
-#include "boost/python/from_python/container.hpp"
-#include <sstream>
-#include <boost/scoped_ptr.hpp>
-
+#include "lsst/bputils.h"
 #include "lsst/daf/base.h"
-#include "lsst/bputils/exceptions.h"
+
+#include <sstream>
+#include "boost/scoped_ptr.hpp"
 
 namespace bp = boost::python;
 
@@ -39,13 +35,9 @@ struct PyCitizen {
         auto wrapper = bp::make_const_aware(
             %%auto_class<Citizen>%%
         );
+        %%ignore_members(Citizen,census,setNewCallback,setDeleteCallback,setCorruptionCallback)%%
         wrapper
-            .%%auto_method(repr)%%
-            .%%auto_method(markPersistent)%%
-            .%%auto_method(hasBeenCorrupted)%%
-            .%%auto_method(getId)%%
-            .%%auto_method(getNextMemId)%%
-            .%%auto_method(init)%%
+            .%%auto_members_regex(.*)%%
             .def(
                 "census", &census1, bp::arg("startingMemId"),
                 %%doc(Citizen::census[stream])%%
@@ -53,10 +45,14 @@ struct PyCitizen {
             .def(
                 "census", &census2,
                 %%doc(Citizen::census[vector])%%
+                "NOTE: In Python, the user will not have to delete the returned list,\n"
+                "but its elements are highly unsafe and may become dangling references\n"
+                "to nonexistent C++ objects without warning.\n"
             )
-            .%%auto_method(census[count])%% // Note: includes a call to staticmethod("census")
+            .%%auto_method(census[count])%%
             .enable_shared_ptr()
             ;
+        %%finish_class%%
     }
 
 };
@@ -67,6 +63,7 @@ struct PyDateTime {
         auto wrapper = bp::make_const_aware(
             %%auto_class<DateTime>%%
         );
+        %%ignore_members(DateTime,nsecs,mjd,get,gmtime,timespec,timeval)%%
         {
             bp::scope inDateTime(wrapper.main_class());
             %%auto_enum(DateTime::Timescale)%%
@@ -74,53 +71,50 @@ struct PyDateTime {
             %%auto_enum(DateTime::DateSystem)%%
                   .export_values();
         }
-        wrapper.main_class()
-            // bpdox doesn't work on some of these these members, because Doxygen doesn't parse the 
-            // enum values used as defaults so they don't up in the class scope.  So I used
-            // auto_init, copied the results here, and changed them slightly.
-             .def(
-                 bp::init< double, DateTime::DateSystem, DateTime::Timescale >(
-                     (bp::arg("date"), bp::arg("system")=DateTime::MJD, bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[double])%%
-                 )
-             )
-             .def(
-                 bp::init< int, int, int, int, int, int, DateTime::Timescale >(
-                     (bp::arg("year"), bp::arg("month"), bp::arg("day"), bp::arg("hr"), 
-                      bp::arg("min"), bp::arg("sec"), bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[ints])%%
-                 )
-             )
-             .def(
-                 bp::init< std::string const & >(
-                     (bp::arg("iso8601")),
-                     %%doc(DateTime::DateTime[string])%%
-                 )
-             )
-            // This constructor (below) needs to go last, because a single int or long argument in
-            // Python will also match the constructor that takes a double, and Boost.Python tries
-            // the last method wrapped first.  Ultimately, we should probably use static member functions
-            // in C++ to make these more explicit.
-            .def(
-                 bp::init< long long, DateTime::Timescale >(
-                     (bp::arg("nsecs")=0LL, bp::arg("scale")=DateTime::TAI),
-                     %%doc(DateTime::DateTime[nsecs])%%
-                 )
-             )
-            ;
         wrapper
-            .def("nsecs", &DateTime::nsecs, (bp::arg("scale")=DateTime::TAI))
-            .def("mjd", &DateTime::mjd, (bp::arg("scale")=DateTime::TAI))
-            .def(
-                "get", &DateTime::get, (bp::arg("system")=DateTime::MJD, bp::arg("scale")=DateTime::TAI),
-                %%doc(DateTime::get)%%
-            )
-            .%%auto_method(toString)%%
-            .def("__str__", &DateTime::toString)
-            .%%auto_method(now)%%
-            .%%auto_method(initializeLeapSeconds)%%
-            .enable_shared_ptr()
-            ;
+              .enable_shared_ptr()
+              .%%auto_members_regex(.*)%%
+              // bpdox doesn't work on some of these these members, because Doxygen doesn't parse the 
+              // enum values used as defaults so they don't up in the class scope.  So I used
+              // auto_init, copied the results here, and changed them slightly.
+              .def(
+                  bp::init< double, DateTime::DateSystem, DateTime::Timescale >(
+                      (bp::arg("date"), bp::arg("system")=DateTime::MJD, bp::arg("scale")=DateTime::TAI),
+                      %%doc(DateTime::DateTime[double])%%
+                  )
+              )
+              .def(
+                  bp::init< int, int, int, int, int, int, DateTime::Timescale >(
+                      (bp::arg("year"), bp::arg("month"), bp::arg("day"), bp::arg("hr"), 
+                       bp::arg("min"), bp::arg("sec"), bp::arg("scale")=DateTime::TAI),
+                      %%doc(DateTime::DateTime[ints])%%
+                  )
+              )
+              .def(
+                  bp::init< std::string const & >(
+                      (bp::arg("iso8601")),
+                      %%doc(DateTime::DateTime[string])%%
+                  )
+              )
+              // This constructor (below) needs to go last, because a single int or long argument in
+              // Python will also match the constructor that takes a double, and Boost.Python tries
+              // the last method wrapped first.  Ultimately, we should probably use static member functions
+              // in C++ to make these more explicit.
+              .def(
+                  bp::init< long long, DateTime::Timescale >(
+                      (bp::arg("nsecs")=0LL, bp::arg("scale")=DateTime::TAI),
+                      %%doc(DateTime::DateTime[nsecs])%%
+                  )
+              )
+              .def("nsecs", &DateTime::nsecs, (bp::arg("scale")=DateTime::TAI))
+              .def("mjd", &DateTime::mjd, (bp::arg("scale")=DateTime::TAI))
+              .def(
+                  "get", &DateTime::get, (bp::arg("system")=DateTime::MJD, bp::arg("scale")=DateTime::TAI),
+                  %%doc(DateTime::get)%%
+              )
+              .def("__str__", &DateTime::toString)
+              ;
+        %%finish_class%%;
     }
     
 };
@@ -181,8 +175,7 @@ struct PyPropertySet {
             bp::return_value_policy<bp::copy_to_tuple>(),
             %%doc(PropertySet::getArray)%%
         );
-        cls.main_class().setattr(("TYPE_" + name).c_str(), typeid(T).name());
-        bp::container_from_python_sequence< std::vector<T> >();
+        cls.setattr(("TYPE_" + name).c_str(), typeid(T).name());
     }
 
     static bp::str typeOf(PropertySet const & self, std::string const & name) {
@@ -194,33 +187,18 @@ struct PyPropertySet {
         auto wrapper = bp::make_const_aware(
             %%auto_class<PropertySet,noncopyable>(bp::init<>())%%
         );
-        wrapper.enable_shared_ptr();
-
+        %%ignore_members(names,paramNames,propertySetNames,typeOf,get,getArray,add,set)%%
         wrapper
-            .%%auto_method(deepCopy)%%
-            .%%auto_method(nameCount)%%
-            .%%auto_method(names, bp::return_value_policy<bp::copy_to_list>())%%
-            .%%auto_method(paramNames, bp::return_value_policy<bp::copy_to_list>())%%
-            .%%auto_method(propertySetNames, bp::return_value_policy<bp::copy_to_list>())%%
-            .%%auto_method(exists)%%
-            .%%auto_method(isArray)%%
-            .%%auto_method(isPropertySetPtr)%%
-            .%%auto_method(valueCount)%%
-            .def(
-                "typeOf", &typeOf, bp::arg("name"),
-                %%doc(PropertySet::typeOf)%%
-            )
-            .%%auto_method(getAsBool)%%
-            .%%auto_method(getAsInt)%%
-            .%%auto_method(getAsDouble)%%
-            .%%auto_method(getAsString)%%
-            .%%auto_method(getAsPropertySetPtr)%%
-            .%%auto_method(getAsPersistablePtr)%%
-            .%%auto_method(toString)%%
-            .%%auto_method(copy)%%
-            .%%auto_method(combine)%%
-            .%%auto_method(remove)%%
-            ;
+              .enable_shared_ptr()
+              .%%auto_members_regex(.*)%%
+              .%%auto_method(names, bp::return_value_policy<bp::copy_to_list>())%%
+              .%%auto_method(paramNames, bp::return_value_policy<bp::copy_to_list>())%%
+              .%%auto_method(propertySetNames, bp::return_value_policy<bp::copy_to_list>())%%
+              .def(
+                  "typeOf", &typeOf, bp::arg("name"),
+                  %%doc(PropertySet::typeOf)%%
+              )
+              ;
         addAccessors<bool>(wrapper, "Bool");
         addAccessors<short>(wrapper, "Short");
         addAccessors<int>(wrapper, "Int");
@@ -230,6 +208,8 @@ struct PyPropertySet {
         addAccessors<double>(wrapper, "Double");
         addAccessors<std::string>(wrapper, "String");
         addAccessors<DateTime>(wrapper, "DateTime");
+        bp::container_from_python_sequence< std::vector<DateTime> >();
+        %%finish_class%%;
     }
 
 };
@@ -306,18 +286,19 @@ struct PyPropertyList {
             (bp::arg("name"), bp::arg("value")), bp::return_value_policy<bp::copy_to_tuple>(),
             %%doc(PropertyList::getArray)%%
         );
-        cls.main_class().setattr(("TYPE_" + name).c_str(), typeid(T).name());
+        cls.setattr(("TYPE_" + name).c_str(), typeid(T).name());
     }
 
     static void declare() {
         auto wrapper = bp::make_const_aware(
             %%auto_class<PropertyList,noncopyable>(bp::init<>())%%
         );
+        %%ignore_members(getOrderedNames,begin,end,get,getArray,set,add)%%
         wrapper
-            .enable_shared_ptr()
-            .%%auto_method(getComment, bp::return_value_policy<bp::copy_const_reference>())%%
-            .%%auto_method(getOrderedNames, bp::return_value_policy<bp::copy_to_tuple>())%%
-            ;
+              .enable_shared_ptr()
+              .%%auto_members_regex(.*)%%
+              .%%auto_method(getOrderedNames, bp::return_value_policy<bp::copy_to_tuple>())%%
+              ;
         addAccessors<bool>(wrapper, "Bool");
         addAccessors<short>(wrapper, "Short");
         addAccessors<int>(wrapper, "Int");
@@ -327,6 +308,7 @@ struct PyPropertyList {
         addAccessors<double>(wrapper, "Double");
         addAccessors<std::string>(wrapper, "String");
         addAccessors<DateTime>(wrapper, "DateTime");
+        %%finish_class%%;
     }
 
 };
@@ -347,6 +329,7 @@ void declareBase() {
 }}} // namespace lsst::daf::base
 
 BOOST_PYTHON_MODULE(_base) {
+    lsst::bputils::registerConversions();
     bp::import("lsst.pex.exceptions"); // need to import this so we can subclass LogicErrorException
     lsst::daf::base::declareBase();
 }
