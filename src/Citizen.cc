@@ -48,8 +48,8 @@ void delThreadFlag(void* data) {
     delete d;
 }
 
-struct CitizenKey {
-    CitizenKey(void) {
+struct CitizenAux {
+    CitizenAux(void) {
         int ret = pthread_key_create(&idKey, delThreadId);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
@@ -72,29 +72,32 @@ struct CitizenKey {
     pthread_mutex_t lock;
 };
 
-static CitizenKey dataKey;
+static CitizenAux& getCitizenAux(void) {
+    static CitizenAux* aux = new CitizenAux;
+    return *aux;
+}
 
 static dafBase::Citizen::memId& getThreadId(void) {
     dafBase::Citizen::memId* d =
-        reinterpret_cast<dafBase::Citizen::memId*>(pthread_getspecific(dataKey.idKey));
+        reinterpret_cast<dafBase::Citizen::memId*>(pthread_getspecific(getCitizenAux().idKey));
     if (d == 0) {
         d = new dafBase::Citizen::memId(1);
-        pthread_setspecific(dataKey.idKey, d);
+        pthread_setspecific(getCitizenAux().idKey, d);
     }
     return *d;
 }
 
 static bool& getThreadFlag(void) {
-    bool* d = reinterpret_cast<bool*>(pthread_getspecific(dataKey.persistKey));
+    bool* d = reinterpret_cast<bool*>(pthread_getspecific(getCitizenAux().persistKey));
     if (d == 0) {
         d = new bool(false);
-        pthread_setspecific(dataKey.persistKey, d);
+        pthread_setspecific(getCitizenAux().persistKey, d);
     }
     return *d;
 }
 
 static void acquireLock(void) {
-    int ret = pthread_mutex_lock(&dataKey.lock);
+    int ret = pthread_mutex_lock(&getCitizenAux().lock);
     if (ret != 0) {
         throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                           "Could not acquire Citizen lock");
@@ -102,7 +105,7 @@ static void acquireLock(void) {
 }
 
 static void releaseLock(void) {
-    int ret = pthread_mutex_unlock(&dataKey.lock);
+    int ret = pthread_mutex_unlock(&getCitizenAux().lock);
     if (ret != 0) {
         throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                           "Could not release Citizen lock");
