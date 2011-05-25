@@ -96,21 +96,22 @@ static bool& getThreadFlag(void) {
     return *d;
 }
 
-static void acquireLock(void) {
-    int ret = pthread_mutex_lock(&getCitizenAux().lock);
-    if (ret != 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                          "Could not acquire Citizen lock");
-    }
-}
-
-static void releaseLock(void) {
-    int ret = pthread_mutex_unlock(&getCitizenAux().lock);
-    if (ret != 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                          "Could not release Citizen lock");
-    }
-}
+struct Mutex {
+    Mutex(void) {
+        int ret = pthread_mutex_lock(&getCitizenAux().lock);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not acquire Citizen lock");
+        }
+    };
+    ~Mutex(void) {
+        int ret = pthread_mutex_unlock(&getCitizenAux().lock);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not release Citizen lock");
+        }
+    };
+};
 
 } // anonymous namespace
 
@@ -134,7 +135,7 @@ CitizenInit one;
 //
 dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
     memId cid = _nextMemIdAndIncrement();
-    acquireLock();
+    Mutex m;
     if (_shouldPersistCitizens()) {
         _persistentCitizens()[c] = std::make_pair(cid, pthread_self());
     } else {
@@ -143,7 +144,6 @@ dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
     if (cid == _newId) {
         _newId += _newCallback(c);
     }
-    releaseLock();
     return cid;
 }
 
@@ -160,23 +160,25 @@ dafBase::Citizen::Citizen(Citizen const& citizen) :
 }
 
 dafBase::Citizen::~Citizen() {
-    acquireLock();
-    if (_CitizenId == _deleteId) {
-        _deleteId += _deleteCallback(this);
+    {
+        Mutex m;
+        if (_CitizenId == _deleteId) {
+            _deleteId += _deleteCallback(this);
+        }
     }
-    releaseLock();
 
     (void)_hasBeenCorrupted();  // may execute callback
     _sentinel = 0x0000dead;     // In case we have a dangling pointer
 
-    acquireLock();
-    size_t nActive = _activeCitizens().erase(this);
-    if (nActive > 1 || (nActive == 0 && _persistentCitizens().erase(this) != 1)) {
-        releaseLock();
-        (void)_corruptionCallback(this);
+    bool corrupt = false;
+    {
+        Mutex m;
+        size_t nActive = _activeCitizens().erase(this);
+        corrupt = nActive > 1 ||
+            (nActive == 0 && _persistentCitizens().erase(this) != 1);
     }
-    else {
-        releaseLock();
+    if (corrupt) {
+        (void)_corruptionCallback(this);
     }
 }
 
