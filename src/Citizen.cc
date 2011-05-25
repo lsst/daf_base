@@ -29,13 +29,87 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/format.hpp>
 #include <ctype.h>
+
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/pex/exceptions.h"
 #include "lsst/utils/Demangle.h"
 
-namespace lsst {
-namespace daf {
-namespace base {
+namespace dafBase = lsst::daf::base;
+
+namespace {
+
+void delThreadId(void* data) {
+    dafBase::Citizen::memId* d = reinterpret_cast<dafBase::Citizen::memId*>(data);
+    delete d;
+}
+
+void delThreadFlag(void* data) {
+    bool* d = reinterpret_cast<bool*>(data);
+    delete d;
+}
+
+struct CitizenKey {
+    CitizenKey(void) {
+        int ret = pthread_key_create(&idKey, delThreadId);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not create CitizenKey idKey");
+        }
+        ret = pthread_key_create(&persistKey, delThreadFlag);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not create CitizenKey persistKey");
+        }
+        ret = pthread_mutex_init(&lock, 0);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not create Citizen lock");
+        }
+    };
+
+    pthread_key_t idKey;
+    pthread_key_t persistKey;
+    pthread_mutex_t lock;
+};
+
+static CitizenKey dataKey;
+
+static dafBase::Citizen::memId& getThreadId(void) {
+    dafBase::Citizen::memId* d =
+        reinterpret_cast<dafBase::Citizen::memId*>(pthread_getspecific(dataKey.idKey));
+    if (d == 0) {
+        d = new dafBase::Citizen::memId(1);
+        pthread_setspecific(dataKey.idKey, d);
+    }
+    return *d;
+}
+
+static bool& getThreadFlag(void) {
+    bool* d = reinterpret_cast<bool*>(pthread_getspecific(dataKey.persistKey));
+    if (d == 0) {
+        d = new bool(false);
+        pthread_setspecific(dataKey.persistKey, d);
+    }
+    return *d;
+}
+
+static void acquireLock(void) {
+    int ret = pthread_mutex_lock(&dataKey.lock);
+    if (ret != 0) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                          "Could not acquire Citizen lock");
+    }
+}
+
+static void releaseLock(void) {
+    int ret = pthread_mutex_unlock(&dataKey.lock);
+    if (ret != 0) {
+        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                          "Could not release Citizen lock");
+    }
+}
+
+} // anonymous namespace
 
 //! Called once when the memory system is being initialised
 //
@@ -55,45 +129,51 @@ CitizenInit one;
 //
 // Con/Destructors
 //
-Citizen::Citizen(std::type_info const& type) :
+dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
+    memId cid = _nextMemIdAndIncrement();
+    acquireLock();
+    if (_shouldPersistCitizens()) {
+        _persistentCitizens()[c] = std::make_pair(cid, pthread_self());
+    } else {
+        _activeCitizens()[c] = std::make_pair(cid, pthread_self());
+    }
+    if (cid == _newId) {
+        _newId += _newCallback(c);
+    }
+    releaseLock();
+    return cid;
+}
+
+dafBase::Citizen::Citizen(std::type_info const& type) :
     _sentinel(magicSentinel),
+    _CitizenId(_addCitizen(this)),
     _typeName(type.name()) {
-    _CitizenId = _nextMemId()++;
-    if (_shouldPersistCitizens) {
-        _persistentCitizens()[_CitizenId] = this;
-    } else {
-        _activeCitizens()[_CitizenId] = this;
-    }
-    if (_CitizenId == _newId) {
-        _newId += _newCallback(this);
-    }
 }
 
-Citizen::Citizen(Citizen const& citizen) :
+dafBase::Citizen::Citizen(Citizen const& citizen) :
     _sentinel(magicSentinel),
+    _CitizenId(_addCitizen(this)),
     _typeName(citizen._typeName) {
-    _CitizenId = _nextMemId()++;
-    if (_shouldPersistCitizens) {
-        _persistentCitizens()[_CitizenId] = this;
-    } else {
-        _activeCitizens()[_CitizenId] = this;
-    }
-
-    if (_CitizenId == _newId) {
-        _newId += _newCallback(this);
-    }
 }
 
-Citizen::~Citizen() {
+dafBase::Citizen::~Citizen() {
+    acquireLock();
     if (_CitizenId == _deleteId) {
         _deleteId += _deleteCallback(this);
     }
+    releaseLock();
 
     (void)_hasBeenCorrupted();  // may execute callback
     _sentinel = 0x0000dead;     // In case we have a dangling pointer
-    size_t nActive = _activeCitizens().erase(_CitizenId);
-    if (nActive > 1 || (nActive == 0 && _persistentCitizens().erase(_CitizenId) != 1)) {
+
+    acquireLock();
+    size_t nActive = _activeCitizens().erase(this);
+    if (nActive > 1 || (nActive == 0 && _persistentCitizens().erase(this) != 1)) {
+        releaseLock();
         (void)_corruptionCallback(this);
+    }
+    else {
+        releaseLock();
     }
 }
 
@@ -102,7 +182,7 @@ Citizen::~Citizen() {
 // The main purpose of this routine is as a place to set
 // breakpoints to setup memory debugging; see discussion on trac
 //
-int Citizen::init() {
+int dafBase::Citizen::init() {
     volatile int dummy = 1;
     return dummy;
 }
@@ -112,24 +192,28 @@ int Citizen::init() {
 // Return (some) private state
 //
 //! Return the Citizen's ID
-Citizen::memId Citizen::getId() const {
+dafBase::Citizen::memId dafBase::Citizen::getId() const {
     return _CitizenId;
 }
 
 //! Return the memId of the next object to be allocated
-Citizen::memId Citizen::getNextMemId() {
+dafBase::Citizen::memId dafBase::Citizen::getNextMemId() {
     return _nextMemId();
 }
 
 //! Return the memId of the next object to be allocated
-Citizen::memId& Citizen::_nextMemId() {
-    static memId next = Citizen::init();
-    return next;
+dafBase::Citizen::memId dafBase::Citizen::_nextMemId() {
+    return getThreadId();
+}
+
+//! Return the memId and prepare for the next object to be allocated
+dafBase::Citizen::memId dafBase::Citizen::_nextMemIdAndIncrement() {
+    return getThreadId()++;
 }
 
 //! Return a string representation of a Citizen
 //
-std::string Citizen::repr() const {
+std::string dafBase::Citizen::repr() const {
     return boost::str(boost::format("%d: %08x %s")
                       % _CitizenId
                       % this
@@ -138,9 +222,9 @@ std::string Citizen::repr() const {
 }
 
 //! Mark a Citizen as persistent and not destroyed until process end.
-void Citizen::markPersistent(void) {
-    _activeCitizens().erase(_CitizenId);
-    _persistentCitizens()[_CitizenId] = this;
+void dafBase::Citizen::markPersistent(void) {
+    _persistentCitizens()[this] = _activeCitizens()[this];
+    _activeCitizens().erase(this);
 }
 
 //! \name Census
@@ -150,7 +234,7 @@ void Citizen::markPersistent(void) {
 //
 //! How many active Citizens are there?
 //
-int Citizen::census(
+int dafBase::Citizen::census(
     int,                                //<! the int argument allows overloading
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
@@ -161,7 +245,7 @@ int Citizen::census(
     int n = 0;
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
-        if (cur->second->_CitizenId >= startingMemId) {
+        if (cur->first->_CitizenId >= startingMemId) {
             n++;
         }
     }
@@ -171,14 +255,14 @@ int Citizen::census(
 //
 //! Print a list of all active Citizens to stream
 //
-void Citizen::census(
+void dafBase::Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
-        if (cur->second->_CitizenId >= startingMemId) {
-            stream << cur->second->repr() << "\n";
+        if (cur->first->_CitizenId >= startingMemId) {
+            stream << cur->first->repr() << "\n";
         }
     }
 }
@@ -190,14 +274,14 @@ void Citizen::census(
 //!        leaks(Citizen::census());
 //! and not bother
 //
-std::vector<Citizen const*> const* Citizen::census() {
+std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
     vec->reserve(_activeCitizens().size());
 
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
-        vec->push_back(dynamic_cast<Citizen const*>(cur->second));
+        vec->push_back(dynamic_cast<Citizen const*>(cur->first));
     }
         
     return vec;
@@ -207,7 +291,7 @@ std::vector<Citizen const*> const* Citizen::census() {
 //! Check for corruption
 //! Return true if the block is corrupted, but
 //! only after calling the corruptionCallback
-bool Citizen::_hasBeenCorrupted() const {
+bool dafBase::Citizen::_hasBeenCorrupted() const {
     if (_sentinel == static_cast<int>(magicSentinel)) {
         return false;
     }
@@ -217,16 +301,16 @@ bool Citizen::_hasBeenCorrupted() const {
 }
 
 //! Check all allocated blocks for corruption
-bool Citizen::hasBeenCorrupted() {
+bool dafBase::Citizen::hasBeenCorrupted() {
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
-        if (cur->second->_hasBeenCorrupted()) {
+        if (cur->first->_hasBeenCorrupted()) {
             return true;
         }
     }
     for (table::iterator cur = _persistentCitizens().begin();
          cur != _persistentCitizens().end(); cur++) {
-        if (cur->second->_hasBeenCorrupted()) {
+        if (cur->first->_hasBeenCorrupted()) {
             return true;
         }
     }
@@ -239,7 +323,7 @@ bool Citizen::hasBeenCorrupted() {
 //@{
 //
 //! Call the NewCallback when block is allocated
-Citizen::memId Citizen::setNewCallbackId(
+dafBase::Citizen::memId dafBase::Citizen::setNewCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
     Citizen::memId oldId = _newId;
@@ -249,7 +333,7 @@ Citizen::memId Citizen::setNewCallbackId(
 }
 
 //! Call the current DeleteCallback when block is deleted
-Citizen::memId Citizen::setDeleteCallbackId(
+dafBase::Citizen::memId dafBase::Citizen::setDeleteCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
     Citizen::memId oldId = _deleteId;
@@ -273,7 +357,7 @@ Citizen::memId Citizen::setDeleteCallbackId(
 //@{
 //! Set the NewCallback function
 
-Citizen::memCallback Citizen::setNewCallback(
+dafBase::Citizen::memCallback dafBase::Citizen::setNewCallback(
     Citizen::memCallback func //! The new function to be called when a designated block is allocated
     ) {
     Citizen::memCallback old = _newCallback;
@@ -283,7 +367,7 @@ Citizen::memCallback Citizen::setNewCallback(
 }
 
 //! Set the DeleteCallback function
-Citizen::memCallback Citizen::setDeleteCallback(
+dafBase::Citizen::memCallback dafBase::Citizen::setDeleteCallback(
     Citizen::memCallback func           //!< function be called when desired block is deleted
     ) {
     Citizen::memCallback old = _deleteCallback;
@@ -293,7 +377,7 @@ Citizen::memCallback Citizen::setDeleteCallback(
 }
     
 //! Set the CorruptionCallback function
-Citizen::memCallback Citizen::setCorruptionCallback(
+dafBase::Citizen::memCallback dafBase::Citizen::setCorruptionCallback(
     Citizen::memCallback func //!< function be called when block is found to be corrupted
                                                    ) {
     Citizen::memCallback old = _corruptionCallback;
@@ -308,7 +392,7 @@ Citizen::memCallback Citizen::setCorruptionCallback(
 //! may well be changed behind our back
 //@{
 //! Default NewCallback
-Citizen::memId defaultNewCallback(Citizen const* ptr //!< Just-allocated Citizen
+dafBase::Citizen::memId defaultNewCallback(dafBase::Citizen const* ptr //!< Just-allocated Citizen
                                  ) {
     static int dId = 0;             // how much to incr memId
     std::cerr << boost::format("Allocating memId %s\n") % ptr->repr();
@@ -317,7 +401,7 @@ Citizen::memId defaultNewCallback(Citizen const* ptr //!< Just-allocated Citizen
 }
 
 //! Default DeleteCallback
-Citizen::memId defaultDeleteCallback(Citizen const* ptr //!< About-to-be deleted Citizen
+dafBase::Citizen::memId defaultDeleteCallback(dafBase::Citizen const* ptr //!< About-to-be deleted Citizen
                                     ) {
     static int dId = 0;             // how much to incr memId
     std::cerr << boost::format("Deleting memId %s\n") % ptr->repr();
@@ -326,7 +410,7 @@ Citizen::memId defaultDeleteCallback(Citizen const* ptr //!< About-to-be deleted
 }
 
 //! Default CorruptionCallback
-Citizen::memId defaultCorruptionCallback(Citizen const* ptr //!< About-to-be deleted Citizen
+dafBase::Citizen::memId defaultCorruptionCallback(dafBase::Citizen const* ptr //!< About-to-be deleted Citizen
                               ) {
     throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                       str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
@@ -334,36 +418,36 @@ Citizen::memId defaultCorruptionCallback(Citizen const* ptr //!< About-to-be del
     return ptr->getId();                // NOTREACHED
 }
 
-Citizen::table& Citizen::_activeCitizens(void) {
+dafBase::Citizen::table& dafBase::Citizen::_activeCitizens(void) {
     static Citizen::table* activeCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
     return *activeCitizensTable;
 }
 
-Citizen::table& Citizen::_persistentCitizens(void) {
+dafBase::Citizen::table& dafBase::Citizen::_persistentCitizens(void) {
     static Citizen::table* persistentCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
     return *persistentCitizensTable;
+}
+
+bool& dafBase::Citizen::_shouldPersistCitizens(void) {
+    return getThreadFlag();
 }
 
 //@}
 //
 // Initialise static members
 //
-bool Citizen::_shouldPersistCitizens = false;
+dafBase::Citizen::memId dafBase::Citizen::_newId = 0;
+dafBase::Citizen::memId dafBase::Citizen::_deleteId = 0;
 
-Citizen::memId Citizen::_newId = 0;
-Citizen::memId Citizen::_deleteId = 0;
-
-Citizen::memCallback Citizen::_newCallback = defaultNewCallback;
-Citizen::memCallback Citizen::_deleteCallback = defaultDeleteCallback;
-Citizen::memCallback Citizen::_corruptionCallback = defaultCorruptionCallback;
+dafBase::Citizen::memCallback dafBase::Citizen::_newCallback = defaultNewCallback;
+dafBase::Citizen::memCallback dafBase::Citizen::_deleteCallback = defaultDeleteCallback;
+dafBase::Citizen::memCallback dafBase::Citizen::_corruptionCallback = defaultCorruptionCallback;
 
 
-PersistentCitizenScope::PersistentCitizenScope() {
-    Citizen::_shouldPersistCitizens = true;
+dafBase::PersistentCitizenScope::PersistentCitizenScope() {
+    Citizen::_shouldPersistCitizens() = true;
 }
 
-PersistentCitizenScope::~PersistentCitizenScope() {
-    Citizen::_shouldPersistCitizens = false;
+dafBase::PersistentCitizenScope::~PersistentCitizenScope() {
+    Citizen::_shouldPersistCitizens() = false;
 }
-
-}}} // namespace lsst::daf::base

@@ -27,6 +27,7 @@
 
 #include <map>
 #include <ostream>
+#include <pthread.h>
 #include <string>
 #include <vector>
 
@@ -86,18 +87,22 @@ namespace base {
         enum { magicSentinel = 0xdeadbeef }; //!< a magic known bit pattern
         static int init();
     private:
-        typedef std::map<memId, const Citizen *> table;
+        typedef std::pair<memId, pthread_t> CitizenInfo;
+        typedef std::map<Citizen const*, CitizenInfo> table;
 
         int _sentinel;                  // Initialised to _magicSentinel to detect overwritten memory
         memId _CitizenId;               // unique identifier for this pointer
         const char *_typeName;          // typeid()->name
+
+        static memId _addCitizen(Citizen const* c);
+        static memId _nextMemIdAndIncrement(void);
         //
         // Book-keeping for _CitizenId
         //
-        static memId& _nextMemId(void);
+        static memId _nextMemId(void);
         static table& _activeCitizens();
         static table& _persistentCitizens();
-        static bool _shouldPersistCitizens;
+        static bool& _shouldPersistCitizens();
         //
         // Callbacks
         //
