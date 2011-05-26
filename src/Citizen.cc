@@ -60,7 +60,7 @@ struct CitizenAux {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not create CitizenKey persistKey");
         }
-        ret = pthread_mutex_init(&lock, 0);
+        ret = pthread_rwlock_init(&lock, 0);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not create Citizen lock");
@@ -69,7 +69,7 @@ struct CitizenAux {
 
     pthread_key_t idKey;
     pthread_key_t persistKey;
-    pthread_mutex_t lock;
+    pthread_rwlock_t lock;
 };
 
 static CitizenAux& getCitizenAux(void) {
@@ -96,16 +96,21 @@ static bool& getThreadFlag(void) {
     return *d;
 }
 
-struct Mutex {
-    Mutex(void) {
-        int ret = pthread_mutex_lock(&getCitizenAux().lock);
+struct RwLock {
+    RwLock(bool readOnly=false) {
+        int ret = 0;
+        if (readOnly) {
+            ret = pthread_rwlock_rdlock(&getCitizenAux().lock);
+        } else {
+            ret = pthread_rwlock_wrlock(&getCitizenAux().lock);
+        }
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not acquire Citizen lock");
         }
     };
-    ~Mutex(void) {
-        int ret = pthread_mutex_unlock(&getCitizenAux().lock);
+    ~RwLock(void) {
+        int ret = pthread_rwlock_unlock(&getCitizenAux().lock);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not release Citizen lock");
@@ -135,7 +140,7 @@ CitizenInit one;
 //
 dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
     memId cid = _nextMemIdAndIncrement();
-    Mutex m;
+    RwLock lock;
     if (_shouldPersistCitizens()) {
         _persistentCitizens()[c] = std::make_pair(cid, pthread_self());
     } else {
@@ -161,7 +166,7 @@ dafBase::Citizen::Citizen(Citizen const& citizen) :
 
 dafBase::Citizen::~Citizen() {
     {
-        Mutex m;
+        RwLock lock;
         if (_CitizenId == _deleteId) {
             _deleteId += _deleteCallback(this);
         }
@@ -172,7 +177,7 @@ dafBase::Citizen::~Citizen() {
 
     bool corrupt = false;
     {
-        Mutex m;
+        RwLock lock;
         size_t nActive = _activeCitizens().erase(this);
         corrupt = nActive > 1 ||
             (nActive == 0 && _persistentCitizens().erase(this) != 1);
@@ -228,6 +233,7 @@ std::string dafBase::Citizen::repr() const {
 
 //! Mark a Citizen as persistent and not destroyed until process end.
 void dafBase::Citizen::markPersistent(void) {
+    RwLock lock;
     _persistentCitizens()[this] = _activeCitizens()[this];
     _activeCitizens().erase(this);
 }
@@ -244,10 +250,12 @@ int dafBase::Citizen::census(
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     if (startingMemId == 0) {              // easy
+        RwLock lock(true);
         return _activeCitizens().size();
     }
 
     int n = 0;
+    RwLock lock(true);
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
@@ -264,6 +272,7 @@ void dafBase::Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
+    RwLock lock(true);
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
@@ -282,6 +291,7 @@ void dafBase::Citizen::census(
 std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
+    RwLock lock(true);
     vec->reserve(_activeCitizens().size());
 
     for (table::iterator cur = _activeCitizens().begin();
@@ -307,6 +317,7 @@ bool dafBase::Citizen::_hasBeenCorrupted() const {
 
 //! Check all allocated blocks for corruption
 bool dafBase::Citizen::hasBeenCorrupted() {
+    RwLock lock(true);
     for (table::iterator cur = _activeCitizens().begin();
          cur != _activeCitizens().end(); cur++) {
         if (cur->first->_hasBeenCorrupted()) {
