@@ -38,85 +38,83 @@ namespace dafBase = lsst::daf::base;
 
 namespace {
 
-void delThreadId(void* data) {
-    dafBase::Citizen::memId* d = reinterpret_cast<dafBase::Citizen::memId*>(data);
-    delete d;
-}
-
-void delThreadFlag(void* data) {
-    bool* d = reinterpret_cast<bool*>(data);
-    delete d;
-}
-
-struct CitizenAux {
-    CitizenAux(void) {
-        int ret = pthread_key_create(&idKey, delThreadId);
+template <typename T>
+class ThreadPrivate {
+public:
+    ThreadPrivate(T const& t) : _init(t) {
+        int ret = pthread_key_create(&_key, del);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                              "Could not create CitizenKey idKey");
-        }
-        ret = pthread_key_create(&persistKey, delThreadFlag);
-        if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                              "Could not create CitizenKey persistKey");
-        }
-        ret = pthread_rwlock_init(&lock, 0);
-        if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                              "Could not create Citizen lock");
+                              "Could not create key");
         }
     };
+    T& getRef(void) {
+        T* d = reinterpret_cast<T*>(pthread_getspecific(_key));
+        if (d == 0) {
+            d = new T(_init);
+            pthread_setspecific(_key, d);
+        }
+        return *d;
+    };
 
-    pthread_key_t idKey;
-    pthread_key_t persistKey;
-    pthread_rwlock_t lock;
+private:
+    pthread_key_t _key;
+    T _init;
+
+    static void del(void* data) {
+        T* d = reinterpret_cast<T*>(data);
+        delete d;
+    };
 };
 
-static CitizenAux& getCitizenAux(void) {
-    static CitizenAux* aux = new CitizenAux;
-    return *aux;
-}
+static ThreadPrivate<dafBase::Citizen::memId> perThreadId(1);
+static ThreadPrivate<bool> perThreadPersistFlag(false);
 
-static dafBase::Citizen::memId& getThreadId(void) {
-    dafBase::Citizen::memId* d =
-        reinterpret_cast<dafBase::Citizen::memId*>(pthread_getspecific(getCitizenAux().idKey));
-    if (d == 0) {
-        d = new dafBase::Citizen::memId(1);
-        pthread_setspecific(getCitizenAux().idKey, d);
-    }
-    return *d;
-}
-
-static bool& getThreadFlag(void) {
-    bool* d = reinterpret_cast<bool*>(pthread_getspecific(getCitizenAux().persistKey));
-    if (d == 0) {
-        d = new bool(false);
-        pthread_setspecific(getCitizenAux().persistKey, d);
-    }
-    return *d;
-}
-
-struct RwLock {
+class RwLock {
+public:
     RwLock(bool readOnly=false) {
         int ret = 0;
         if (readOnly) {
-            ret = pthread_rwlock_rdlock(&getCitizenAux().lock);
+            ret = pthread_rwlock_rdlock(_lock.get());
         } else {
-            ret = pthread_rwlock_wrlock(&getCitizenAux().lock);
+            ret = pthread_rwlock_wrlock(_lock.get());
         }
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not acquire Citizen lock");
         }
     };
+
     ~RwLock(void) {
-        int ret = pthread_rwlock_unlock(&getCitizenAux().lock);
+        int ret = pthread_rwlock_unlock(_lock.get());
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not release Citizen lock");
         }
     };
+
+private:
+    class RwLockInternal {
+    public:
+        RwLockInternal(void) {
+            int ret = pthread_rwlock_init(&_lock, 0);
+            if (ret != 0) {
+                throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                                  "Could not create Citizen lock");
+            }
+        };
+        pthread_rwlock_t* get(void) {
+            return &_lock;
+        };
+
+    private:
+        pthread_rwlock_t _lock;
+    };
+
+    static RwLockInternal _lock;
 };
+
+RwLock::RwLockInternal RwLock::_lock;
 
 } // anonymous namespace
 
@@ -142,9 +140,9 @@ dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
     memId cid = _nextMemIdAndIncrement();
     RwLock lock;
     if (_shouldPersistCitizens()) {
-        _persistentCitizens()[c] = std::make_pair(cid, pthread_self());
+        _persistentCitizens[c] = std::make_pair(cid, pthread_self());
     } else {
-        _activeCitizens()[c] = std::make_pair(cid, pthread_self());
+        _activeCitizens[c] = std::make_pair(cid, pthread_self());
     }
     if (cid == _newId) {
         _newId += _newCallback(c);
@@ -178,9 +176,9 @@ dafBase::Citizen::~Citizen() {
     bool corrupt = false;
     {
         RwLock lock;
-        size_t nActive = _activeCitizens().erase(this);
+        size_t nActive = _activeCitizens.erase(this);
         corrupt = nActive > 1 ||
-            (nActive == 0 && _persistentCitizens().erase(this) != 1);
+            (nActive == 0 && _persistentCitizens.erase(this) != 1);
     }
     if (corrupt) {
         (void)_corruptionCallback(this);
@@ -213,12 +211,12 @@ dafBase::Citizen::memId dafBase::Citizen::getNextMemId() {
 
 //! Return the memId of the next object to be allocated
 dafBase::Citizen::memId dafBase::Citizen::_nextMemId() {
-    return getThreadId();
+    return perThreadId.getRef();
 }
 
 //! Return the memId and prepare for the next object to be allocated
 dafBase::Citizen::memId dafBase::Citizen::_nextMemIdAndIncrement() {
-    return getThreadId()++;
+    return perThreadId.getRef()++;
 }
 
 //! Return a string representation of a Citizen
@@ -234,8 +232,8 @@ std::string dafBase::Citizen::repr() const {
 //! Mark a Citizen as persistent and not destroyed until process end.
 void dafBase::Citizen::markPersistent(void) {
     RwLock lock;
-    _persistentCitizens()[this] = _activeCitizens()[this];
-    _activeCitizens().erase(this);
+    _persistentCitizens[this] = _activeCitizens[this];
+    _activeCitizens.erase(this);
 }
 
 //! \name Census
@@ -251,13 +249,13 @@ int dafBase::Citizen::census(
     ) {
     if (startingMemId == 0) {              // easy
         RwLock lock(true);
-        return _activeCitizens().size();
+        return _activeCitizens.size();
     }
 
     int n = 0;
     RwLock lock(true);
-    for (table::iterator cur = _activeCitizens().begin();
-         cur != _activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens.begin();
+         cur != _activeCitizens.end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
             n++;
         }
@@ -273,8 +271,8 @@ void dafBase::Citizen::census(
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     RwLock lock(true);
-    for (table::iterator cur = _activeCitizens().begin();
-         cur != _activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens.begin();
+         cur != _activeCitizens.end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
             stream << cur->first->repr() << "\n";
         }
@@ -292,10 +290,10 @@ std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
     RwLock lock(true);
-    vec->reserve(_activeCitizens().size());
+    vec->reserve(_activeCitizens.size());
 
-    for (table::iterator cur = _activeCitizens().begin();
-         cur != _activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens.begin();
+         cur != _activeCitizens.end(); cur++) {
         vec->push_back(dynamic_cast<Citizen const*>(cur->first));
     }
         
@@ -318,14 +316,14 @@ bool dafBase::Citizen::_hasBeenCorrupted() const {
 //! Check all allocated blocks for corruption
 bool dafBase::Citizen::hasBeenCorrupted() {
     RwLock lock(true);
-    for (table::iterator cur = _activeCitizens().begin();
-         cur != _activeCitizens().end(); cur++) {
+    for (table::iterator cur = _activeCitizens.begin();
+         cur != _activeCitizens.end(); cur++) {
         if (cur->first->_hasBeenCorrupted()) {
             return true;
         }
     }
-    for (table::iterator cur = _persistentCitizens().begin();
-         cur != _persistentCitizens().end(); cur++) {
+    for (table::iterator cur = _persistentCitizens.begin();
+         cur != _persistentCitizens.end(); cur++) {
         if (cur->first->_hasBeenCorrupted()) {
             return true;
         }
@@ -342,6 +340,7 @@ bool dafBase::Citizen::hasBeenCorrupted() {
 dafBase::Citizen::memId dafBase::Citizen::setNewCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
+    RwLock lock;
     Citizen::memId oldId = _newId;
     _newId = id;
 
@@ -352,6 +351,7 @@ dafBase::Citizen::memId dafBase::Citizen::setNewCallbackId(
 dafBase::Citizen::memId dafBase::Citizen::setDeleteCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
+    RwLock lock;
     Citizen::memId oldId = _deleteId;
     _deleteId = id;
 
@@ -434,18 +434,8 @@ dafBase::Citizen::memId defaultCorruptionCallback(dafBase::Citizen const* ptr //
     return ptr->getId();                // NOTREACHED
 }
 
-dafBase::Citizen::table& dafBase::Citizen::_activeCitizens(void) {
-    static Citizen::table* activeCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
-    return *activeCitizensTable;
-}
-
-dafBase::Citizen::table& dafBase::Citizen::_persistentCitizens(void) {
-    static Citizen::table* persistentCitizensTable = new Citizen::table; /* parasoft-suppress BD-RES-LEAKS "Needs to stay for the life of the process" */
-    return *persistentCitizensTable;
-}
-
 bool& dafBase::Citizen::_shouldPersistCitizens(void) {
-    return getThreadFlag();
+    return perThreadPersistFlag.getRef();
 }
 
 //@}
@@ -454,6 +444,8 @@ bool& dafBase::Citizen::_shouldPersistCitizens(void) {
 //
 dafBase::Citizen::memId dafBase::Citizen::_newId = 0;
 dafBase::Citizen::memId dafBase::Citizen::_deleteId = 0;
+dafBase::Citizen::table dafBase::Citizen::_activeCitizens;
+dafBase::Citizen::table dafBase::Citizen::_persistentCitizens;
 
 dafBase::Citizen::memCallback dafBase::Citizen::_newCallback = defaultNewCallback;
 dafBase::Citizen::memCallback dafBase::Citizen::_deleteCallback = defaultDeleteCallback;

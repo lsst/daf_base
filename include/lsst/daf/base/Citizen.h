@@ -100,8 +100,8 @@ namespace base {
         // Book-keeping for _CitizenId
         //
         static memId _nextMemId(void);
-        static table& _activeCitizens();
-        static table& _persistentCitizens();
+        static table _activeCitizens;
+        static table _persistentCitizens;
         static bool& _shouldPersistCitizens();
         //
         // Callbacks
