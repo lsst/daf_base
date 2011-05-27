@@ -72,21 +72,29 @@ static ThreadPrivate<bool> perThreadPersistFlag(false);
 
 class RwLock {
 public:
-    RwLock(bool readOnly=false) {
-        int ret = 0;
-        if (readOnly) {
-            ret = pthread_rwlock_rdlock(_lock.get());
-        } else {
-            ret = pthread_rwlock_wrlock(_lock.get());
-        }
+    RwLock(void) {
+        int ret = pthread_rwlock_init(&_lock, 0);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                              "Could not acquire Citizen lock");
+                              "Could not create Citizen lock");
         }
     };
-
-    ~RwLock(void) {
-        int ret = pthread_rwlock_unlock(_lock.get());
+    void lock(void) {
+        int ret = pthread_rwlock_wrlock(&_lock);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not acquire Citizen write lock");
+        }
+    };
+    void rdlock(void) {
+        int ret = pthread_rwlock_rdlock(&_lock);
+        if (ret != 0) {
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                              "Could not acquire Citizen read lock");
+        }
+    };
+    void unlock(void) {
+        int ret = pthread_rwlock_unlock(&_lock);
         if (ret != 0) {
             throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
                               "Could not release Citizen lock");
@@ -94,27 +102,36 @@ public:
     };
 
 private:
-    class RwLockInternal {
-    public:
-        RwLockInternal(void) {
-            int ret = pthread_rwlock_init(&_lock, 0);
-            if (ret != 0) {
-                throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                                  "Could not create Citizen lock");
-            }
-        };
-        pthread_rwlock_t* get(void) {
-            return &_lock;
-        };
-
-    private:
-        pthread_rwlock_t _lock;
-    };
-
-    static RwLockInternal _lock;
+    pthread_rwlock_t _lock;
 };
 
-RwLock::RwLockInternal RwLock::_lock;
+static RwLock citizenLock;
+
+class ReadGuard {
+public:
+    ReadGuard(RwLock& lock) : _lock(lock) {
+        _lock.rdlock();
+    };
+    ~ReadGuard(void) {
+        _lock.unlock();
+    };
+
+private:
+    RwLock& _lock;
+};
+
+class WriteGuard {
+public:
+    WriteGuard(RwLock& lock) : _lock(lock) {
+        _lock.lock();
+    };
+    ~WriteGuard(void) {
+        _lock.unlock();
+    };
+
+private:
+    RwLock& _lock;
+};
 
 } // anonymous namespace
 
@@ -138,7 +155,7 @@ CitizenInit one;
 //
 dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
     memId cid = _nextMemIdAndIncrement();
-    RwLock lock;
+    WriteGuard guard(citizenLock);
     if (_shouldPersistCitizens()) {
         _persistentCitizens[c] = std::make_pair(cid, pthread_self());
     } else {
@@ -164,7 +181,7 @@ dafBase::Citizen::Citizen(Citizen const& citizen) :
 
 dafBase::Citizen::~Citizen() {
     {
-        RwLock lock;
+        WriteGuard guard(citizenLock);
         if (_CitizenId == _deleteId) {
             _deleteId += _deleteCallback(this);
         }
@@ -175,7 +192,7 @@ dafBase::Citizen::~Citizen() {
 
     bool corrupt = false;
     {
-        RwLock lock;
+        WriteGuard guard(citizenLock);
         size_t nActive = _activeCitizens.erase(this);
         corrupt = nActive > 1 ||
             (nActive == 0 && _persistentCitizens.erase(this) != 1);
@@ -231,7 +248,7 @@ std::string dafBase::Citizen::repr() const {
 
 //! Mark a Citizen as persistent and not destroyed until process end.
 void dafBase::Citizen::markPersistent(void) {
-    RwLock lock;
+    WriteGuard guard(citizenLock);
     _persistentCitizens[this] = _activeCitizens[this];
     _activeCitizens.erase(this);
 }
@@ -248,12 +265,12 @@ int dafBase::Citizen::census(
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
     if (startingMemId == 0) {              // easy
-        RwLock lock(true);
+        ReadGuard guard(citizenLock);
         return _activeCitizens.size();
     }
 
     int n = 0;
-    RwLock lock(true);
+    ReadGuard guard(citizenLock);
     for (table::iterator cur = _activeCitizens.begin();
          cur != _activeCitizens.end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
@@ -270,7 +287,7 @@ void dafBase::Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
-    RwLock lock(true);
+    ReadGuard guard(citizenLock);
     for (table::iterator cur = _activeCitizens.begin();
          cur != _activeCitizens.end(); cur++) {
         if (cur->first->_CitizenId >= startingMemId) {
@@ -289,7 +306,7 @@ void dafBase::Citizen::census(
 std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
-    RwLock lock(true);
+    ReadGuard guard(citizenLock);
     vec->reserve(_activeCitizens.size());
 
     for (table::iterator cur = _activeCitizens.begin();
@@ -315,7 +332,7 @@ bool dafBase::Citizen::_hasBeenCorrupted() const {
 
 //! Check all allocated blocks for corruption
 bool dafBase::Citizen::hasBeenCorrupted() {
-    RwLock lock(true);
+    ReadGuard guard(citizenLock);
     for (table::iterator cur = _activeCitizens.begin();
          cur != _activeCitizens.end(); cur++) {
         if (cur->first->_hasBeenCorrupted()) {
@@ -340,7 +357,7 @@ bool dafBase::Citizen::hasBeenCorrupted() {
 dafBase::Citizen::memId dafBase::Citizen::setNewCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
-    RwLock lock;
+    WriteGuard guard(citizenLock);
     Citizen::memId oldId = _newId;
     _newId = id;
 
@@ -351,7 +368,7 @@ dafBase::Citizen::memId dafBase::Citizen::setNewCallbackId(
 dafBase::Citizen::memId dafBase::Citizen::setDeleteCallbackId(
     Citizen::memId id                   //!< Desired ID
     ) {
-    RwLock lock;
+    WriteGuard guard(citizenLock);
     Citizen::memId oldId = _deleteId;
     _deleteId = id;
 
