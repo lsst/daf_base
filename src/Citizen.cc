@@ -29,6 +29,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/format.hpp>
 #include <ctype.h>
+#include <cerrno>
 
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/pex/exceptions.h"
@@ -86,12 +87,12 @@ public:
                               "Could not acquire Citizen write lock");
         }
     };
-    void rdlock(void) {
+    bool rdlock(void) {
         int ret = pthread_rwlock_rdlock(&_lock);
-        if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
-                              "Could not acquire Citizen read lock");
-        }
+        if (ret == 0) return true;
+        if (ret == EDEADLK) return false;
+        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+                          "Could not acquire Citizen read lock");
     };
     void unlock(void) {
         int ret = pthread_rwlock_unlock(&_lock);
@@ -110,14 +111,15 @@ static RwLock citizenLock;
 class ReadGuard {
 public:
     ReadGuard(RwLock& lock) : _lock(lock) {
-        _lock.rdlock();
+        _mustUnlock = _lock.rdlock();
     };
     ~ReadGuard(void) {
-        _lock.unlock();
+        if (_mustUnlock) _lock.unlock();
     };
 
 private:
     RwLock& _lock;
+    bool _mustUnlock;
 };
 
 class WriteGuard {
