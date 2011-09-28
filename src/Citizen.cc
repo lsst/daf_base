@@ -164,7 +164,7 @@ dafBase::Citizen::memId dafBase::Citizen::_addCitizen(Citizen const* c) {
         _activeCitizens[c] = std::make_pair(cid, pthread_self());
     }
     if (cid == _newId) {
-        _newId += _newCallback(c);
+        _newId += _newCallback(cid);
     }
     return cid;
 }
@@ -392,10 +392,10 @@ dafBase::Citizen::memId dafBase::Citizen::setDeleteCallbackId(
 //@{
 //! Set the NewCallback function
 
-dafBase::Citizen::memCallback dafBase::Citizen::setNewCallback(
-    Citizen::memCallback func //! The new function to be called when a designated block is allocated
+dafBase::Citizen::memNewCallback dafBase::Citizen::setNewCallback(
+    Citizen::memNewCallback func //! The new function to be called when a designated block is allocated
     ) {
-    Citizen::memCallback old = _newCallback;
+    Citizen::memNewCallback old = _newCallback;
     _newCallback = func;
 
     return old;
@@ -427,10 +427,11 @@ dafBase::Citizen::memCallback dafBase::Citizen::setCorruptionCallback(
 //! may well be changed behind our back
 //@{
 //! Default NewCallback
-dafBase::Citizen::memId defaultNewCallback(dafBase::Citizen const* ptr //!< Just-allocated Citizen
+dafBase::Citizen::memId defaultNewCallback(
+                                           dafBase::Citizen::memId const cid //!< ID for just-allocated Citizen
                                  ) {
     static int dId = 0;             // how much to incr memId
-    std::cerr << boost::format("Allocating memId %s\n") % ptr->repr();
+    std::cerr << boost::format("Allocating memId %d\n") % cid;
 
     return dId;
 }
@@ -466,7 +467,7 @@ dafBase::Citizen::memId dafBase::Citizen::_deleteId = 0;
 dafBase::Citizen::table dafBase::Citizen::_activeCitizens;
 dafBase::Citizen::table dafBase::Citizen::_persistentCitizens;
 
-dafBase::Citizen::memCallback dafBase::Citizen::_newCallback = defaultNewCallback;
+dafBase::Citizen::memNewCallback dafBase::Citizen::_newCallback = defaultNewCallback;
 dafBase::Citizen::memCallback dafBase::Citizen::_deleteCallback = defaultDeleteCallback;
 dafBase::Citizen::memCallback dafBase::Citizen::_corruptionCallback = defaultCorruptionCallback;
 

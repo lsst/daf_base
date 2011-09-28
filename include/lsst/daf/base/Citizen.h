@@ -57,6 +57,7 @@ namespace base {
         //! Type of the block's ID
         typedef unsigned long memId;
         //! A function used to register a callback
+        typedef memId (*memNewCallback)(const memId cid);
         typedef memId (*memCallback)(const Citizen *ptr);
 
         Citizen(const std::type_info &);
@@ -80,7 +81,7 @@ namespace base {
 
         static memId setNewCallbackId(memId id);
         static memId setDeleteCallbackId(memId id);
-        static memCallback setNewCallback(memCallback func);
+        static memNewCallback setNewCallback(memNewCallback func);
         static memCallback setDeleteCallback(memCallback func);
         static memCallback setCorruptionCallback(memCallback func);
         //
@@ -109,7 +110,7 @@ namespace base {
         static memId _newId;       // call _newCallback when _newID is allocated
         static memId _deleteId;    // call _deleteCallback when _deleteID is deleted
 
-        static memCallback _newCallback;
+        static memNewCallback _newCallback;
         static memCallback _deleteCallback;        
         static memCallback _corruptionCallback;        
         //

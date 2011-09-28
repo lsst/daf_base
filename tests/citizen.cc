@@ -68,6 +68,9 @@ MyClass *foo() {
 }
 
 BOOST_AUTO_TEST_CASE(all) {
+    Citizen::setNewCallbackId(2);
+    Citizen::setDeleteCallbackId(2);
+
     Shoe x;
     const Citizen::memId firstId = Citizen::getNextMemId(); // after allocating x
     

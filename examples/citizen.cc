@@ -77,8 +77,8 @@ MyClass *foo() {
     return myInstance;
 }
 
-Citizen::memId newCallback(Citizen const* ptr) {
-    std::cout << boost::format("\tRHL Allocating memId %s\n") % ptr->repr();
+Citizen::memId newCallback(Citizen::memId const cid) {
+    std::cout << boost::format("\tRHL Allocating memId %d\n") % cid;
 
     return 2;                           // trace every other subsequent allocs
 }
