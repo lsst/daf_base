@@ -23,7 +23,8 @@
 #include "lsst/daf/base/PropertyList.h"
 
 #define BOOST_TEST_MODULE PropertyList
-#include "boost/test/included/unit_test.hpp"
+#define BOOST_TEST_DYN_LINK
+#include "boost/test/unit_test.hpp"
 
 #include <algorithm>
 
