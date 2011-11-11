@@ -91,6 +91,15 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(v, w)
         self.assertEqual(ps.getInt("ints2"), 8)
         self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        w = ps.get("ints", asArray=True)
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v, w)
+        ps.setInt("int", 999)
+        x = ps.get("int")
+        self.assertEqual(x, 999)
+        x = ps.get("int", asArray=True)
+        self.assertEqual(len(x), 1)
+        self.assertEqual(x, (999,))
 
     def testGetVector2(self):
         ps = dafBase.PropertySet()

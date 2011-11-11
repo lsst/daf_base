@@ -119,7 +119,7 @@ PropertySetAddType(std::string, String)
 PropertySetAddType(lsst::daf::base::DateTime, DateTime)
 
 %pythoncode {
-def _PS_getValue(self, name):
+def _PS_getValue(self, name, asArray=False):
     """
     Extract a single Python value of unknown type from a PropertySet by
     trying each Python-compatible type in turn until no exception is raised.
@@ -130,31 +130,31 @@ def _PS_getValue(self, name):
     t = self.typeOf(name)
     if t == self.TYPE_Bool:
         value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Short:
         value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Int:
         value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Long:
         value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_LongLong:
         value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Float:
         value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Double:
         value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_String:
         value = self.getArrayString(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_DateTime:
         value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     try:
         return self.getAsPropertySetPtr(name)
     except:
@@ -244,7 +244,7 @@ PropertyListAddType(std::string, String)
 PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
 %pythoncode {
-def _PL_getValue(self, name):
+def _PL_getValue(self, name, asArray=False):
     """
     Extract a single Python value of unknown type from a PropertyList by
     trying each Python-compatible type in turn until no exception is raised.
@@ -255,31 +255,31 @@ def _PL_getValue(self, name):
     t = self.typeOf(name)
     if t == self.TYPE_Bool:
         value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Short:
         value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Int:
         value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Long:
         value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_LongLong:
         value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Float:
         value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_Double:
         value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_String:
         value = self.getArrayString(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_DateTime:
         value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 else value
+        return value[0] if len(value) == 1 and not asArray else value
     try:
         return self.getAsPropertyListPtr(name)
     except:
