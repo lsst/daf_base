@@ -1,0 +1,34 @@
+
+# /
+/.*
+/config.log
+
+# /doc/
+/doc/htmlDir
+
+# /examples/
+/examples/.tests
+/examples/citizen
+
+# /lib/
+/lib/*.so
+/lib/*.dylib
+
+# /python/lsst/daf/
+/python/lsst/daf/*.pyc
+
+# /python/lsst/daf/base/
+/python/lsst/daf/base/*.so
+/python/lsst/daf/base/*.pyc
+/python/lsst/daf/base/baseLib.py
+/python/lsst/daf/base/baseLib_wrap.*
+
+# /src/
+/src/*.os
+
+# /tests/
+/tests/.tests
+/tests/citizen
+/tests/PropertySet_1
+/tests/dateTime_1
+/tests/PropertyList
