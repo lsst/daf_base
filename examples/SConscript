@@ -1,5 +1,3 @@
 # -*- python -*-
-Import('env')
-import glob
-
-env.Program(glob.glob("*.cc"), LIBS=env.getlibs(env["eups_product"]))
+from lsst.sconsUtils import scripts
+scripts.BasicSConscript.examples()
