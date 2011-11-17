@@ -9,6 +9,7 @@ config.log
 *_wrap.cc
 *Lib.py
 doc/html
+doc/doxygen.conf
 doc/*.tag
 doc/*.inc
 tests/.tests
@@ -17,3 +18,4 @@ tests/PropertyList
 tests/PropertySet_1
 tests/citizen
 tests/dateTime_1
+examples/citizen
