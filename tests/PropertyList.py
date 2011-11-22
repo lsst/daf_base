@@ -91,6 +91,15 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(v, w)
         self.assertEqual(apl.getInt("ints2"), 8)
         self.assertEqual(apl.getArrayInt("ints2"), (10, 9, 8))
+        w = apl.get("ints", asArray=True)
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v, w)
+        apl.setInt("int", 999)
+        x = apl.get("int")
+        self.assertEqual(x, 999)
+        x = apl.get("int", asArray=True)
+        self.assertEqual(len(x), 1)
+        self.assertEqual(x, (999,))
 
     def testGetVector2(self):
         apl = dafBase.PropertyList()
