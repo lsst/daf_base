@@ -44,9 +44,9 @@ Access to the classes from the daf_base library
 %lsst_exceptions()
 %import "lsst/pex/exceptions/exceptionsLib.i"
 
-SWIG_SHARED_PTR(Persistable, lsst::daf::base::Persistable)
-SWIG_SHARED_PTR_DERIVED(PropertySet, lsst::daf::base::Persistable, lsst::daf::base::PropertySet)
-SWIG_SHARED_PTR_DERIVED(PropertyList, lsst::daf::base::PropertySet, lsst::daf::base::PropertyList)
+%shared_ptr(lsst::daf::base::Persistable);
+%shared_ptr(lsst::daf::base::PropertySet);
+%shared_ptr(lsst::daf::base::PropertyList);
 
 %include "persistenceMacros.i"
 %lsst_persistable(lsst::daf::base::PropertySet);
@@ -74,8 +74,7 @@ VectorAddType(double, Double)
 VectorAddType(std::string, String)
 VectorAddType(lsst::daf::base::DateTime, DateTime)
 
-SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
-%rename(_census) lsst::daf::base::Citizen::census(); // not %ignore -- we'll get census() back latter
+%shared_ptr(lsst::daf::base::Citizen);
 %ignore lsst::daf::base::Citizen::operator=;
 
 %include "lsst/daf/base/Citizen.h"
@@ -84,18 +83,7 @@ SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
 %include "lsst/daf/base/PropertySet.h"
 %include "lsst/daf/base/PropertyList.h"
 
-// Swig versions 1.3.33 - 1.3.36 have problems with std::vector<lsst::daf::base::Citizen const *>,
-// so replace Citizen::census() with a function that casts to something swig understands.
-%template(vectorCitizen) std::vector<lsst::daf::base::Citizen *>;
-
-%extend lsst::daf::base::Citizen {
-    %rename(census) census();           // get census() back
-
-    static std::vector<lsst::daf::base::Citizen *> const& census() {
-        return reinterpret_cast<std::vector<lsst::daf::base::Citizen *> const&>(
-                *lsst::daf::base::Citizen::census());
-    }
-}
+%template(vectorCitizen) std::vector<lsst::daf::base::Citizen const *>;
 
 // This has to come after PropertySet.h
 %define PropertySetAddType(type, typeName)
@@ -104,8 +92,8 @@ SWIG_SHARED_PTR(Citizen, lsst::daf::base::Citizen);
     %template(get ## typeName) lsst::daf::base::PropertySet::get<type>;
     %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type>;
     %extend lsst::daf::base::PropertySet {
-static std::type_info const TYPE_ ## typeName = typeid(type);
-}
+        static std::type_info const TYPE_ ## typeName = typeid(type);
+    }
 %enddef
 
 PropertySetAddType(bool, Bool)
