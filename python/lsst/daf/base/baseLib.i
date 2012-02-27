@@ -145,8 +145,7 @@ def _PS_getValue(self, name, asArray=False):
         value = self.getArrayDateTime(name)
         return value[0] if len(value) == 1 and not asArray else value
     elif t == self.TYPE_PropertySet:
-        value = self.getArrayPropertySet(name)
-        return value[0] if len(value) == 1 and not asArray else value
+        return self.getAsPropertySetPtr(name)
     try:
         return self.getAsPersistablePtr(name)
     except:

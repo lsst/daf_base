@@ -153,6 +153,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("c.a"), 1)
         ps.set("c.a", 2)
         self.assertEqual(ps.get("b.a"), 2)
+        self.assertEqual(ps.get("b").get("a"), 2)
+
 
 if __name__ == '__main__':
     unittest.main()
