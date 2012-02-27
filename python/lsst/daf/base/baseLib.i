@@ -87,10 +87,10 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
 
 // This has to come after PropertySet.h
 %define PropertySetAddType(type, typeName)
-    %template(set ## typeName) lsst::daf::base::PropertySet::set<type>;
-    %template(add ## typeName) lsst::daf::base::PropertySet::add<type>;
-    %template(get ## typeName) lsst::daf::base::PropertySet::get<type>;
-    %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type>;
+    %template(set ## typeName) lsst::daf::base::PropertySet::set<type >;
+    %template(add ## typeName) lsst::daf::base::PropertySet::add<type >;
+    %template(get ## typeName) lsst::daf::base::PropertySet::get<type >;
+    %template(getArray ## typeName) lsst::daf::base::PropertySet::getArray<type >;
     %extend lsst::daf::base::PropertySet {
         static std::type_info const TYPE_ ## typeName = typeid(type);
     }
@@ -105,6 +105,7 @@ PropertySetAddType(float, Float)
 PropertySetAddType(double, Double)
 PropertySetAddType(std::string, String)
 PropertySetAddType(lsst::daf::base::DateTime, DateTime)
+PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
 %pythoncode {
 def _PS_getValue(self, name, asArray=False):
@@ -143,10 +144,9 @@ def _PS_getValue(self, name, asArray=False):
     elif t == self.TYPE_DateTime:
         value = self.getArrayDateTime(name)
         return value[0] if len(value) == 1 and not asArray else value
-    try:
-        return self.getAsPropertySetPtr(name)
-    except:
-        pass
+    elif t == self.TYPE_PropertySet:
+        value = self.getArrayPropertySet(name)
+        return value[0] if len(value) == 1 and not asArray else value
     try:
         return self.getAsPersistablePtr(name)
     except:
@@ -174,6 +174,8 @@ def _PS_setValue(self, name, value):
         self.setString(name, value)
     elif isinstance(exemplar, lsst.daf.base.DateTime):
         self.setDateTime(name, value)
+    elif isinstance(exemplar, lsst.daf.base.PropertySet):
+        self.setPropertySet(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
             'Unknown value type for %s: %s' % (name, type(value))
@@ -198,6 +200,8 @@ def _PS_addValue(self, name, value):
         self.addString(name, value)
     elif isinstance(exemplar, lsst.daf.base.DateTime):
         self.addDateTime(name, value)
+    elif isinstance(exemplar, lsst.daf.base.PropertySet):
+        self.addPropertySet(name, value)
     else:
         raise lsst.pex.exceptions.LsstException, \
             'Unknown value type for %s: %s' % (name, type(exemplar))
