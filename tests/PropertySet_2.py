@@ -143,6 +143,19 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setInt("int", 2008)
         self.assertRaises(pexExcept.LsstException, ps.get, "foo")
 
+    def testSubPS(self):
+        ps = dafBase.PropertySet()
+        ps1 = dafBase.PropertySet()
+        ps1.set("a", 1)
+        ps.setPropertySet("b", ps1)
+        self.assertEqual(ps.get("b.a"), 1)
+        ps.set("c", ps1)
+        self.assertEqual(ps.get("c.a"), 1)
+        ps.set("c.a", 2)
+        self.assertEqual(ps.get("b.a"), 2)
+        self.assertEqual(ps.get("b").get("a"), 2)
+
+
 if __name__ == '__main__':
     unittest.main()
 
