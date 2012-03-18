@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 #include "boost/noncopyable.hpp"
 
