@@ -300,6 +300,15 @@ void dafBase::Citizen::census(
         }
     }
 }
+
+/************************************************************************************************************/
+namespace {
+bool cmpId(dafBase::Citizen const *a, dafBase::Citizen const *b)
+{
+    return a->getId() < b->getId();
+}
+} 
+
 //
 //! Return a (newly allocated) std::vector of active Citizens sorted by ID
 //
@@ -308,13 +317,6 @@ void dafBase::Citizen::census(
 //!        leaks(Citizen::census());
 //! and not bother (that becomes std::unique_ptr in C++11)
 //
-namespace {
-bool cmpId(dafBase::Citizen const *a, dafBase::Citizen const *b)
-{
-    return a->getId() < b->getId();
-}
-} 
-
 std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
         new std::vector<Citizen const*>(0);
