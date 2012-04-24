@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>         // should use std::unique_ptr from C++11 when available
 #include <boost/format.hpp>
 #include <ctype.h>
 #include <cerrno>
@@ -283,27 +284,38 @@ int dafBase::Citizen::census(
     return n;    
 }
 //
-//! Print a list of all active Citizens to stream
+//! Print a list of all active Citizens to stream, sorted by ID
 //
 void dafBase::Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
-    ReadGuard guard(citizenLock);
-    for (table::iterator cur = _activeCitizens.begin();
-         cur != _activeCitizens.end(); cur++) {
-        if (cur->first->_CitizenId >= startingMemId) {
-            stream << cur->first->repr() << "\n";
+
+    boost::scoped_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
+
+    for (std::vector<Citizen const *>::const_iterator citizen = leaks->begin(), end = leaks->end();
+         citizen != end; ++citizen) {
+        if ((*citizen)->getId() >= startingMemId) {
+            stream << (*citizen)->repr() << "\n";
         }
     }
 }
+
+/************************************************************************************************************/
+namespace {
+bool cmpId(dafBase::Citizen const *a, dafBase::Citizen const *b)
+{
+    return a->getId() < b->getId();
+}
+} 
+
 //
-//! Return a (newly allocated) std::vector of active Citizens
+//! Return a (newly allocated) std::vector of active Citizens sorted by ID
 //
 //! You are responsible for deleting it; or you can say
 //!    boost::scoped_ptr<std::vector<Citizen const*> const>
 //!        leaks(Citizen::census());
-//! and not bother
+//! and not bother (that becomes std::unique_ptr in C++11)
 //
 std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
     std::vector<Citizen const*>* vec =
@@ -316,8 +328,11 @@ std::vector<dafBase::Citizen const*> const* dafBase::Citizen::census() {
         vec->push_back(dynamic_cast<Citizen const*>(cur->first));
     }
         
+    std::sort(vec->begin(), vec->end(), cmpId);
+
     return vec;
 }
+
 //@}
 
 //! Check for corruption
