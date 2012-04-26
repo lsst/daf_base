@@ -290,6 +290,7 @@ void dafBase::Citizen::census(
     std::ostream &stream,               //!< stream to print to
     memId startingMemId                 //!< Don't print Citizens with lower IDs
     ) {
+    ReadGuard guard(citizenLock);
 
     boost::scoped_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
 
