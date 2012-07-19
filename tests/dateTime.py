@@ -167,5 +167,23 @@ class DateTimeTestCase(unittest.TestCase):
         ts = DateTime(1L, DateTime.UTC)
         self.assertEqual(ts.toString(), '1970-01-01T00:00:00.000000001Z')
 
+    def testConvert(self):
+        year = 2012
+        month = 7
+        day = 19
+        hour = 18
+        minute = 29
+        second = 33
+
+        ts = DateTime(year, month, day, hour, minute, second, DateTime.UTC)
+        dt = ts.toPython(DateTime.UTC)
+
+        self.assertEqual(dt.year, year)
+        self.assertEqual(dt.month, month)
+        self.assertEqual(dt.day, day)
+        self.assertEqual(dt.hour, hour)
+        self.assertEqual(dt.minute, minute)
+        self.assertEqual(dt.second, second)
+
 if __name__ == '__main__':
     unittest.main()

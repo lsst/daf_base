@@ -83,6 +83,19 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
 %include "lsst/daf/base/PropertySet.h"
 %include "lsst/daf/base/PropertyList.h"
 
+%extend lsst::daf::base::DateTime {
+    %pythoncode %{
+        def toPython(self, timescale=None):
+            """Convert a DateTime to Python's datetime
+
+            @param timescale  Timescale for resultant datetime
+            """
+            import datetime
+            nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
+            return datetime.datetime.utcfromtimestamp(nsecs/10**9)
+    %}
+}
+
 %template(vectorCitizen) std::vector<lsst::daf::base::Citizen const *>;
 
 // This has to come after PropertySet.h
@@ -386,3 +399,5 @@ def _PL_toList(self):
 PropertyList.toList = _PL_toList
 del _PL_toList
 }
+
+
