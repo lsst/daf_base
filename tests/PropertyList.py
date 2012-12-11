@@ -218,7 +218,13 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.toList(), correct)
 
     def testHierarchy(self):
-        pass
+        apl = dafBase.PropertyList()
+        apl.set("CURRENT", 49.5)
+        apl.set("CURRENT.foo", -32)
+        apl.set("CURRENT.bar", 2)
+        self.assertEqual(apl.get("CURRENT"), 49.5)
+        self.assertEqual(apl.get("CURRENT.foo"), -32)
+        self.assertEqual(apl.get("CURRENT.bar"), 2)
 
 if __name__ == '__main__':
     unittest.main()

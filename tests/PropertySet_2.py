@@ -155,6 +155,143 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("b.a"), 2)
         self.assertEqual(ps.get("b").get("a"), 2)
 
+class FlatTestCase(unittest.TestCase):
+    """A test case for flattened PropertySets."""
+
+    def testConstruct(self):
+        ps = dafBase.PropertySet(flat=True)
+        self.assert_(ps is not None)
+
+    def testScalar(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps.setBool("bool", True)
+        ps.setShort("short", 42)
+        ps.setInt("int", 2008)
+        ps.setLongLong("int64_t", 0xfeeddeadbeefL)
+        ps.setFloat("float", 3.14159)
+        ps.setDouble("double", 2.718281828459045)
+        ps.set("char*", "foo")
+        ps.setString("string", "bar")
+        ps.set("int2", 2009)
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+
+        self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
+        self.assertEqual(ps.getBool("bool"), True)
+        self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
+        self.assertEqual(ps.getShort("short"), 42)
+        self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
+        self.assertEqual(ps.getInt("int"), 2008)
+        self.assertEqual(ps.typeOf("int64_t"),
+                dafBase.PropertySet.TYPE_LongLong)
+        self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeefL)
+        self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
+        self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
+        self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
+        self.assertEqual(ps.getDouble("double"), 2.718281828459045)
+        self.assertEqual(ps.typeOf("char*"), dafBase.PropertySet.TYPE_String)
+        self.assertEqual(ps.getString("char*"), "foo")
+        self.assertEqual(ps.typeOf("string"), dafBase.PropertySet.TYPE_String)
+        self.assertEqual(ps.getString("string"), "bar")
+        self.assertEqual(ps.typeOf("int2"), dafBase.PropertySet.TYPE_Int)
+        self.assertEqual(ps.getInt("int2"), 2009)
+        self.assertEqual(ps.get("int2"), 2009)
+        self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
+        self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265L)
+
+    def testGetDefault(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps.setInt("int", 42)
+        self.assertEqual(ps.getInt("int"), 42)
+        self.assertEqual(ps.getInt("int", 2008), 42)
+        self.assertEqual(ps.getInt("foo", 2008), 2008)
+
+    def testExists(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps.setInt("int", 42)
+        self.assertEqual(ps.exists("int"), True)
+        self.assertEqual(ps.exists("foo"), False)
+
+    def testGetVector(self):
+        ps = dafBase.PropertySet(flat=True)
+        v = (42, 2008, 1)
+        ps.setInt("ints", v)
+        ps.setInt("ints2", (10, 9, 8))
+        w = ps.getArrayInt("ints")
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v, w)
+        self.assertEqual(ps.getInt("ints2"), 8)
+        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        w = ps.get("ints", asArray=True)
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v, w)
+        ps.setInt("int", 999)
+        x = ps.get("int")
+        self.assertEqual(x, 999)
+        x = ps.get("int", asArray=True)
+        self.assertEqual(len(x), 1)
+        self.assertEqual(x, (999,))
+
+    def testGetVector2(self):
+        ps = dafBase.PropertySet(flat=True)
+        v = [42, 2008, 1]
+        ps.setInt("ints", v)
+        ps.setInt("ints2", [10, 9, 8])
+        w = ps.getArrayInt("ints")
+        self.assertEqual(len(w), 3)
+        self.assertEqual(v[0], w[0])
+        self.assertEqual(v[1], w[1])
+        self.assertEqual(v[2], w[2])
+        self.assertEqual(ps.getInt("ints2"), 8)
+        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+
+    def testAddScalar(self):
+        ps = dafBase.PropertySet(flat=True)
+        v = [42, 2008, 1]
+        ps.setInt("ints", v)
+        ps.addInt("ints", -999)
+        ps.add("other", "foo")
+        ps.add("ints", 13)
+        w = ps.getArrayInt("ints")
+        self.assertEqual(len(w), 5)
+        self.assertEqual(v[0], w[0])
+        self.assertEqual(v[1], w[1])
+        self.assertEqual(v[2], w[2])
+        self.assertEqual(w[3], -999)
+        self.assertEqual(w[4], 13)
+        self.assertEqual(ps.getString("other"), "foo")
+
+    def testDateTimeToString(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        self.assertEqual(ps.toString(),
+                "dt = 2009-04-02T07:26:39.314159265Z\n")
+
+    def testGetScalarThrow(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps.setBool("bool", True)
+        ps.setShort("short", 42)
+        ps.setInt("int", 2008)
+        self.assertRaises(pexExcept.LsstException, ps.get, "foo")
+
+    def testSubPS(self):
+        ps = dafBase.PropertySet(flat=True)
+        ps1 = dafBase.PropertySet()
+        ps1.set("a", 1)
+        ps1.add("a", 2)
+        ps1.set("foo", "bar")
+        ps.setPropertySet("b", ps1)
+        self.assertEqual(ps.exists("b.a"), True)
+        self.assertEqual(ps.get("b.a"), (1, 2))
+        self.assertEqual(ps.exists("b"), False)
+        self.assertEqual(ps.exists("b.foo"), True)
+        self.assertEqual(ps.get("b.foo"), "bar")
+
+        ps.set("b.c", 20)
+        self.assertEqual(ps.exists("b.c"), True)
+        self.assertEqual(ps.get("b.c"), 20)
+        self.assertEqual(ps.exists("b"), False)
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -51,7 +51,7 @@ using namespace std;
 
 /** Constructor.
   */
-dafBase::PropertyList::PropertyList(void) : PropertySet() {
+dafBase::PropertyList::PropertyList(void) : PropertySet(true) {
 }
 
 /** Destructor.

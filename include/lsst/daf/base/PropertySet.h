@@ -75,7 +75,7 @@ public:
     typedef boost::shared_ptr<PropertySet const> ConstPtr;
 
 // Constructors
-    PropertySet(void);
+    PropertySet(bool flat=false);
     virtual ~PropertySet(void);
 
 // Accessors
@@ -140,6 +140,8 @@ public:
 protected:
     virtual void _set(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
+    virtual void _add(std::string const& name,
+                      boost::shared_ptr< std::vector<boost::any> > vp);
     virtual std::string _format(std::string const& name) const;
 
 private:
@@ -158,6 +160,7 @@ private:
     void _cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
+    bool _flat;
 };
 
 #if defined(__ICC)
