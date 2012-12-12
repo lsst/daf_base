@@ -50,6 +50,7 @@ namespace pexExcept = lsst::pex::exceptions;
 using namespace std;
 
 /** Constructor.
+  @param[in] flat false (default) = flatten hierarchy by ignoring dots in names
   */
 dafBase::PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {
 }
