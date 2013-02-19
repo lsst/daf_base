@@ -68,7 +68,11 @@ namespace base {
 #endif
 
 class PropertySet :
-    public Persistable, public Citizen, public boost::noncopyable {
+    public Persistable, public Citizen
+#ifndef SWIG
+    , public boost::noncopyable
+#endif
+    {
 public:
 // Typedefs
     typedef boost::shared_ptr<PropertySet> Ptr;
