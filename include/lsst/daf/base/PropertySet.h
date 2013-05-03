@@ -37,6 +37,18 @@
 /** @class lsst::daf::base::PropertySet
   * @brief Class for storing generic metadata.
   *
+  * This class stores key/value pairs, like a Python dictionary but in C++.
+  * Keys are always C++ strings.  Values can be C++ primitive data types,
+  * strings, lsst::daf::base::DateTime objects, and lsst::daf::base::Persistable
+  * subclasses (although the latter is currently discouraged).  Values can also
+  * be vectors of these items.
+  *
+  * PropertySets are hierarchical; values within a PropertySet that is contained
+  * within another PropertySet can be addressed using dotted paths ("a.b.c").
+  * If "flat=true" is specified to the constructor, the PropertySet still takes
+  * dotted paths but is not actually hierarchical in structure.  This is used to
+  * support PropertyList.
+  *
   * @ingroup daf_base
   */
 
