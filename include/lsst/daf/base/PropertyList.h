@@ -102,6 +102,9 @@ public:
 // Modifiers
     template <typename T> void set(
         std::string const& name, T const& value, bool inPlace=true);
+    void set(
+        std::string const& name, PropertySet::Ptr const& value,
+        bool inPlace=true);
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
         bool inPlace=true);

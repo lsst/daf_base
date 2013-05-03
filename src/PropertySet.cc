@@ -873,7 +873,6 @@ void dafBase::PropertySet::_add(
   */
 void dafBase::PropertySet::_findOrInsert(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
-    // Check for cycles
     if (vp->back().type() == typeid(Ptr)) {
         if (_flat) {
             Ptr source = boost::any_cast<Ptr>(vp->back());
@@ -885,6 +884,8 @@ void dafBase::PropertySet::_findOrInsert(
             }
             return;
         }
+
+        // Check for cycles
         _cycleCheckAnyVec(*vp, name);
     }
 

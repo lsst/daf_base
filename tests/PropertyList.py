@@ -233,6 +233,10 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.get("top.bottom"), "x")
         self.assertEqual(apl.get("top.sibling"), 42)
         self.assertRaises(pexExcept.LsstException, apl.get, "top")
+        self.assertEqual(apl.toString(),
+            'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
+            'top.sibling = 42\ntop.bottom = "x"\n')
+
 
 if __name__ == '__main__':
     unittest.main()
