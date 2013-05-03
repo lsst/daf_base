@@ -395,9 +395,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     BOOST_CHECK_EQUAL(pl.getAsString("string"), "bar");
     BOOST_CHECK_THROW(pl.getAsString("int"), dafBase::TypeMismatchException);
     BOOST_CHECK_EQUAL(pl.getAsString("top.bottom"), "x");
-    BOOST_CHECK_EQUAL(pl.getAsPropertySetPtr("top"), plp);
-    BOOST_CHECK_THROW(pl.getAsPropertySetPtr("top.bottom"),
-                      dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsPropertySetPtr("top"), pexExcept::NotFoundException);
 }
 
 BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */

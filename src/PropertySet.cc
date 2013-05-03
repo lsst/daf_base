@@ -50,8 +50,9 @@ namespace pexExcept = lsst::pex::exceptions;
 using namespace std;
 
 /** Constructor.
+  @param[in] flat false (default) = flatten hierarchy by ignoring dots in names
   */
-dafBase::PropertySet::PropertySet(void) : Citizen(typeid(*this)) {
+dafBase::PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {
 }
 
 /** Destructor.
@@ -741,25 +742,8 @@ void dafBase::PropertySet::combine(ConstPtr source) {
     vector<string> names = source->paramNames(false);
     for (vector<string>::const_iterator i = names.begin();
          i != names.end(); ++i) {
-        AnyMap::const_iterator sj = source->_find(*i);
-        AnyMap::const_iterator dj = _find(*i);
-        if (dj == _map.end()) {
-            boost::shared_ptr< vector<boost::any> > vp(
-                new vector<boost::any>(*(sj->second)));
-            _set(*i, vp);
-        }
-        else {
-            if (sj->second->back().type() != dj->second->back().type()) {
-                throw LSST_EXCEPT(TypeMismatchException,
-                                  *i + " has mismatched type");
-            }
-            // Check for cycles
-            if (sj->second->back().type() == typeid(Ptr)) {
-                _cycleCheckAnyVec(*(sj->second), *i);
-            }
-            dj->second->insert(dj->second->end(),
-                               sj->second->begin(), sj->second->end());
-        }
+        AnyMap::const_iterator sp = source->_find(*i);
+        _add(*i, sp->second);
     }
 }
 
@@ -769,7 +753,7 @@ void dafBase::PropertySet::combine(ConstPtr source) {
   */
 void dafBase::PropertySet::remove(std::string const& name) {
     string::size_type i = name.find('.');
-    if (i == name.npos) {
+    if (_flat || i == name.npos) {
         _map.erase(name);
         return;
     }
@@ -796,7 +780,7 @@ void dafBase::PropertySet::remove(std::string const& name) {
 dafBase::PropertySet::AnyMap::iterator
 dafBase::PropertySet::_find(std::string const& name) {
     string::size_type i = name.find('.');
-    if (i == name.npos) {
+    if (_flat || i == name.npos) {
         return _map.find(name);
     }
     string prefix(name, 0, i);
@@ -823,7 +807,7 @@ dafBase::PropertySet::_find(std::string const& name) {
 dafBase::PropertySet::AnyMap::const_iterator
 dafBase::PropertySet::_find(std::string const& name) const {
     string::size_type i = name.find('.');
-    if (i == name.npos) {
+    if (_flat || i == name.npos) {
         return _map.find(name);
     }
     string prefix(name, 0, i);
@@ -855,6 +839,32 @@ void dafBase::PropertySet::_set(
     _findOrInsert(name, vp);
 }
 
+/** Finds the property name (possibly hierarchical) and appends or sets its
+  * value with the given vector of values.
+  * @param[in] name Property name to find, possibly hierarchical.
+  * @param[in] vp shared_ptr to vector of values.
+  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  */
+void dafBase::PropertySet::_add(
+    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+
+    AnyMap::const_iterator dp = _find(name);
+    if (dp == _map.end()) {
+        _set(name, vp);
+    }
+    else {
+        if (vp->back().type() != dp->second->back().type()) {
+            throw LSST_EXCEPT(TypeMismatchException,
+                              name + " has mismatched type");
+        }
+        // Check for cycles
+        if (vp->back().type() == typeid(Ptr)) {
+            _cycleCheckAnyVec(*vp, name);
+        }
+        dp->second->insert(dp->second->end(), vp->begin(), vp->end());
+    }
+}
+
 /** Finds the property name (possibly hierarchical) and sets or replaces its
   * value with the given vector of values.
   * @param[in] name Property name to find, possibly hierarchical.
@@ -863,13 +873,24 @@ void dafBase::PropertySet::_set(
   */
 void dafBase::PropertySet::_findOrInsert(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
-    // Check for cycles
     if (vp->back().type() == typeid(Ptr)) {
+        if (_flat) {
+            Ptr source = boost::any_cast<Ptr>(vp->back());
+            vector<string> names = source->paramNames(false);
+            for (vector<string>::const_iterator i = names.begin();
+                 i != names.end(); ++i) {
+                AnyMap::const_iterator sp = source->_find(*i);
+                _add(name + "." + *i, sp->second);
+            }
+            return;
+        }
+
+        // Check for cycles
         _cycleCheckAnyVec(*vp, name);
     }
 
     string::size_type i = name.find('.');
-    if (i == name.npos) {
+    if (_flat || i == name.npos) {
         _map[name] = vp;
         return;
     }

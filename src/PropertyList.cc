@@ -44,19 +44,22 @@
 #include "lsst/pex/exceptions/Runtime.h"
 #include "lsst/daf/base/DateTime.h"
 
-namespace dafBase = lsst::daf::base;
 namespace pexExcept = lsst::pex::exceptions;
 
 using namespace std;
 
+namespace lsst {
+namespace daf {
+namespace base {
+
 /** Constructor.
   */
-dafBase::PropertyList::PropertyList(void) : PropertySet() {
+PropertyList::PropertyList(void) : PropertySet(true) {
 }
 
 /** Destructor.
   */
-dafBase::PropertyList::~PropertyList(void) {
+PropertyList::~PropertyList(void) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +69,7 @@ dafBase::PropertyList::~PropertyList(void) {
 /** Copy the PropertyList and all of its contents.
   * @return PropertySet::Ptr pointing to the new copy.
   */
-dafBase::PropertySet::Ptr dafBase::PropertyList::deepCopy(void) const {
+PropertySet::Ptr PropertyList::deepCopy(void) const {
     Ptr n(new PropertyList);
     n->PropertySet::combine(this->PropertySet::deepCopy());
     n->_order = _order;
@@ -85,7 +88,7 @@ dafBase::PropertySet::Ptr dafBase::PropertyList::deepCopy(void) const {
   * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
-T dafBase::PropertyList::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
+T PropertyList::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name);
 }
 
@@ -99,7 +102,7 @@ T dafBase::PropertyList::get(string const& name) const { /* parasoft-suppress Ls
   * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
-T dafBase::PropertyList::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
+T PropertyList::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name, defaultValue);
 }
 
@@ -112,7 +115,7 @@ T dafBase::PropertyList::get(string const& name, T const& defaultValue) const { 
   * @throws TypeMismatchException Value does not match desired type.
   */
 template <typename T>
-vector<T> dafBase::PropertyList::getArray(string const& name) const {
+vector<T> PropertyList::getArray(string const& name) const {
     return PropertySet::getArray<T>(name);
 }
 
@@ -122,12 +125,12 @@ vector<T> dafBase::PropertyList::getArray(string const& name) const {
   * @return Comment string.
   * @throws NotFoundException Property does not exist.
   */
-std::string const& dafBase::PropertyList::getComment(
+std::string const& PropertyList::getComment(
     std::string const& name) const {
     return _comments.find(name)->second;
 }
 
-std::vector<std::string> dafBase::PropertyList::getOrderedNames(void) const {
+std::vector<std::string> PropertyList::getOrderedNames(void) const {
     std::vector<std::string> v;
     for (std::list<std::string>::const_iterator i = _order.begin();
          i != _order.end(); ++i) {
@@ -137,12 +140,12 @@ std::vector<std::string> dafBase::PropertyList::getOrderedNames(void) const {
 }
 
 std::list<std::string>::const_iterator
-dafBase::PropertyList::begin(void) const {
+PropertyList::begin(void) const {
     return _order.begin();
 }
 
 std::list<std::string>::const_iterator
-dafBase::PropertyList::end(void) const {
+PropertyList::end(void) const {
     return _order.end();
 }
 
@@ -152,7 +155,7 @@ dafBase::PropertyList::end(void) const {
   * @param[in] indent String to indent lines by (default none).
   * @return String representation of the PropertyList.
   */
-std::string dafBase::PropertyList::toString(bool topLevelOnly,
+std::string PropertyList::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     ostringstream s;
     for (std::list<std::string>::const_iterator i = _order.begin();
@@ -182,11 +185,30 @@ std::string dafBase::PropertyList::toString(bool topLevelOnly,
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, T const& value, bool inPlace) {
     PropertySet::set(name, value);
     if (!inPlace) {
         _moveToEnd(name);
+    }
+}
+
+void PropertyList::set(
+    std::string const& name, PropertySet::Ptr const& value,
+    bool inPlace) {
+    Ptr pl = boost::dynamic_pointer_cast<PropertyList, PropertySet>(value);
+    PropertySet::set(name, value);
+    _comments.erase(name);
+    _order.remove(name);
+    vector<string> names = value->paramNames(false);
+    for (vector<string>::const_iterator i = names.begin();
+         i != names.end(); ++i) {
+        if (pl) {
+            _commentOrderFix(name + "." + *i, pl->getComment(*i), inPlace);
+        }
+        else if (inPlace) {
+            _moveToEnd(name + "." + *i);
+        }
     }
 }
 
@@ -197,7 +219,7 @@ void dafBase::PropertyList::set(
   * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, char const* value, bool inPlace) {
     set(name, string(value), inPlace);
     if (!inPlace) {
@@ -213,7 +235,7 @@ void dafBase::PropertyList::set(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, vector<T> const& value, bool inPlace) {
     PropertySet::set(name, value);
     if (!inPlace) {
@@ -230,7 +252,7 @@ void dafBase::PropertyList::set(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, T const& value, bool inPlace) {
     PropertySet::add(name, value);
     if (!inPlace) {
@@ -247,7 +269,7 @@ void dafBase::PropertyList::add(
   * @throws TypeMismatchException Type does not match existing values.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, char const* value, bool inPlace) {
     add(name, string(value), inPlace);
 }
@@ -263,7 +285,7 @@ void dafBase::PropertyList::add(
   * May only partially add the vector if an exception occurs.
   */
 template <typename T>
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, vector<T> const& value, bool inPlace) {
     PropertySet::add(name, value);
     if (!inPlace) {
@@ -284,7 +306,7 @@ void dafBase::PropertyList::add(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, T const& value,
     std::string const& comment, bool inPlace) {
     PropertySet::set(name, value);
@@ -299,7 +321,7 @@ void dafBase::PropertyList::set(
   * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, char const* value,
     std::string const& comment, bool inPlace) {
     set(name, string(value), comment, inPlace);
@@ -314,7 +336,7 @@ void dafBase::PropertyList::set(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::set(
+void PropertyList::set(
     std::string const& name, vector<T> const& value,
     std::string const& comment, bool inPlace) {
     PropertySet::set(name, value);
@@ -331,7 +353,7 @@ void dafBase::PropertyList::set(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 template <typename T>
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, T const& value,
     std::string const& comment, bool inPlace) {
     PropertySet::add(name, value);
@@ -349,7 +371,7 @@ void dafBase::PropertyList::add(
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
 
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, char const* value,
     std::string const& comment, bool inPlace) {
     add(name, string(value), comment, inPlace);
@@ -367,7 +389,7 @@ void dafBase::PropertyList::add(
   * May only partially add the vector if an exception occurs.
   */
 template <typename T>
-void dafBase::PropertyList::add(
+void PropertyList::add(
     std::string const& name, vector<T> const& value,
     std::string const& comment, bool inPlace) {
     PropertySet::add(name, value);
@@ -388,7 +410,7 @@ void dafBase::PropertyList::add(
   * @throws InvalidParameterException Name does not exist in source.
   * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
   */
-void dafBase::PropertyList::copy(
+void PropertyList::copy(
     std::string const& dest, PropertySet::ConstPtr source,
     std::string const& name, bool inPlace) {
     PropertySet::copy(dest, source, name);
@@ -412,7 +434,7 @@ void dafBase::PropertyList::copy(
   * @note
   * May only partially combine the PropertySets if an exception occurs.
   */
-void dafBase::PropertyList::combine(PropertySet::ConstPtr source,
+void PropertyList::combine(PropertySet::ConstPtr source,
                                     bool inPlace) {
     ConstPtr pl =
         boost::dynamic_pointer_cast<PropertyList const, PropertySet const>(
@@ -446,7 +468,7 @@ void dafBase::PropertyList::combine(PropertySet::ConstPtr source,
   * nothing if the property does not exist.
   * @param[in] name Property name to remove, possibly hierarchical.
   */
-void dafBase::PropertyList::remove(std::string const& name) {
+void PropertyList::remove(std::string const& name) {
     PropertySet::remove(name);
     _comments.erase(name);
     _order.remove(name);
@@ -456,7 +478,7 @@ void dafBase::PropertyList::remove(std::string const& name) {
 // Private member functions
 ///////////////////////////////////////////////////////////////////////////////
 
-void dafBase::PropertyList::_set(std::string const& name,
+void PropertyList::_set(std::string const& name,
           boost::shared_ptr< std::vector<boost::any> > vp) {
     PropertySet::_set(name, vp);
     if (_comments.find(name) == _comments.end()) {
@@ -465,12 +487,12 @@ void dafBase::PropertyList::_set(std::string const& name,
     }
 }
 
-void dafBase::PropertyList::_moveToEnd(std::string const& name) {
+void PropertyList::_moveToEnd(std::string const& name) {
     _order.remove(name);
     _order.push_back(name);
 }
 
-void dafBase::PropertyList::_commentOrderFix(
+void PropertyList::_commentOrderFix(
     std::string const& name, std::string const& comment, bool inPlace) {
     _comments[name] = comment;
     if (!inPlace) {
@@ -486,21 +508,21 @@ void dafBase::PropertyList::_commentOrderFix(
 // Explicit template instantiations are not well understood by doxygen.
 
 #define INSTANTIATE(t) \
-    template t dafBase::PropertyList::get<t>(string const& name) const; \
-    template t dafBase::PropertyList::get<t>(string const& name, t const& defaultValue) const; \
-    template vector<t> dafBase::PropertyList::getArray<t>(string const& name) const; \
-    template void dafBase::PropertyList::set<t>(string const& name, t const& value, bool inPlace); \
-    template void dafBase::PropertyList::set<t>(string const& name, vector<t> const& value, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, t const& value, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, bool inPlace); \
-    template void dafBase::PropertyList::set<t>(string const& name, t const& value, string const& comment, bool inPlace); \
-    template void dafBase::PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, t const& value, string const& comment, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
-    template void dafBase::PropertyList::set<t>(string const& name, t const& value, char const* comment, bool inPlace); \
-    template void dafBase::PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, t const& value, char const* comment, bool inPlace); \
-    template void dafBase::PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace);
+    template t PropertyList::get<t>(string const& name) const; \
+    template t PropertyList::get<t>(string const& name, t const& defaultValue) const; \
+    template vector<t> PropertyList::getArray<t>(string const& name) const; \
+    template void PropertyList::set<t>(string const& name, t const& value, bool inPlace); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, t const& value, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value, bool inPlace); \
+    template void PropertyList::set<t>(string const& name, t const& value, string const& comment, bool inPlace); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, t const& value, string const& comment, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
+    template void PropertyList::set<t>(string const& name, t const& value, char const* comment, bool inPlace); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, t const& value, char const* comment, bool inPlace); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace);
 
 INSTANTIATE(bool)
 INSTANTIATE(char)
@@ -517,8 +539,9 @@ INSTANTIATE(unsigned long long)
 INSTANTIATE(float)
 INSTANTIATE(double)
 INSTANTIATE(string)
-INSTANTIATE(dafBase::PropertySet::Ptr)
-INSTANTIATE(dafBase::Persistable::Ptr)
-INSTANTIATE(dafBase::DateTime)
+INSTANTIATE(Persistable::Ptr)
+INSTANTIATE(DateTime)
 
 /// @endcond
+
+} } } // namespace lsst::daf::base

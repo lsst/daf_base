@@ -35,7 +35,20 @@
   */
 
 /** @class lsst::daf::base::PropertyList
-  * @brief Class for storing generic metadata.
+  * @brief Class for storing ordered metadata with comments.
+  *
+  * This class stores key/value pairs like PropertySet, of which it is a
+  * subclass.  The difference is that the PropertyList maintains the order of
+  * the key/value pairs according to how they were inserted.  By default,
+  * replacing the value of an existing key does not change its ordering.  In
+  * addition, a comment string may be associated with each key/value pair.
+  *
+  * The main motivating use case for PropertyList is FITS headers.
+  *
+  * PropertyLists are not truly hierarchical, although they accept dotted paths
+  * as keys.  If a PropertySet or PropertyList is added as a value to a
+  * PropertyList, the hierarchical pathnames are flattened into the resulting
+  * PropertyList.
   *
   * @ingroup daf_base
   */
@@ -102,6 +115,9 @@ public:
 // Modifiers
     template <typename T> void set(
         std::string const& name, T const& value, bool inPlace=true);
+    void set(
+        std::string const& name, PropertySet::Ptr const& value,
+        bool inPlace=true);
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
         bool inPlace=true);
