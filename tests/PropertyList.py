@@ -226,6 +226,14 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.get("CURRENT.foo"), -32)
         self.assertEqual(apl.get("CURRENT.bar"), 2)
 
+        aps = dafBase.PropertySet()
+        aps.set("bottom", "x")
+        aps.set("sibling", 42)
+        apl.set("top", aps)
+        self.assertEqual(apl.get("top.bottom"), "x")
+        self.assertEqual(apl.get("top.sibling"), 42)
+        self.assertRaises(pexExcept.LsstException, apl.get, "top")
+
 if __name__ == '__main__':
     unittest.main()
 

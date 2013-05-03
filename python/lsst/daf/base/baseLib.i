@@ -247,6 +247,9 @@ PropertyListAddType(double, Double)
 PropertyListAddType(std::string, String)
 PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
+%template(setPropertySet) lsst::daf::base::PropertyList::set<PTR(lsst::daf::base::PropertySet)>;
+%template(addPropertySet) lsst::daf::base::PropertyList::add<PTR(lsst::daf::base::PropertySet)>;
+
 %pythoncode {
 def _PL_getValue(self, name, asArray=False):
     """
@@ -316,6 +319,10 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
             self.setString(name, value, inPlace)
         elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.setDateTime(name, value, inPlace)
+        elif isinstance(exemplar, lsst.daf.base.PropertySet):
+            self.setPropertySet(name, value, inPlace)
+        elif isinstance(exemplar, lsst.daf.base.PropertyList):
+            self.setPropertySet(name, value, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
                 'Unknown value type for %s: %s' % (name, type(value))
@@ -332,6 +339,10 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
             self.setString(name, value, comment, inPlace)
         elif isinstance(exemplar, lsst.daf.base.DateTime):
             self.setDateTime(name, value, comment, inPlace)
+        elif isinstance(exemplar, lsst.daf.base.PropertySet):
+            self.setPropertySet(name, value, comment, inPlace)
+        elif isinstance(exemplar, lsst.daf.base.PropertyList):
+            self.setPropertySet(name, value, comment, inPlace)
         else:
             raise lsst.pex.exceptions.LsstException, \
                 'Unknown value type for %s: %s' % (name, type(value))
