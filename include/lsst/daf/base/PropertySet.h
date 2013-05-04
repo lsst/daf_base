@@ -91,7 +91,7 @@ public:
     typedef boost::shared_ptr<PropertySet const> ConstPtr;
 
 // Constructors
-    PropertySet(bool flat=false);
+    explicit PropertySet(bool flat=false);
     virtual ~PropertySet(void);
 
 // Accessors
