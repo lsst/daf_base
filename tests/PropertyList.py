@@ -41,7 +41,6 @@ class PropertyListTestCase(unittest.TestCase):
         for name in original.getOrderedNames():
             self.assertEqual(original.get(name), new.get(name))
 
-    @utilsTests.debugger(Exception)
     def testScalar(self):
         apl = dafBase.PropertyList()
         apl.setBool("bool", True)
