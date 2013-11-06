@@ -93,6 +93,10 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
             import datetime
             nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
             return datetime.datetime.utcfromtimestamp(nsecs/10**9)
+        def __reduce__(self):
+            return self.__class__, (self.nsecs(),)
+        def __eq__(self, other):
+            return self.nsecs() == other.nsecs()
     %}
 }
 
@@ -121,6 +125,17 @@ PropertySetAddType(lsst::daf::base::DateTime, DateTime)
 PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
 %pythoncode {
+# Mapping of type to method names
+# int is special-cased, so is not present
+_PS_typeMenu = {bool: "Bool",
+                long: "LongLong",
+                float: "Double",
+                str: "String",
+                DateTime: "DateTime",
+                PropertySet: "PropertySet",
+                PropertyList: "PropertySet",
+                }
+
 def _PS_getValue(self, name, asArray=False):
     """
     Extract a single Python value of unknown type from a PropertySet by
@@ -129,35 +144,16 @@ def _PS_getValue(self, name, asArray=False):
     if not self.exists(name):
         raise lsst.pex.exceptions.LsstException, name + " not found"
 
+    # Mapping of type to getter; can't use dict because can't hash a SWIGed 'std::type_info *'
+    menu = [(getattr(self, "TYPE_" + t), getattr(self, "getArray" + t)) for
+            t in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime")]
     t = self.typeOf(name)
-    if t == self.TYPE_Bool:
-        value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Short:
-        value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Int:
-        value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Long:
-        value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_LongLong:
-        value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Float:
-        value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Double:
-        value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_String:
-        value = self.getArrayString(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_DateTime:
-        value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_PropertySet:
+    for menuType, getter in menu:
+        if t == menuType:
+            value = getter(name)
+            return value[0] if len(value) == 1 and not asArray else value
+
+    if t == self.TYPE_PropertySet:
         return self.getAsPropertySetPtr(name)
     try:
         return self.getAsPersistablePtr(name)
@@ -174,23 +170,19 @@ def _PS_setValue(self, name, value):
         exemplar = value[0]
     else:
         exemplar = value
-    if isinstance(exemplar, bool):
-        self.setBool(name, value)
-    elif isinstance(exemplar, int):
-        self.setInt(name, value)
-    elif isinstance(exemplar, long):
-        self.setLongLong(name, value)
-    elif isinstance(exemplar, float):
-        self.setDouble(name, value)
-    elif isinstance(exemplar, str):
-        self.setString(name, value)
-    elif isinstance(exemplar, lsst.daf.base.DateTime):
-        self.setDateTime(name, value)
-    elif isinstance(exemplar, lsst.daf.base.PropertySet):
-        self.setPropertySet(name, value)
-    else:
-        raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(value))
+
+    # Special case: a python int can be larger than SWIG will recognise as an int
+    if isinstance(exemplar, int):
+        try:
+            self.setInt(name, value)
+        except NotImplementedError:
+            self.setLongLong(name, value)
+        return
+
+    t = type(exemplar)
+    if not t in _PS_typeMenu:
+        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    getattr(self, "set" + _PS_typeMenu[t])(name, value)
 
 def _PS_addValue(self, name, value):
     """
@@ -200,23 +192,19 @@ def _PS_addValue(self, name, value):
         exemplar = value[0]
     else:
         exemplar = value
-    if isinstance(exemplar, bool):
-        self.addBool(name, value)
-    elif isinstance(exemplar, int):
-        self.addInt(name, value)
-    elif isinstance(exemplar, long):
-        self.addLongLong(name, value)
-    elif isinstance(exemplar, float):
-        self.addDouble(name, value)
-    elif isinstance(exemplar, str):
-        self.addString(name, value)
-    elif isinstance(exemplar, lsst.daf.base.DateTime):
-        self.addDateTime(name, value)
-    elif isinstance(exemplar, lsst.daf.base.PropertySet):
-        self.addPropertySet(name, value)
-    else:
-        raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(exemplar))
+
+    # Special case: a python int can be larger than SWIG will recognise as an int
+    if isinstance(exemplar, int):
+        try:
+            self.setInt(name, value)
+        except NotImplementedError:
+            self.setLongLong(name, value)
+        return
+
+    t = type(exemplar)
+    if not t in _PS_typeMenu:
+        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    getattr(self, "add" + _PS_typeMenu[t])(name, value)
 
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
@@ -252,7 +240,31 @@ PropertyListAddType(double, Double)
 PropertyListAddType(std::string, String)
 PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
+%extend lsst::daf::base::PropertyList {
+    %pythoncode {
+        def __len__(self):
+            return self.size()
+        def __getstate__(self):
+            return [(name, self.get(name), self.getComment(name)) for name in self.getOrderedNames()]
+        def __setstate__(self, state):
+            self.__init__()
+            for name, value, comment in state:
+                self.set(name, value, comment)
+}
+}
+
 %pythoncode {
+# Mapping of type to method names
+# int is special-cased, so is not present
+_PL_typeMenu = {bool: "Bool",
+                long: "LongLong",
+                float: "Double",
+                str: "String",
+                DateTime: "DateTime",
+                PropertySet: "PropertySet",
+                PropertyList: "PropertySet",
+                }
+
 def _PL_getValue(self, name, asArray=False):
     """
     Extract a single Python value of unknown type from a PropertyList by
@@ -261,34 +273,14 @@ def _PL_getValue(self, name, asArray=False):
     if not self.exists(name):
         raise lsst.pex.exceptions.LsstException, name + " not found"
 
+    # Mapping of type to getter; can't use dict because can't hash a SWIGed 'std::type_info *'
+    menu = [(getattr(self, "TYPE_" + t), getattr(self, "getArray" + t)) for
+            t in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime")]
     t = self.typeOf(name)
-    if t == self.TYPE_Bool:
-        value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Short:
-        value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Int:
-        value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Long:
-        value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_LongLong:
-        value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Float:
-        value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Double:
-        value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_String:
-        value = self.getArrayString(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_DateTime:
-        value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 and not asArray else value
+    for menuType, getter in menu:
+        if t == menuType:
+            value = getter(name)
+            return value[0] if len(value) == 1 and not asArray else value
     try:
         return self.getAsPropertyListPtr(name)
     except:
@@ -304,91 +296,55 @@ def _PL_setValue(self, name, value, comment=None, inPlace=True):
     """
     List a value in a PropertyList from a single Python value of unknown type.
     """
+    args = [name, value]
+    if comment is not None:
+        args.append(comment)
+    args.append(inPlace)
+
     if hasattr(value, "__iter__"):
         exemplar = value[0]
     else:
         exemplar = value
-    if comment is None:
-        if isinstance(exemplar, bool):
-            self.setBool(name, value, inPlace)
-        elif isinstance(exemplar, int):
-            self.setInt(name, value, inPlace)
-        elif isinstance(exemplar, long):
-            self.setLongLong(name, value, inPlace)
-        elif isinstance(exemplar, float):
-            self.setDouble(name, value, inPlace)
-        elif isinstance(exemplar, str):
-            self.setString(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.setDateTime(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertySet):
-            self.setPropertySet(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertyList):
-            self.setPropertySet(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
-    else:
-        if isinstance(exemplar, bool):
-            self.setBool(name, value, comment, inPlace)
-        elif isinstance(exemplar, int):
-            self.setInt(name, value, comment, inPlace)
-        elif isinstance(exemplar, long):
-            self.setLongLong(name, value, comment, inPlace)
-        elif isinstance(exemplar, float):
-            self.setDouble(name, value, comment, inPlace)
-        elif isinstance(exemplar, str):
-            self.setString(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.setDateTime(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertySet):
-            self.setPropertySet(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertyList):
-            self.setPropertySet(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
+
+    # Special case: a python int can be larger than SWIG will recognise as an int
+    if isinstance(exemplar, int):
+        try:
+            self.setInt(*args)
+        except NotImplementedError:
+            self.setLongLong(*args)
+        return
+
+    t = type(exemplar)
+    if not t in _PL_typeMenu:
+        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    getattr(self, "set" + _PL_typeMenu[t])(*args)
 
 def _PL_addValue(self, name, value, comment=None, inPlace=True):
     """
     Add a value to a PropertyList from a single Python value of unknown type.
     """
+    args = [name, value]
+    if comment is not None:
+        args.append(comment)
+    args.append(inPlace)
+
     if hasattr(value, "__iter__"):
         exemplar = value[0]
     else:
         exemplar = value
-    if comment is None:
-        if isinstance(exemplar, bool):
-            self.addBool(name, value, inPlace)
-        elif isinstance(exemplar, int):
-            self.addInt(name, value, inPlace)
-        elif isinstance(exemplar, long):
-            self.addLongLong(name, value, inPlace)
-        elif isinstance(exemplar, float):
-            self.addDouble(name, value, inPlace)
-        elif isinstance(exemplar, str):
-            self.addString(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.addDateTime(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
-    else:
-        if isinstance(exemplar, bool):
-            self.addBool(name, value, comment, inPlace)
-        elif isinstance(exemplar, int):
-            self.addInt(name, value, comment, inPlace)
-        elif isinstance(exemplar, long):
-            self.addLongLong(name, value, comment, inPlace)
-        elif isinstance(exemplar, float):
-            self.addDouble(name, value, comment, inPlace)
-        elif isinstance(exemplar, str):
-            self.addString(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.addDateTime(name, value, comment, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
+
+    # Special case: a python int can be larger than SWIG will recognise as an int
+    if isinstance(exemplar, int):
+        try:
+            self.addInt(*args)
+        except NotImplementedError:
+            self.addLongLong(*args)
+        return
+
+    t = type(exemplar)
+    if not t in _PL_typeMenu:
+        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    getattr(self, "add" + _PL_typeMenu[t])(*args)
 
 PropertyList.get = _PL_getValue
 PropertyList.set = _PL_setValue
