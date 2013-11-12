@@ -125,9 +125,72 @@ PropertySetAddType(lsst::daf::base::DateTime, DateTime)
 PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
 %pythoncode {
+def _propertyContainerElementTypeName(container, name):
+    """Return name of the type of a particular element"""
+    t = container.typeOf(name)
+    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime"):
+        if t == getattr(container, "TYPE_" + checkType):
+            return checkType
+    return None
+
+def _propertyContainerGet(container, name, asArray=False):
+    """Extract a single Python value of unknown type"""
+    if not container.exists(name):
+        raise lsst.pex.exceptions.LsstException, name + " not found"
+
+    elemType = _propertyContainerElementTypeName(container, name)
+    if elemType:
+        value = getattr(container, "getArray" + elemType)(name)
+        return value[0] if len(value) == 1 and not asArray else value
+
+    try:
+        return container.getAsPropertyListPtr(name)
+    except:
+        pass
+    if container.typeOf(name) == container.TYPE_PropertySet:
+        return container.getAsPropertySetPtr(name)
+    try:
+        return container.getAsPersistablePtr(name)
+    except:
+        pass
+    raise lsst.pex.exceptions.LsstException('Unknown PropertySet value type for ' + name)
+
+def _propertyContainerSet(container, name, value, typeMenu, *args):
+    """Set a single Python value of unknown type"""
+    if hasattr(value, "__iter__"):
+        exemplar = value[0]
+    else:
+        exemplar = value
+
+    t = type(exemplar)
+    if t in typeMenu:
+        return getattr(container, "set" + typeMenu[t])(name, value, *args)
+    # Allow for subclasses
+    for checkType in _PS_typeMenu:
+        if isinstance(t, checkType):
+            return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
+    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+
+def _propertyContainerAdd(container, name, value, typeMenu, *args):
+    """Add a single Python value of unknown type"""
+    if hasattr(value, "__iter__"):
+        exemplar = value[0]
+    else:
+        exemplar = value
+
+    t = type(exemplar)
+    if t in _PS_typeMenu:
+        return getattr(container, "add" + _PS_typeMenu[t])(name, value, *args)
+    # Allow for subclasses
+    for checkType in _PS_typeMenu:
+        if isinstance(t, checkType):
+            return getattr(container, "add" + _PS_typeMenu[checkType])(name, value, *args)
+    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+
+
 # Mapping of type to method names
-# int is special-cased, so is not present
 _PS_typeMenu = {bool: "Bool",
+                int: "Int",
                 long: "LongLong",
                 float: "Double",
                 str: "String",
@@ -137,74 +200,11 @@ _PS_typeMenu = {bool: "Bool",
                 }
 
 def _PS_getValue(self, name, asArray=False):
-    """
-    Extract a single Python value of unknown type from a PropertySet by
-    trying each Python-compatible type in turn until no exception is raised.
-    """
-    if not self.exists(name):
-        raise lsst.pex.exceptions.LsstException, name + " not found"
-
-    # Mapping of type to getter; can't use dict because can't hash a SWIGed 'std::type_info *'
-    menu = [(getattr(self, "TYPE_" + t), getattr(self, "getArray" + t)) for
-            t in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime")]
-    t = self.typeOf(name)
-    for menuType, getter in menu:
-        if t == menuType:
-            value = getter(name)
-            return value[0] if len(value) == 1 and not asArray else value
-
-    if t == self.TYPE_PropertySet:
-        return self.getAsPropertySetPtr(name)
-    try:
-        return self.getAsPersistablePtr(name)
-    except:
-        pass
-    raise lsst.pex.exceptions.LsstException, \
-        'Unknown PropertySet value type for ' + name
-
+    return _propertyContainerGet(self, name, asArray)
 def _PS_setValue(self, name, value):
-    """
-    Set a value in a PropertySet from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
-    # Special case: a python int can be larger than SWIG will recognise as an int
-    if isinstance(exemplar, int):
-        try:
-            self.setInt(name, value)
-        except NotImplementedError:
-            self.setLongLong(name, value)
-        return
-
-    t = type(exemplar)
-    if not t in _PS_typeMenu:
-        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
-    getattr(self, "set" + _PS_typeMenu[t])(name, value)
-
+    return _propertyContainerSet(self, name, value, _PS_typeMenu)
 def _PS_addValue(self, name, value):
-    """
-    Add a value to a PropertySet from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
-    # Special case: a python int can be larger than SWIG will recognise as an int
-    if isinstance(exemplar, int):
-        try:
-            self.setInt(name, value)
-        except NotImplementedError:
-            self.setLongLong(name, value)
-        return
-
-    t = type(exemplar)
-    if not t in _PS_typeMenu:
-        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
-    getattr(self, "add" + _PS_typeMenu[t])(name, value)
+    return _propertyContainerAdd(self, name, value, _PS_typeMenu)
 
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
@@ -245,18 +245,19 @@ PropertyListAddType(lsst::daf::base::DateTime, DateTime)
         def __len__(self):
             return self.size()
         def __getstate__(self):
-            return [(name, self.get(name), self.getComment(name)) for name in self.getOrderedNames()]
+            return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
+                     self.getComment(name)) for name in self.getOrderedNames()]
         def __setstate__(self, state):
             self.__init__()
-            for name, value, comment in state:
-                self.set(name, value, comment)
+            for name, elemType, value, comment in state:
+                getattr(self, "set" + elemType)(name, value, comment)
 }
 }
 
 %pythoncode {
 # Mapping of type to method names
-# int is special-cased, so is not present
 _PL_typeMenu = {bool: "Bool",
+                int: "Int",
                 long: "LongLong",
                 float: "Double",
                 str: "String",
@@ -266,85 +267,19 @@ _PL_typeMenu = {bool: "Bool",
                 }
 
 def _PL_getValue(self, name, asArray=False):
-    """
-    Extract a single Python value of unknown type from a PropertyList by
-    trying each Python-compatible type in turn until no exception is raised.
-    """
-    if not self.exists(name):
-        raise lsst.pex.exceptions.LsstException, name + " not found"
-
-    # Mapping of type to getter; can't use dict because can't hash a SWIGed 'std::type_info *'
-    menu = [(getattr(self, "TYPE_" + t), getattr(self, "getArray" + t)) for
-            t in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime")]
-    t = self.typeOf(name)
-    for menuType, getter in menu:
-        if t == menuType:
-            value = getter(name)
-            return value[0] if len(value) == 1 and not asArray else value
-    try:
-        return self.getAsPropertyListPtr(name)
-    except:
-        pass
-    try:
-        return self.getAsPersistablePtr(name)
-    except:
-        pass
-    raise lsst.pex.exceptions.LsstException, \
-        'Unknown PropertyList value type for ' + name
-
+    return _propertyContainerGet(self, name, asArray)
 def _PL_setValue(self, name, value, comment=None, inPlace=True):
-    """
-    List a value in a PropertyList from a single Python value of unknown type.
-    """
-    args = [name, value]
+    args = []
     if comment is not None:
         args.append(comment)
     args.append(inPlace)
-
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
-    # Special case: a python int can be larger than SWIG will recognise as an int
-    if isinstance(exemplar, int):
-        try:
-            self.setInt(*args)
-        except NotImplementedError:
-            self.setLongLong(*args)
-        return
-
-    t = type(exemplar)
-    if not t in _PL_typeMenu:
-        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
-    getattr(self, "set" + _PL_typeMenu[t])(*args)
-
+    return _propertyContainerSet(self, name, value, _PL_typeMenu, *args)
 def _PL_addValue(self, name, value, comment=None, inPlace=True):
-    """
-    Add a value to a PropertyList from a single Python value of unknown type.
-    """
-    args = [name, value]
+    args = []
     if comment is not None:
         args.append(comment)
     args.append(inPlace)
-
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
-    # Special case: a python int can be larger than SWIG will recognise as an int
-    if isinstance(exemplar, int):
-        try:
-            self.addInt(*args)
-        except NotImplementedError:
-            self.addLongLong(*args)
-        return
-
-    t = type(exemplar)
-    if not t in _PL_typeMenu:
-        raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
-    getattr(self, "add" + _PL_typeMenu[t])(*args)
+    return _propertyContainerAdd(self, name, value, _PL_typeMenu, *args)
 
 PropertyList.get = _PL_getValue
 PropertyList.set = _PL_setValue
