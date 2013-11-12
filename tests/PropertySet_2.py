@@ -305,10 +305,10 @@ def suite():
 
 def run(exit=False):
     """Run the tests"""
-    utilsTests.run(suite(), exit)
+    return utilsTests.run(suite(), exit)
 
 if __name__ == '__main__':
-    run()
+    run(True)
 
 
 # BOOST_AUTO_TEST_CASE(getScalarThrow) {
