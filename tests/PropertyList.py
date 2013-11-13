@@ -21,7 +21,9 @@
 #
 
 import unittest
+import pickle
 
+import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
@@ -31,6 +33,13 @@ class PropertyListTestCase(unittest.TestCase):
     def testConstruct(self):
         apl = dafBase.PropertyList()
         self.assert_(apl is not None)
+
+    def checkPickle(self, original):
+        new = pickle.loads(pickle.dumps(original))
+        self.assertEqual(original.nameCount(), new.nameCount())
+        self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
+        for name in original.getOrderedNames():
+            self.assertEqual(original.get(name), new.get(name))
 
     def testScalar(self):
         apl = dafBase.PropertyList()
@@ -67,6 +76,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.get("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
         self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265L)
+        self.checkPickle(apl)
 
     def testGetDefault(self):
         apl = dafBase.PropertyList()
@@ -101,6 +111,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(len(x), 1)
         self.assertEqual(x, (999,))
 
+        self.checkPickle(apl)
+
     def testGetVector2(self):
         apl = dafBase.PropertyList()
         v = [42, 2008, 1]
@@ -113,6 +125,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(v[2], w[2])
         self.assertEqual(apl.getInt("ints2"), 8)
         self.assertEqual(apl.getArrayInt("ints2"), (10, 9, 8))
+
+        self.checkPickle(apl)
 
     def testAddScalar(self):
         apl = dafBase.PropertyList()
@@ -217,6 +231,8 @@ class PropertyListTestCase(unittest.TestCase):
         del correct[4]
         self.assertEqual(apl.toList(), correct)
 
+        self.checkPickle(apl)
+
     def testHierarchy(self):
         apl = dafBase.PropertyList()
         apl.set("CURRENT", 49.5)
@@ -237,9 +253,25 @@ class PropertyListTestCase(unittest.TestCase):
             'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
             'top.sibling = 42\ntop.bottom = "x"\n')
 
+        self.checkPickle(apl)
+
+def suite():
+    """Returns a suite containing all the test cases in this module."""
+
+    utilsTests.init()
+
+    suites = []
+    suites += unittest.makeSuite(PropertyListTestCase)
+    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
+
+    return unittest.TestSuite(suites)
+
+def run(exit=False):
+    """Run the tests"""
+    return utilsTests.run(suite(), exit)
 
 if __name__ == '__main__':
-    unittest.main()
+    run(True)
 
 # BOOST_AUTO_TEST_CASE(arrayProperties) {
 #     dafBase::PropertyList apl;

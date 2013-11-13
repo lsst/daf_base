@@ -93,6 +93,10 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
             import datetime
             nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
             return datetime.datetime.utcfromtimestamp(nsecs/10**9)
+        def __reduce__(self):
+            return self.__class__, (self.nsecs(),)
+        def __eq__(self, other):
+            return self.nsecs() == other.nsecs()
     %}
 }
 
@@ -121,102 +125,86 @@ PropertySetAddType(lsst::daf::base::DateTime, DateTime)
 PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
 %pythoncode {
-def _PS_getValue(self, name, asArray=False):
-    """
-    Extract a single Python value of unknown type from a PropertySet by
-    trying each Python-compatible type in turn until no exception is raised.
-    """
-    if not self.exists(name):
+def _propertyContainerElementTypeName(container, name):
+    """Return name of the type of a particular element"""
+    t = container.typeOf(name)
+    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime"):
+        if t == getattr(container, "TYPE_" + checkType):
+            return checkType
+    return None
+
+def _propertyContainerGet(container, name, asArray=False):
+    """Extract a single Python value of unknown type"""
+    if not container.exists(name):
         raise lsst.pex.exceptions.LsstException, name + " not found"
 
-    t = self.typeOf(name)
-    if t == self.TYPE_Bool:
-        value = self.getArrayBool(name)
+    elemType = _propertyContainerElementTypeName(container, name)
+    if elemType:
+        value = getattr(container, "getArray" + elemType)(name)
         return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Short:
-        value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Int:
-        value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Long:
-        value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_LongLong:
-        value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Float:
-        value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Double:
-        value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_String:
-        value = self.getArrayString(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_DateTime:
-        value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_PropertySet:
-        return self.getAsPropertySetPtr(name)
+
     try:
-        return self.getAsPersistablePtr(name)
+        return container.getAsPropertyListPtr(name)
     except:
         pass
-    raise lsst.pex.exceptions.LsstException, \
-        'Unknown PropertySet value type for ' + name
+    if container.typeOf(name) == container.TYPE_PropertySet:
+        return container.getAsPropertySetPtr(name)
+    try:
+        return container.getAsPersistablePtr(name)
+    except:
+        pass
+    raise lsst.pex.exceptions.LsstException('Unknown PropertySet value type for ' + name)
 
+def _propertyContainerSet(container, name, value, typeMenu, *args):
+    """Set a single Python value of unknown type"""
+    if hasattr(value, "__iter__"):
+        exemplar = value[0]
+    else:
+        exemplar = value
+
+    t = type(exemplar)
+    if t in typeMenu:
+        return getattr(container, "set" + typeMenu[t])(name, value, *args)
+    # Allow for subclasses
+    for checkType in _PS_typeMenu:
+        if isinstance(t, checkType):
+            return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
+    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+
+def _propertyContainerAdd(container, name, value, typeMenu, *args):
+    """Add a single Python value of unknown type"""
+    if hasattr(value, "__iter__"):
+        exemplar = value[0]
+    else:
+        exemplar = value
+
+    t = type(exemplar)
+    if t in _PS_typeMenu:
+        return getattr(container, "add" + _PS_typeMenu[t])(name, value, *args)
+    # Allow for subclasses
+    for checkType in _PS_typeMenu:
+        if isinstance(t, checkType):
+            return getattr(container, "add" + _PS_typeMenu[checkType])(name, value, *args)
+    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+
+
+# Mapping of type to method names
+_PS_typeMenu = {bool: "Bool",
+                int: "Int",
+                long: "LongLong",
+                float: "Double",
+                str: "String",
+                DateTime: "DateTime",
+                PropertySet: "PropertySet",
+                PropertyList: "PropertySet",
+                }
+
+def _PS_getValue(self, name, asArray=False):
+    return _propertyContainerGet(self, name, asArray)
 def _PS_setValue(self, name, value):
-    """
-    Set a value in a PropertySet from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-    if isinstance(exemplar, bool):
-        self.setBool(name, value)
-    elif isinstance(exemplar, int):
-        self.setInt(name, value)
-    elif isinstance(exemplar, long):
-        self.setLongLong(name, value)
-    elif isinstance(exemplar, float):
-        self.setDouble(name, value)
-    elif isinstance(exemplar, str):
-        self.setString(name, value)
-    elif isinstance(exemplar, lsst.daf.base.DateTime):
-        self.setDateTime(name, value)
-    elif isinstance(exemplar, lsst.daf.base.PropertySet):
-        self.setPropertySet(name, value)
-    else:
-        raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(value))
-
+    return _propertyContainerSet(self, name, value, _PS_typeMenu)
 def _PS_addValue(self, name, value):
-    """
-    Add a value to a PropertySet from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-    if isinstance(exemplar, bool):
-        self.addBool(name, value)
-    elif isinstance(exemplar, int):
-        self.addInt(name, value)
-    elif isinstance(exemplar, long):
-        self.addLongLong(name, value)
-    elif isinstance(exemplar, float):
-        self.addDouble(name, value)
-    elif isinstance(exemplar, str):
-        self.addString(name, value)
-    elif isinstance(exemplar, lsst.daf.base.DateTime):
-        self.addDateTime(name, value)
-    elif isinstance(exemplar, lsst.daf.base.PropertySet):
-        self.addPropertySet(name, value)
-    else:
-        raise lsst.pex.exceptions.LsstException, \
-            'Unknown value type for %s: %s' % (name, type(exemplar))
+    return _propertyContainerAdd(self, name, value, _PS_typeMenu)
 
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
@@ -252,143 +240,46 @@ PropertyListAddType(double, Double)
 PropertyListAddType(std::string, String)
 PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
+%extend lsst::daf::base::PropertyList {
+    %pythoncode {
+        def __len__(self):
+            return self.size()
+        def __getstate__(self):
+            return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
+                     self.getComment(name)) for name in self.getOrderedNames()]
+        def __setstate__(self, state):
+            self.__init__()
+            for name, elemType, value, comment in state:
+                getattr(self, "set" + elemType)(name, value, comment)
+}
+}
+
 %pythoncode {
+# Mapping of type to method names
+_PL_typeMenu = {bool: "Bool",
+                int: "Int",
+                long: "LongLong",
+                float: "Double",
+                str: "String",
+                DateTime: "DateTime",
+                PropertySet: "PropertySet",
+                PropertyList: "PropertySet",
+                }
+
 def _PL_getValue(self, name, asArray=False):
-    """
-    Extract a single Python value of unknown type from a PropertyList by
-    trying each Python-compatible type in turn until no exception is raised.
-    """
-    if not self.exists(name):
-        raise lsst.pex.exceptions.LsstException, name + " not found"
-
-    t = self.typeOf(name)
-    if t == self.TYPE_Bool:
-        value = self.getArrayBool(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Short:
-        value = self.getArrayShort(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Int:
-        value = self.getArrayInt(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Long:
-        value = self.getArrayLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_LongLong:
-        value = self.getArrayLongLong(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Float:
-        value = self.getArrayFloat(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_Double:
-        value = self.getArrayDouble(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_String:
-        value = self.getArrayString(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    elif t == self.TYPE_DateTime:
-        value = self.getArrayDateTime(name)
-        return value[0] if len(value) == 1 and not asArray else value
-    try:
-        return self.getAsPropertyListPtr(name)
-    except:
-        pass
-    try:
-        return self.getAsPersistablePtr(name)
-    except:
-        pass
-    raise lsst.pex.exceptions.LsstException, \
-        'Unknown PropertyList value type for ' + name
-
+    return _propertyContainerGet(self, name, asArray)
 def _PL_setValue(self, name, value, comment=None, inPlace=True):
-    """
-    List a value in a PropertyList from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-    if comment is None:
-        if isinstance(exemplar, bool):
-            self.setBool(name, value, inPlace)
-        elif isinstance(exemplar, int):
-            self.setInt(name, value, inPlace)
-        elif isinstance(exemplar, long):
-            self.setLongLong(name, value, inPlace)
-        elif isinstance(exemplar, float):
-            self.setDouble(name, value, inPlace)
-        elif isinstance(exemplar, str):
-            self.setString(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.setDateTime(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertySet):
-            self.setPropertySet(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertyList):
-            self.setPropertySet(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
-    else:
-        if isinstance(exemplar, bool):
-            self.setBool(name, value, comment, inPlace)
-        elif isinstance(exemplar, int):
-            self.setInt(name, value, comment, inPlace)
-        elif isinstance(exemplar, long):
-            self.setLongLong(name, value, comment, inPlace)
-        elif isinstance(exemplar, float):
-            self.setDouble(name, value, comment, inPlace)
-        elif isinstance(exemplar, str):
-            self.setString(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.setDateTime(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertySet):
-            self.setPropertySet(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.PropertyList):
-            self.setPropertySet(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
-
+    args = []
+    if comment is not None:
+        args.append(comment)
+    args.append(inPlace)
+    return _propertyContainerSet(self, name, value, _PL_typeMenu, *args)
 def _PL_addValue(self, name, value, comment=None, inPlace=True):
-    """
-    Add a value to a PropertyList from a single Python value of unknown type.
-    """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-    if comment is None:
-        if isinstance(exemplar, bool):
-            self.addBool(name, value, inPlace)
-        elif isinstance(exemplar, int):
-            self.addInt(name, value, inPlace)
-        elif isinstance(exemplar, long):
-            self.addLongLong(name, value, inPlace)
-        elif isinstance(exemplar, float):
-            self.addDouble(name, value, inPlace)
-        elif isinstance(exemplar, str):
-            self.addString(name, value, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.addDateTime(name, value, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
-    else:
-        if isinstance(exemplar, bool):
-            self.addBool(name, value, comment, inPlace)
-        elif isinstance(exemplar, int):
-            self.addInt(name, value, comment, inPlace)
-        elif isinstance(exemplar, long):
-            self.addLongLong(name, value, comment, inPlace)
-        elif isinstance(exemplar, float):
-            self.addDouble(name, value, comment, inPlace)
-        elif isinstance(exemplar, str):
-            self.addString(name, value, comment, inPlace)
-        elif isinstance(exemplar, lsst.daf.base.DateTime):
-            self.addDateTime(name, value, comment, inPlace)
-        else:
-            raise lsst.pex.exceptions.LsstException, \
-                'Unknown value type for %s: %s' % (name, type(value))
+    args = []
+    if comment is not None:
+        args.append(comment)
+    args.append(inPlace)
+    return _propertyContainerAdd(self, name, value, _PL_typeMenu, *args)
 
 PropertyList.get = _PL_getValue
 PropertyList.set = _PL_setValue

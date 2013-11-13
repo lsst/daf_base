@@ -22,6 +22,7 @@
 
 import unittest
 
+import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
@@ -291,10 +292,24 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.get("b.c"), 20)
         self.assertEqual(ps.exists("b"), False)
 
+def suite():
+    """Returns a suite containing all the test cases in this module."""
 
+    utilsTests.init()
+
+    suites = []
+    suites += unittest.makeSuite(PropertySetTestCase)
+    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
+
+    return unittest.TestSuite(suites)
+
+def run(exit=False):
+    """Run the tests"""
+    return utilsTests.run(suite(), exit)
 
 if __name__ == '__main__':
-    unittest.main()
+    run(True)
+
 
 # BOOST_AUTO_TEST_CASE(getScalarThrow) {
 #     dafBase::PropertySet ps;
