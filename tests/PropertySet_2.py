@@ -20,11 +20,11 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-import unittest
-
-import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
+import lsst.utils.tests as utilsTests
+import unittest
+
 
 class PropertySetTestCase(unittest.TestCase):
     """A test case for PropertySet."""

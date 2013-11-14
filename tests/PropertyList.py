@@ -20,12 +20,12 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import lsst.daf.base as dafBase
+import lsst.pex.exceptions as pexExcept
+import lsst.utils.tests as utilsTests
 import unittest
 import pickle
 
-import lsst.utils.tests as utilsTests
-import lsst.daf.base as dafBase
-import lsst.pex.exceptions as pexExcept
 
 
 class FloatSubClass(float):
