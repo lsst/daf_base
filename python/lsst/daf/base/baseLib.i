@@ -166,8 +166,8 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
     if t in typeMenu:
         return getattr(container, "set" + typeMenu[t])(name, value, *args)
     # Allow for subclasses
-    for checkType in _PS_typeMenu:
-        if isinstance(t, checkType):
+    for checkType in typeMenu:
+        if isinstance(value, checkType):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
     raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
 
@@ -179,12 +179,12 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
         exemplar = value
 
     t = type(exemplar)
-    if t in _PS_typeMenu:
-        return getattr(container, "add" + _PS_typeMenu[t])(name, value, *args)
+    if t in typeMenu:
+        return getattr(container, "add" + typeMenu[t])(name, value, *args)
     # Allow for subclasses
-    for checkType in _PS_typeMenu:
-        if isinstance(t, checkType):
-            return getattr(container, "add" + _PS_typeMenu[checkType])(name, value, *args)
+    for checkType in typeMenu:
+        if isinstance(value, checkType):
+            return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
     raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
 
 

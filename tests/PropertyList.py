@@ -27,6 +27,12 @@ import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
+
+class FloatSubClass(float):
+    """Intended to be something like numpy.float64, without introducing a dependency on numpy"""
+    pass
+
+
 class PropertyListTestCase(unittest.TestCase):
     """A test case for PropertyList."""
 
@@ -40,6 +46,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
         for name in original.getOrderedNames():
             self.assertEqual(original.get(name), new.get(name))
+            self.assertEqual(original.typeOf(name), new.typeOf(name))
 
     def testScalar(self):
         apl = dafBase.PropertyList()
@@ -53,6 +60,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setString("string", "bar")
         apl.set("int2", 2009)
         apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        apl.set("subclass", FloatSubClass(1.23456789))
 
         self.assertEqual(apl.typeOf("bool"), dafBase.PropertyList.TYPE_Bool)
         self.assertEqual(apl.getBool("bool"), True)
@@ -76,6 +84,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.get("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
         self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265L)
+        self.assertEqual(apl.getDouble("subclass"), 1.23456789)
         self.checkPickle(apl)
 
     def testGetDefault(self):
