@@ -144,6 +144,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.addInt("ints", -999)
         apl.add("other", "foo")
         apl.add("ints", 13)
+        apl.add("subclass", FloatSubClass(1.23456789))
         w = apl.getArrayInt("ints")
         self.assertEqual(len(w), 5)
         self.assertEqual(v[0], w[0])
@@ -152,6 +153,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(w[3], -999)
         self.assertEqual(w[4], 13)
         self.assertEqual(apl.getString("other"), "foo")
+        self.assertEqual(apl.get("subclass"), 1.23456789)
 
     def testDateTimeToString(self):
         apl = dafBase.PropertyList()
@@ -183,8 +185,11 @@ class PropertyListTestCase(unittest.TestCase):
         v = [42, 2008, 1]
         apl.set("ints", v)
         apl.add("ints", [-42, -2008, -1])
+        subclass = (FloatSubClass(1.23), FloatSubClass(4.56), FloatSubClass(7.89))
+        apl.add("subclass", subclass)
         self.assertEqual(apl.getArrayInt("ints"),
                 (42, 2008, 1, -42, -2008, -1))
+        self.assertEqual(apl.get("subclass"), subclass)
 
     def testComment(self):
         apl = dafBase.PropertyList()
