@@ -76,6 +76,8 @@ public:
     struct timespec timespec(void) const; // Always UTC
     struct timeval timeval(void) const; // Always UTC
 
+    bool operator==(DateTime const& rhs) const;
+
     static DateTime now(void);
 
     static void initializeLeapSeconds(std::string const& leapString);
