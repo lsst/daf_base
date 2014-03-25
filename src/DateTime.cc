@@ -539,6 +539,13 @@ std::string dafBase::DateTime::toString(void) const {
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec % nsecs).str();
 }
 
+/** Equality operator.
+ * \return True if both DateTimes have the same nanosecond representation.
+ */
+bool dafBase::DateTime::operator==(DateTime const& rhs) const {
+    return _nsecs == rhs._nsecs;
+}
+
 /** Return current time as a DateTime.
   * \return DateTime representing the current time.
   */

@@ -48,6 +48,12 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000L)
         self.assertEqual(ts.nsecs(), 1192755506000000000L)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
+        ts2 = ts
+        self.assertEqual(ts, ts2)
+        ts2 = DateTime(1192755473000000000L, DateTime.UTC)
+        self.assertEqual(ts, ts2)
+        ts2 = DateTime(1234567890000000000L, DateTime.UTC)
+        self.assertNotEqual(ts, ts2)
 
     def testBoundaryMJD(self):
         ts = DateTime(47892.0, DateTime.MJD, DateTime.UTC)
