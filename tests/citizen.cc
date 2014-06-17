@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(all) {
 
 #if 0                                   // can crash the program.  Drat.
     ((int *)y.get())[0] = 0;            // deliberately corrupt the block
-    BOOST_CHECK_THROW((void)Citizen::checkCorruption(), lsst::pex::exceptions::MemoryException);
+    BOOST_CHECK_THROW((void)Citizen::checkCorruption(), lsst::pex::exceptions::MemoryError);
     ((int *)y.get())[0] = 0xdeadbeef;   // uncorrupt the block
 #endif
 

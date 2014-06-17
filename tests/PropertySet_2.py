@@ -455,21 +455,21 @@ if __name__ == '__main__':
 #     dafBase::PropertySet ps;
 #     ps.set("int", 42);
 #     BOOST_CHECK_THROW(ps.set("int.sub", "foo"),
-#                       lsst::pex::exceptions::InvalidParameterException);
+#                       lsst::pex::exceptions::InvalidParameterError);
 #     BOOST_CHECK_THROW(ps.get<double>("int"), boost::bad_any_cast);
 #     BOOST_CHECK_THROW(ps.get<double>("double"),
-#                       lsst::pex::exceptions::NotFoundException);
+#                       lsst::pex::exceptions::NotFoundError);
 #     BOOST_CHECK_THROW(ps.getArray<double>("double"),
-#                       lsst::pex::exceptions::NotFoundException);
+#                       lsst::pex::exceptions::NotFoundError);
 #     BOOST_CHECK_THROW(ps.typeOf("double"),
-#                       lsst::pex::exceptions::NotFoundException);
+#                       lsst::pex::exceptions::NotFoundError);
 #     BOOST_CHECK_THROW(ps.add("int", 4.2),
-#                       lsst::pex::exceptions::DomainErrorException);
+#                       lsst::pex::exceptions::DomainError);
 #     std::vector<double> v;
 #     v.push_back(3.14159);
 #     v.push_back(2.71828);
 #     BOOST_CHECK_THROW(ps.add("int", v),
-#                       lsst::pex::exceptions::DomainErrorException);
+#                       lsst::pex::exceptions::DomainError);
 #     BOOST_CHECK_NO_THROW(ps.remove("foo.bar"));
 #     BOOST_CHECK_NO_THROW(ps.remove("int.sub"));
 # }
@@ -665,7 +665,7 @@ if __name__ == '__main__':
 #     psp->set("int", 3.14159);
 # 
 #     BOOST_CHECK_THROW(ps.combine(psp),
-#                       lsst::pex::exceptions::DomainErrorException);
+#                       lsst::pex::exceptions::DomainError);
 # }
 # 
 # BOOST_AUTO_TEST_CASE(remove) {

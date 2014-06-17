@@ -15,7 +15,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License for more detailTypeErrors.
  * 
  * You should have received a copy of the LSST License Statement and 
  * the GNU General Public License along with this program.  If not, 
@@ -222,12 +222,12 @@ size_t dafBase::PropertySet::valueCount(std::string const& name) const {
 /** Get the type of values for a property name (possibly hierarchical).
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Type of values for that property.
-  * @throws NotFoundException Property does not exist.
+  * @throws NotFoundError Property does not exist.
   */
 type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     return i->second->back().type();
 }
@@ -239,20 +239,20 @@ type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
   * @code int i = propertySet.get<int>("foo") @endcode
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Last value set or added.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value does not match desired type.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value does not match desired type.
   */
 template <typename T>
 T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     try {
         return boost::any_cast<T>(i->second->back());
     }
     catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
+        throw LSST_EXCEPT(pexExcept::TypeError, name);
     }
     // not reached
     return boost::any_cast<T>(i->second->back());
@@ -265,7 +265,7 @@ T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress Lss
   * @param[in] name Property name to examine, possibly hierarchical.
   * @param[in] defaultValue Default value to return if property does not exist.
   * @return Last value set or added.
-  * @throws TypeMismatchException Value does not match desired type.
+  * @throws TypeError Value does not match desired type.
   */
 template <typename T>
 T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
@@ -277,7 +277,7 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /
         return boost::any_cast<T>(i->second->back());
     }
     catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
+        throw LSST_EXCEPT(pexExcept::TypeError, name);
     }
     // not reached
     return boost::any_cast<T>(i->second->back());
@@ -288,14 +288,14 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /
   * @code vector<int> v = propertySet.getArray<int>("foo") @endcode
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Vector of values.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value does not match desired type.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value does not match desired type.
   */
 template <typename T>
 vector<T> dafBase::PropertySet::getArray(string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     vector<T> v;
     for (vector<boost::any>::const_iterator j = i->second->begin();
@@ -304,7 +304,7 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
             v.push_back(boost::any_cast<T>(*j));
         }
         catch (boost::bad_any_cast) {
-            throw LSST_EXCEPT(TypeMismatchException, name);
+            throw LSST_EXCEPT(pexExcept::TypeError, name);
         }
     }
     return v;
@@ -315,8 +315,8 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
 /** Get the last value for a bool property name (possibly hierarchical).
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as a bool.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value is not a bool.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value is not a bool.
   */
 bool dafBase::PropertySet::getAsBool(std::string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "for symmetry with other types" */
     return get<bool>(name);
@@ -327,13 +327,13 @@ bool dafBase::PropertySet::getAsBool(std::string const& name) const { /* parasof
   * versions of smaller types are.
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as an int.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value cannot be converted to int.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value cannot be converted to int.
   */
 int dafBase::PropertySet::getAsInt(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -354,7 +354,7 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
         return boost::any_cast<int>(v);
     }
     catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
+        throw LSST_EXCEPT(pexExcept::TypeError, name);
     }
     // not reached
     return boost::any_cast<int>(v);
@@ -366,13 +366,13 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
   * depending on compiler.
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as an int64_t.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value cannot be converted to int64_t.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value cannot be converted to int64_t.
   */
 int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -390,7 +390,7 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
         return boost::any_cast<int64_t>(v);
     }
     catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
+        throw LSST_EXCEPT(pexExcept::TypeError, name);
     }
     // not reached
     return boost::any_cast<int64_t>(v);
@@ -400,13 +400,13 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
   * hierarchical).
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Value as a double.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value cannot be converted to double.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value cannot be converted to double.
   */
 double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
-        throw LSST_EXCEPT(pexExcept::NotFoundException, name + " not found");
+        throw LSST_EXCEPT(pexExcept::NotFoundError, name + " not found");
     }
     boost::any v = i->second->back();
     type_info const& t = v.type();
@@ -427,7 +427,7 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
         return boost::any_cast<double>(v);
     }
     catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(TypeMismatchException, name);
+        throw LSST_EXCEPT(pexExcept::TypeError, name);
     }
     // not reached
     return boost::any_cast<double>(v);
@@ -438,8 +438,8 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
   * strings using this method.
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return String value.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value is not a string.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value is not a string.
   */
 std::string dafBase::PropertySet::getAsString(std::string const& name) const {
     return get<string>(name);
@@ -448,8 +448,8 @@ std::string dafBase::PropertySet::getAsString(std::string const& name) const {
 /** Get the last value for a subproperty name (possibly hierarchical).
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return PropertySet::Ptr value.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value is not a PropertySet::Ptr.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value is not a PropertySet::Ptr.
   */
 dafBase::PropertySet::Ptr
 dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
@@ -459,8 +459,8 @@ dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
 /** Get the last value for a Persistable name (possibly hierarchical).
   * @param[in] name Property name to examine, possibly hierarchical.
   * @return Persistable::Ptr value.
-  * @throws NotFoundException Property does not exist.
-  * @throws TypeMismatchException Value is not a Persistable::Ptr.
+  * @throws NotFoundError Property does not exist.
+  * @throws TypeError Value is not a Persistable::Ptr.
   */
 dafBase::Persistable::Ptr
 dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {
@@ -575,7 +575,7 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
   * value.
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name, T const& value) {
@@ -588,7 +588,7 @@ void dafBase::PropertySet::set(std::string const& name, T const& value) {
   * vector of new values.
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name,
@@ -612,8 +612,8 @@ void dafBase::PropertySet::set(std::string const& name, char const* value) {
   * (possibly hierarchical).  Sets the value if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
-  * @throws TypeMismatchException Type does not match existing values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws TypeError Type does not match existing values.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void dafBase::PropertySet::add(std::string const& name, T const& value) {
@@ -623,7 +623,7 @@ void dafBase::PropertySet::add(std::string const& name, T const& value) {
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw LSST_EXCEPT(TypeMismatchException,
+            throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
         i->second->push_back(value);
@@ -639,7 +639,7 @@ template <> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
     }
     else {
         if (i->second->back().type() != typeid(Ptr)) {
-            throw LSST_EXCEPT(TypeMismatchException,
+            throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
         _cycleCheckPtr(value, name);
@@ -651,8 +651,8 @@ template <> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
   * (possibly hierarchical).  Sets the values if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
-  * @throws TypeMismatchException Type does not match existing values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws TypeError Type does not match existing values.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   * @note
   * May only partially add the vector if an exception occurs.
   */
@@ -665,7 +665,7 @@ void dafBase::PropertySet::add(std::string const& name,
     }
     else {
         if (i->second->back().type() != typeid(T)) {
-            throw LSST_EXCEPT(TypeMismatchException,
+            throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
         i->second->insert(i->second->end(), value.begin(), value.end());
@@ -681,7 +681,7 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
     }
     else {
         if (i->second->back().type() != typeid(Ptr)) {
-            throw LSST_EXCEPT(TypeMismatchException,
+            throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
         _cycleCheckPtrVec(value, name);
@@ -694,8 +694,8 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
   * does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Character string value to append.
-  * @throws TypeMismatchException Type does not match existing values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws TypeError Type does not match existing values.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::add(std::string const& name, char const* value) {
     add(name, string(value));
@@ -706,19 +706,19 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
   * @param[in] dest Destination property name.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
   * @param[in] name Property name to extract.
-  * @throws TypeMismatchException Type does not match existing values.
-  * @throws InvalidParameterException Name does not exist in source.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws TypeError Type does not match existing values.
+  * @throws InvalidParameterError Name does not exist in source.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::copy(std::string const& dest,
                                 ConstPtr source, std::string const& name) {
     if (source.get() == 0) {
-        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+        throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           "Missing source");
     }
     AnyMap::const_iterator sj = source->_find(name);
     if (sj == source->_map.end()) {
-        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+        throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           name + " not in source");
     }
     remove(dest);
@@ -730,8 +730,8 @@ void dafBase::PropertySet::copy(std::string const& dest,
 /** Appends all value vectors from the \a source to their corresponding
   * properties.  Sets values if a property does not exist.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @throws TypeMismatchException Type does not match existing values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws TypeError Type does not match existing values.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   * @note
   * May only partially combine the PropertySets if an exception occurs.
   */
@@ -832,7 +832,7 @@ dafBase::PropertySet::_find(std::string const& name) const {
   * top-level setting.
   * @param[in] name Property name to find, possibly hierarchical.
   * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_set(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
@@ -843,7 +843,7 @@ void dafBase::PropertySet::_set(
   * value with the given vector of values.
   * @param[in] name Property name to find, possibly hierarchical.
   * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_add(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
@@ -854,7 +854,7 @@ void dafBase::PropertySet::_add(
     }
     else {
         if (vp->back().type() != dp->second->back().type()) {
-            throw LSST_EXCEPT(TypeMismatchException,
+            throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
         // Check for cycles
@@ -869,7 +869,7 @@ void dafBase::PropertySet::_add(
   * value with the given vector of values.
   * @param[in] name Property name to find, possibly hierarchical.
   * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterException Hierarchical name uses non-PropertySet.
+  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_findOrInsert(
     std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
@@ -906,13 +906,13 @@ void dafBase::PropertySet::_findOrInsert(
         return;
     }
     else if (j->second->back().type() != typeid(Ptr)) {
-        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+        throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           prefix +
                           " exists but does not contain PropertySet::Ptrs");
     }
     Ptr p = boost::any_cast<Ptr>(j->second->back());
     if (p.get() == 0) {
-        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+        throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           prefix +
                           " exists but contains null PropertySet::Ptr");
     }
@@ -936,14 +936,14 @@ void dafBase::PropertySet::_cycleCheckAnyVec(std::vector<boost::any> const& v,
 void dafBase::PropertySet::_cycleCheckPtr(Ptr const& v,
                                          std::string const& name) {
     if (v.get() == this) {
-        throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+        throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           name + " would cause a cycle");
     }
     vector<string> sets = v->propertySetNames(false);
     for (vector<string>::const_iterator i = sets.begin();
          i != sets.end(); ++i) {
         if (v->getAsPropertySetPtr(*i).get() == this) {
-            throw LSST_EXCEPT(pexExcept::InvalidParameterException,
+            throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                               name + " would cause a cycle");
         }
     }
