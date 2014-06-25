@@ -37,6 +37,7 @@
 
 namespace test = boost::test_tools;
 namespace dafBase = lsst::daf::base;
+namespace pexExcept = lsst::pex::exceptions;
 
 BOOST_AUTO_TEST_SUITE(PropertySetSuite) /* parasoft-suppress LsstDm-3-2a LsstDm-3-6a LsstDm-4-6 "Boost test harness macros" */
 
@@ -168,15 +169,15 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-
     ps.set("char*2", "foo2");
     ps.set("string", std::string("bar"));
 
-    BOOST_CHECK_THROW(ps.get<bool>("short"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<bool>("int"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<short>("int"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<int>("short"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<int>("bool"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<unsigned int>("int"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<double>("float"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<float>("double"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.get<std::string>("int"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.get<bool>("short"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<bool>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<short>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<int>("short"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<int>("bool"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<unsigned int>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<double>("float"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<float>("double"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.get<std::string>("int"), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(getVector) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
@@ -356,19 +357,19 @@ BOOST_AUTO_TEST_CASE(variousThrows) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4
     dafBase::PropertySet ps;
     ps.set("int", 42);
     BOOST_CHECK_THROW(ps.set("int.sub", "foo"),
-                      lsst::pex::exceptions::InvalidParameterError);
-    BOOST_CHECK_THROW(ps.get<double>("int"), lsst::pex::exceptions::TypeError);
+                      pexExcept::InvalidParameterError);
+    BOOST_CHECK_THROW(ps.get<double>("int"), pexExcept::TypeError);
     BOOST_CHECK_THROW(ps.get<double>("double"),
-                      lsst::pex::exceptions::NotFoundError);
+                      pexExcept::NotFoundError);
     BOOST_CHECK_THROW(ps.getArray<double>("double"),
-                      lsst::pex::exceptions::NotFoundError);
+                      pexExcept::NotFoundError);
     BOOST_CHECK_THROW(ps.typeOf("double"),
-                      lsst::pex::exceptions::NotFoundError);
-    BOOST_CHECK_THROW(ps.add("int", 4.2), lsst::pex::exceptions::TypeError);
+                      pexExcept::NotFoundError);
+    BOOST_CHECK_THROW(ps.add("int", 4.2), pexExcept::TypeError);
     std::vector<double> v;
     v.push_back(3.14159);
     v.push_back(2.71828);
-    BOOST_CHECK_THROW(ps.add("int", v), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.add("int", v), pexExcept::TypeError);
     BOOST_CHECK_NO_THROW(ps.remove("foo.bar"));
     BOOST_CHECK_NO_THROW(ps.remove("int.sub"));
 }
@@ -475,18 +476,18 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     ps.set("top", psp);
 
     BOOST_CHECK_EQUAL(ps.getAsBool("bool"), true);
-    BOOST_CHECK_THROW(ps.getAsBool("char"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.getAsBool("char"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(ps.getAsInt("bool"), 1);
     BOOST_CHECK_EQUAL(ps.getAsInt("char"), static_cast<int>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt("short"), 42);
     BOOST_CHECK_EQUAL(ps.getAsInt("int"), 2008);
-    BOOST_CHECK_THROW(ps.getAsInt("int64_t"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.getAsInt("int64_t"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(ps.getAsInt64("bool"), INT64CONST(1));
     BOOST_CHECK_EQUAL(ps.getAsInt64("char"), static_cast<int64_t>('A'));
     BOOST_CHECK_EQUAL(ps.getAsInt64("short"), INT64CONST(42));
     BOOST_CHECK_EQUAL(ps.getAsInt64("int"), INT64CONST(2008));
     BOOST_CHECK_EQUAL(ps.getAsInt64("int64_t"), INT64CONST(0xfeeddeadbeef));
-    BOOST_CHECK_THROW(ps.getAsInt64("float"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.getAsInt64("float"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(ps.getAsDouble("bool"), 1.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("char"), static_cast<double>('A'));
     BOOST_CHECK_EQUAL(ps.getAsDouble("short"), 42.0);
@@ -495,16 +496,16 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
                       static_cast<double>(INT64CONST(0xfeeddeadbeef)));
     BOOST_CHECK_EQUAL(ps.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.getAsDouble("double"), 2.718281828459045);
-    BOOST_CHECK_THROW(ps.getAsDouble("char*"), lsst::pex::exceptions::TypeError);
-    BOOST_CHECK_THROW(ps.getAsString("char"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.getAsDouble("char*"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.getAsString("char"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(ps.getAsString("char*"), "foo");
     BOOST_CHECK_EQUAL(ps.getAsString("char*2"), "foo2");
     BOOST_CHECK_EQUAL(ps.getAsString("string"), "bar");
-    BOOST_CHECK_THROW(ps.getAsString("int"), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.getAsString("int"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(ps.getAsString("top.bottom"), "x");
     BOOST_CHECK_EQUAL(ps.getAsPropertySetPtr("top"), psp);
     BOOST_CHECK_THROW(ps.getAsPropertySetPtr("top.bottom"),
-                      lsst::pex::exceptions::TypeError);
+                      pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(combine) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
@@ -563,7 +564,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(ps.combine(psp), lsst::pex::exceptions::TypeError);
+    BOOST_CHECK_THROW(ps.combine(psp), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
