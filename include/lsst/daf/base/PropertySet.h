@@ -188,10 +188,6 @@ template<> void PropertySet::add<PropertySet::Ptr>(
 template<> void PropertySet::add<PropertySet::Ptr>(
     std::string const& name, std::vector<Ptr> const& value);
 
-LSST_EXCEPTION_TYPE(TypeMismatchException,
-                    lsst::pex::exceptions::LogicErrorException,
-                    lsst::daf::base::TypeMismatchException)
-
 }}} // namespace lsst::daf::base
 
 #endif

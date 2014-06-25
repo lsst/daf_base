@@ -46,7 +46,7 @@ public:
     ThreadPrivate(T const& t) : _init(t) {
         int ret = pthread_key_create(&_key, del);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                               "Could not create key");
         }
     };
@@ -77,14 +77,14 @@ public:
     RwLock(void) {
         int ret = pthread_rwlock_init(&_lock, 0);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                               "Could not create Citizen lock");
         }
     };
     void lock(void) {
         int ret = pthread_rwlock_wrlock(&_lock);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                               "Could not acquire Citizen write lock");
         }
     };
@@ -92,13 +92,13 @@ public:
         int ret = pthread_rwlock_rdlock(&_lock);
         if (ret == 0) return true;
         if (ret == EDEADLK) return false;
-        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                           "Could not acquire Citizen read lock");
     };
     void unlock(void) {
         int ret = pthread_rwlock_unlock(&_lock);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                               "Could not release Citizen lock");
         }
     };
@@ -464,7 +464,7 @@ dafBase::Citizen::memId defaultDeleteCallback(dafBase::Citizen const* ptr //!< A
 //! Default CorruptionCallback
 dafBase::Citizen::memId defaultCorruptionCallback(dafBase::Citizen const* ptr //!< About-to-be deleted Citizen
                               ) {
-    throw LSST_EXCEPT(lsst::pex::exceptions::MemoryException,
+    throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
                       str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
 
     return ptr->getId();                // NOTREACHED

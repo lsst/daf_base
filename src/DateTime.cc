@@ -162,7 +162,7 @@ NsType utcToTai(NsType nsecs) {
     }
     if (i == 0) {
         throw LSST_EXCEPT(
-            lsst::pex::exceptions::DomainErrorException,
+            lsst::pex::exceptions::DomainError,
             (boost::format(
                     "DateTime value too early for UTC-TAI conversion: %1%"
                     ) % nsecs).str());
@@ -186,7 +186,7 @@ NsType taiToUtc(NsType nsecs) {
     }
     if (i == 0) {
         throw LSST_EXCEPT(
-            lsst::pex::exceptions::DomainErrorException,
+            lsst::pex::exceptions::DomainError,
             (boost::format(
                     "DateTime value too early for TAI-UTC conversion: %1%"
                     ) % nsecs).str());
@@ -246,12 +246,12 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
 
     if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
         throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainErrorException,
+                          lsst::pex::exceptions::DomainError,
                           (boost::format("MJD too far in the future: %1%") % mjd).str());
     }
     if (mjd < EPOCH_IN_MJD - MAX_DAYS) {
         throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainErrorException,
+                          lsst::pex::exceptions::DomainError,
                           (boost::format("MJD too far in the past: %1%") % mjd).str());
     }
     _nsecs = static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY);
@@ -312,7 +312,7 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
         setNsecsFromEpoch(date, scale);
         break;
       default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterException, "DateSystem must be MJD, JD, or EPOCH.");
+        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH.");
         break;
     }
 }
@@ -355,7 +355,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     
     if (secs == -1) {
         throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainErrorException,
+                          lsst::pex::exceptions::DomainError,
                           (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
                            % year % month % day % hr % min % sec).str());
     }
@@ -382,7 +382,7 @@ dafBase::DateTime::DateTime(std::string const& iso8601) {
                     "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::DomainErrorException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainError,
                           "Not in acceptable ISO8601 format: " + iso8601);
     }
     DateTime dt(atoi(matches.str(1).c_str()), atoi(matches.str(2).c_str()),
@@ -426,7 +426,7 @@ double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
         return _getEpoch(scale);
         break;
       default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterException,
+        throw LSST_EXCEPT(pexEx::InvalidParameterError,
                           "DateSystem must be MJD, JD, or EPOCH.");
         break;
     }
@@ -553,7 +553,7 @@ dafBase::DateTime dafBase::DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);
     if (ret != 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeErrorException,
+        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
                           "Unable to get current time");
     }
     long long nsecs = tv.tv_sec * LL_NSEC_PER_SEC + tv.tv_usec * 1000LL;

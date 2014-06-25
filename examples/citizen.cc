@@ -122,7 +122,7 @@ int main() {
     try {
         std::cerr << "Checking corruption\n";
         (void)Citizen::hasBeenCorrupted();
-    } catch(lsst::pex::exceptions::MemoryException& e) {
+    } catch(lsst::pex::exceptions::MemoryError& e) {
         std::cerr << "Memory check: " << e <<
             "Proceeding with trepidation\n";
         ((int *)y.get())[0] = 0xdeadbeef; // uncorrupt the block

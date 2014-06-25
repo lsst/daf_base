@@ -37,6 +37,7 @@
 
 namespace test = boost::test_tools;
 namespace dafBase = lsst::daf::base;
+namespace pexExcept = lsst::pex::exceptions;
 
 BOOST_AUTO_TEST_SUITE(PropertyListSuite) /* parasoft-suppress LsstDm-3-2a LsstDm-3-6a LsstDm-4-6 "Boost test harness macros" */
 
@@ -233,15 +234,15 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-
     pl.set("char*2", "foo2");
     pl.set("string", std::string("bar"));
 
-    BOOST_CHECK_THROW(pl.get<bool>("short"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<bool>("int"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<short>("int"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<int>("short"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<int>("bool"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<unsigned int>("int"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<double>("float"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<float>("double"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.get<std::string>("int"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.get<bool>("short"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<bool>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<short>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<int>("short"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<int>("bool"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<unsigned int>("int"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<double>("float"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<float>("double"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.get<std::string>("int"), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(getVector) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
@@ -368,18 +369,18 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     pl.set("top", plp);
 
     BOOST_CHECK_EQUAL(pl.getAsBool("bool"), true);
-    BOOST_CHECK_THROW(pl.getAsBool("char"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsBool("char"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsInt("bool"), 1);
     BOOST_CHECK_EQUAL(pl.getAsInt("char"), static_cast<int>('A'));
     BOOST_CHECK_EQUAL(pl.getAsInt("short"), 42);
     BOOST_CHECK_EQUAL(pl.getAsInt("int"), 2008);
-    BOOST_CHECK_THROW(pl.getAsInt("int64_t"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsInt("int64_t"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsInt64("bool"), INT64CONST(1));
     BOOST_CHECK_EQUAL(pl.getAsInt64("char"), static_cast<int64_t>('A'));
     BOOST_CHECK_EQUAL(pl.getAsInt64("short"), INT64CONST(42));
     BOOST_CHECK_EQUAL(pl.getAsInt64("int"), INT64CONST(2008));
     BOOST_CHECK_EQUAL(pl.getAsInt64("int64_t"), INT64CONST(0xfeeddeadbeef));
-    BOOST_CHECK_THROW(pl.getAsInt64("float"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsInt64("float"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsDouble("bool"), 1.0);
     BOOST_CHECK_EQUAL(pl.getAsDouble("char"), static_cast<double>('A'));
     BOOST_CHECK_EQUAL(pl.getAsDouble("short"), 42.0);
@@ -388,14 +389,14 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
                       static_cast<double>(INT64CONST(0xfeeddeadbeef)));
     BOOST_CHECK_EQUAL(pl.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(pl.getAsDouble("double"), 2.718281828459045);
-    BOOST_CHECK_THROW(pl.getAsDouble("char*"), dafBase::TypeMismatchException);
-    BOOST_CHECK_THROW(pl.getAsString("char"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsDouble("char*"), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.getAsString("char"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsString("char*"), "foo");
     BOOST_CHECK_EQUAL(pl.getAsString("char*2"), "foo2");
     BOOST_CHECK_EQUAL(pl.getAsString("string"), "bar");
-    BOOST_CHECK_THROW(pl.getAsString("int"), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.getAsString("int"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsString("top.bottom"), "x");
-    BOOST_CHECK_THROW(pl.getAsPropertySetPtr("top"), pexExcept::NotFoundException);
+    BOOST_CHECK_THROW(pl.getAsPropertySetPtr("top"), pexExcept::NotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
@@ -405,7 +406,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(pl.combine(psp), dafBase::TypeMismatchException);
+    BOOST_CHECK_THROW(pl.combine(psp), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(combineAsPS) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
