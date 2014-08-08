@@ -138,7 +138,7 @@ def _propertyContainerElementTypeName(container, name):
 def _propertyContainerGet(container, name, asArray=False):
     """Extract a single Python value of unknown type"""
     if not container.exists(name):
-        raise lsst.pex.exceptions.LsstException, name + " not found"
+        raise lsst.pex.exceptions.NotFoundError(name + " not found")
 
     elemType = _propertyContainerElementTypeName(container, name)
     if elemType:
@@ -155,7 +155,7 @@ def _propertyContainerGet(container, name, asArray=False):
         return container.getAsPersistablePtr(name)
     except:
         pass
-    raise lsst.pex.exceptions.LsstException('Unknown PropertySet value type for ' + name)
+    raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type"""
@@ -171,7 +171,7 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
     """Add a single Python value of unknown type"""
@@ -187,7 +187,7 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.LsstException("Unknown value type for %s: %s" % (name, t))
+    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
 
 # Mapping of type to method names
