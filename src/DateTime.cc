@@ -345,7 +345,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     tm.tm_gmtoff = 0;
     
     // Convert to seconds since the epoch, correcting to UTC.
-    time_t secs = mktime(&tm);
+    time_t secs = timegm(&tm);
     
     // long long nsecs will blow out beyond sep 21, 1677 0:00:00, and apr 12 2262 00:00:00
     // (refering to the values of EPOCH_IN_MJD +/- MAX_DAYS ... exceeds 64 bits.)
@@ -359,8 +359,6 @@ dafBase::DateTime::DateTime(int year, int month, int day,
                           (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
                            % year % month % day % hr % min % sec).str());
     }
-    
-    secs -= ::timezone;
     
     _nsecs = secs * LL_NSEC_PER_SEC;
     if (scale == UTC) {
