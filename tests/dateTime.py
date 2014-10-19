@@ -27,6 +27,7 @@ import unittest
 
 from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
+import os
 import time
 
 class DateTimeTestCase(unittest.TestCase):
@@ -190,6 +191,27 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(dt.hour, hour)
         self.assertEqual(dt.minute, minute)
         self.assertEqual(dt.second, second)
+
+class TimeZoneBaseTestCase(DateTimeTestCase):
+    timezone = ""
+    def setUp(self):
+        self.tz = os.environ.setdefault('TZ', "")
+        os.environ['TZ'] = self.timezone
+
+    def tearDown(self):
+        if self.tz == "":
+            del os.environ['TZ']
+        else:
+            os.environ['TZ'] = self.tz
+
+class BritishTimeTestCase(TimeZoneBaseTestCase):
+    timezone = "Europe/London"
+
+class BritishTime2TestCase(TimeZoneBaseTestCase):
+    timezone = "GMT0BST"
+
+class PacificTimeTestCase(TimeZoneBaseTestCase):
+    timezone = "PST8PDT"
 
 if __name__ == '__main__':
     unittest.main()
