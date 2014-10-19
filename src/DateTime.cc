@@ -345,6 +345,9 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     tm.tm_gmtoff = 0;
     
     // Convert to seconds since the epoch, correcting to UTC.
+    // Although timegm() is non-standard, it is a commonly-supported
+    // extension and is much safer/more reliable than mktime(3) in that
+    // it doesn't try to deal with the anomalies of local time zones.
     time_t secs = timegm(&tm);
     
     // long long nsecs will blow out beyond sep 21, 1677 0:00:00, and apr 12 2262 00:00:00
