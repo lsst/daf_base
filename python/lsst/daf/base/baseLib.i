@@ -48,6 +48,8 @@ Access to the classes from the daf_base library
 %shared_ptr(lsst::daf::base::PropertySet);
 %shared_ptr(lsst::daf::base::PropertyList);
 
+%castShared(lsst::daf::base::PropertyList, lsst::daf::base::PropertySet);
+
 %include "persistenceMacros.i"
 %lsst_persistable(lsst::daf::base::PropertySet);
 %lsst_persistable(lsst::daf::base::PropertyList);
