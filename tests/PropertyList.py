@@ -269,6 +269,22 @@ class PropertyListTestCase(unittest.TestCase):
 
         self.checkPickle(apl)
 
+    def testComment(self):
+        """Test that we can dynamically cast a PropertySet pointer to a PropertyList; DM-1524"""
+        apl = dafBase.PropertyList()
+        apl.set("ONE", 1, "i")
+        apl.set("FIVE", 5, "v")
+        apl.set("TEN", 10, "x")
+
+        aps = apl.deepCopy()            # returns a PTR(PropertySet), not PropertyList (arguably a bug)
+        self.assertTrue(isinstance(aps, dafBase.PropertySet)) # ... but a bug that this test uses
+
+        with self.assertRaises(AttributeError):
+            print aps.getComment("FIVE")
+
+        aps = dafBase.PropertyList.cast(aps)
+        self.assertEqual(aps.getComment("FIVE"), "v")
+
 def suite():
     """Returns a suite containing all the test cases in this module."""
 
