@@ -269,7 +269,7 @@ class PropertyListTestCase(unittest.TestCase):
 
         self.checkPickle(apl)
 
-    def testComment(self):
+    def testCastPropertySet(self):
         """Test that we can dynamically cast a PropertySet pointer to a PropertyList; DM-1524"""
         apl = dafBase.PropertyList()
         apl.set("ONE", 1, "i")
