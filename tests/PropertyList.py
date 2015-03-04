@@ -285,6 +285,15 @@ class PropertyListTestCase(unittest.TestCase):
         aps = dafBase.PropertyList.cast(aps)
         self.assertEqual(aps.getComment("FIVE"), "v")
 
+    def testCombineHierarchical(self):
+        # Test that we can perform a deep copy of a PropertyList containing a
+        # hierarchical (contains a '.') key.
+        # This was a segfault prior to addressing DM-882.
+        pl1 = dafBase.PropertyList()
+        pl1.set("a.b", 1)
+        pl2 = pl1.deepCopy() # should not segfault
+        self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
+
 def suite():
     """Returns a suite containing all the test cases in this module."""
 
