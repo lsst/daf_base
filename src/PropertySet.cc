@@ -68,7 +68,7 @@ dafBase::PropertySet::~PropertySet(void) {
   * @return PropertySet::Ptr pointing to the new copy.
   */
 dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
-    Ptr n(new PropertySet);
+    Ptr n(new PropertySet(_flat));
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
         if (i->second->back().type() == typeid(Ptr)) {
             for (vector<boost::any>::const_iterator j =

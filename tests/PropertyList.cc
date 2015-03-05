@@ -409,6 +409,18 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     BOOST_CHECK_THROW(pl.combine(psp), pexExcept::TypeError);
 }
 
+BOOST_AUTO_TEST_CASE(combineHierarchical) {
+    // Test for DM-882.
+    // Prior to that issue, the deepCopy() would segfault.
+    dafBase::PropertyList pl;
+    pl.set("a.b", 1);
+
+    dafBase::PropertySet::Ptr plp;
+    BOOST_CHECK_NO_THROW(plp = pl.deepCopy());
+
+    BOOST_CHECK_EQUAL(pl.getAsInt("a.b"), plp->getAsInt("a.b"));
+}
+
 BOOST_AUTO_TEST_CASE(combineAsPS) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertyList::Ptr plp1(new dafBase::PropertyList);
     dafBase::PropertyList::Ptr plp2(new dafBase::PropertyList);
