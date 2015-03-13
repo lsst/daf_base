@@ -128,7 +128,7 @@ PropertySetAddType(std::string, String)
 PropertySetAddType(lsst::daf::base::DateTime, DateTime)
 PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
-%pythoncode {
+%pythoncode %{
 def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
     t = container.typeOf(name)
@@ -216,7 +216,7 @@ PropertySet.add = _PS_addValue
 del _PS_getValue
 del _PS_setValue
 del _PS_addValue
-}
+%}
 
 // This has to come after PropertyList.h
 %define PropertyListAddType(type, typeName)
@@ -245,7 +245,7 @@ PropertyListAddType(std::string, String)
 PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
 %extend lsst::daf::base::PropertyList {
-    %pythoncode {
+    %pythoncode %{
         def __len__(self):
             return self.size()
         def __getstate__(self):
@@ -255,10 +255,10 @@ PropertyListAddType(lsst::daf::base::DateTime, DateTime)
             self.__init__()
             for name, elemType, value, comment in state:
                 getattr(self, "set" + elemType)(name, value, comment)
-}
+    %}
 }
 
-%pythoncode {
+%pythoncode %{
 # Mapping of type to method names
 _PL_typeMenu = {bool: "Bool",
                 int: "Int",
@@ -306,6 +306,6 @@ def _PL_toList(self):
 
 PropertyList.toList = _PL_toList
 del _PL_toList
-}
+%}
 
 
