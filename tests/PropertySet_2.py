@@ -21,6 +21,7 @@
 #
 
 import unittest
+import numpy
 
 import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
@@ -68,6 +69,31 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265L)
+
+    def testNumPyScalars(self):
+        """Test that we can also pass NumPy array scalars to PropertySet setters.
+
+        The custom Swig typemaps that enable this behavior are implemented in
+        utils, but we want a test outside utils to verify that the approach
+        works in downstream packages.
+        """
+        ps = dafBase.PropertySet()
+        ps.setShort("short", numpy.int16(42))
+        ps.setInt("int", numpy.int32(2008))
+        ps.setLongLong("int64_t", numpy.int64(0xfeeddeadbeefL))
+        ps.setFloat("float", numpy.float32(3.14159))
+        ps.setDouble("double", numpy.float64(2.718281828459045))
+        self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
+        self.assertEqual(ps.getShort("short"), 42)
+        self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
+        self.assertEqual(ps.getInt("int"), 2008)
+        self.assertEqual(ps.typeOf("int64_t"),
+                dafBase.PropertySet.TYPE_LongLong)
+        self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeefL)
+        self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
+        self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
+        self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
+        self.assertEqual(ps.getDouble("double"), 2.718281828459045)
 
     def testGetDefault(self):
         ps = dafBase.PropertySet()
