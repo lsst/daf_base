@@ -41,6 +41,8 @@ Access to the classes from the daf_base library
 
 %include "lsst/p_lsstSwig.i"
 
+%initializeNumPy(daf_base)
+
 %lsst_exceptions()
 %import "lsst/pex/exceptions/exceptionsLib.i"
 
