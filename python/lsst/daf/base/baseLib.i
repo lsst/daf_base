@@ -89,21 +89,21 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
 
 %extend lsst::daf::base::DateTime {
     %pythoncode %{
-        def toPython(self, timescale=None):
-            """Convert a DateTime to Python's datetime
+def toPython(self, timescale=None):
+    """Convert a DateTime to Python's datetime
 
-            @param timescale  Timescale for resultant datetime
-            """
-            import datetime
-            nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
-            return datetime.datetime.utcfromtimestamp(nsecs/10**9)
-        def __reduce__(self):
-            return self.__class__, (self.nsecs(),)
-        def __str__(self):
-            return self.toString()
-        def __repr__(self):
-            return 'lsst.daf.base.DateTime("' + self.toString() + '")'
-    %}
+    @param timescale  Timescale for resultant datetime
+    """
+    import datetime
+    nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
+    return datetime.datetime.utcfromtimestamp(nsecs/10**9)
+def __reduce__(self):
+    return self.__class__, (self.nsecs(),)
+def __str__(self):
+    return self.toString()
+def __repr__(self):
+    return 'lsst.daf.base.DateTime("' + self.toString() + '")'
+%}
 }
 
 %template(vectorCitizen) std::vector<lsst::daf::base::Citizen const *>;
@@ -248,16 +248,16 @@ PropertyListAddType(lsst::daf::base::DateTime, DateTime)
 
 %extend lsst::daf::base::PropertyList {
     %pythoncode %{
-        def __len__(self):
-            return self.size()
-        def __getstate__(self):
-            return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
-                     self.getComment(name)) for name in self.getOrderedNames()]
-        def __setstate__(self, state):
-            self.__init__()
-            for name, elemType, value, comment in state:
-                getattr(self, "set" + elemType)(name, value, comment)
-    %}
+def __len__(self):
+    return self.size()
+def __getstate__(self):
+    return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
+             self.getComment(name)) for name in self.getOrderedNames()]
+def __setstate__(self, state):
+    self.__init__()
+    for name, elemType, value, comment in state:
+        getattr(self, "set" + elemType)(name, value, comment)
+%}
 }
 
 %pythoncode %{
