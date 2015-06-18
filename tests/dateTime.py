@@ -43,6 +43,19 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertAlmostEqual(ts.mjd(DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.mjd(DateTime.TAI), 45205.125 + 21.0/86400.0)
 
+    def testLeapSecond(self):
+        trials = ((45205., 21),
+                  (41498.99, 10),
+                  (41499.01, 11),
+                  (57203.99, 35),
+                  (57204.01, 36),
+                  (57000., 35),
+                  (57210., 36))
+        for mjd, diff in trials:
+            ts = DateTime(mjd, DateTime.MJD, DateTime.UTC)
+            delta = ts.nsecs(DateTime.TAI) - ts.nsecs(DateTime.UTC)
+            self.assertEqual(delta/1E9, diff)
+
     def testNsecs(self):
         ts = DateTime(1192755473000000000L, DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000L)
