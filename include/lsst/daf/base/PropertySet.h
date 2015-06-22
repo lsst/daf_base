@@ -150,6 +150,9 @@ public:
     virtual void combine(ConstPtr source);
         // All vectors from the source are add()ed to the destination with the
         // same names.  Types must match.
+    virtual void override(ConstPtr source);
+        // All vectors from the source are copy()ed to the destination with the
+        // same names.  source overrides destination if there are collisions.
 
     virtual void remove(std::string const& name);
 

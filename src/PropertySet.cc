@@ -747,6 +747,25 @@ void dafBase::PropertySet::combine(ConstPtr source) {
     }
 }
 
+/** Copies all value vectors from the \a source to their corresponding
+  * properties.  Sets values if a property does not exist.  The source
+  * overrides the destination if properties collide.
+  * @param[in] source PropertySet::Ptr for the source PropertySet.
+  */
+void dafBase::PropertySet::override(ConstPtr source) {
+    if (source.get() == 0) {
+        return;
+    }
+    vector<string> names = source->paramNames(false);
+    for (vector<string>::const_iterator i = names.begin();
+         i != names.end(); ++i) {
+        AnyMap::const_iterator sp = source->_find(*i);
+        boost::shared_ptr< vector<boost::any> > vp(
+            new vector<boost::any>(*(sp->second)));
+        _set(*i, vp);
+    }
+}
+
 /** Removes all values for a property name (possibly hierarchical).  Does
   * nothing if the property does not exist.
   * @param[in] name Property name to remove, possibly hierarchical.

@@ -567,6 +567,66 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     BOOST_CHECK_THROW(ps.combine(psp), pexExcept::TypeError);
 }
 
+BOOST_AUTO_TEST_CASE(override) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
+    dafBase::PropertySet ps;
+    ps.set("ps1.pre", 1);
+    ps.set("ps1.post", 2);
+    ps.set("int", 42);
+    ps.set("double", 3.14);
+    ps.set("ps2.plus", 10.24);
+    ps.set("ps2.minus", -10.24);
+    ps.set("ps3.sub.subsub", "foo");
+
+    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    psp->set("ps1.pre", 3);
+    psp->add("ps1.pre", 4);
+    psp->set("int", 2008);
+    psp->set("ps2.foo", "bar");
+    psp->set("ps4.top", "bottom");
+
+    ps.override(psp);
+
+    BOOST_CHECK(ps.isPropertySetPtr("ps1"));
+    BOOST_CHECK(ps.isPropertySetPtr("ps2"));
+    BOOST_CHECK(ps.isPropertySetPtr("ps3"));
+    BOOST_CHECK(ps.isPropertySetPtr("ps3.sub"));
+    BOOST_CHECK(ps.isPropertySetPtr("ps4"));
+    BOOST_CHECK(!ps.isArray("ps1"));
+    BOOST_CHECK(ps.isArray("ps1.pre"));
+    BOOST_CHECK(!ps.isArray("ps1.post"));
+    BOOST_CHECK(!ps.isArray("ps2"));
+    BOOST_CHECK(!ps.isArray("ps2.plus"));
+    BOOST_CHECK(!ps.isArray("ps2.minus"));
+    BOOST_CHECK(!ps.isArray("ps2.foo"));
+    BOOST_CHECK(!ps.isArray("ps3"));
+    BOOST_CHECK(!ps.isArray("ps3.sub"));
+    BOOST_CHECK(!ps.isArray("ps3.subsub"));
+    BOOST_CHECK(!ps.isArray("ps4"));
+    BOOST_CHECK(!ps.isArray("ps4.top"));
+    BOOST_CHECK(!ps.isArray("int"));
+    BOOST_CHECK(!ps.isArray("double"));
+    BOOST_CHECK_EQUAL(ps.valueCount("ps1.pre"), 2U);
+    std::vector<int> v = ps.getArray<int>("ps1.pre");
+    BOOST_CHECK_EQUAL(v[0], 3);
+    BOOST_CHECK_EQUAL(v[1], 4);
+    BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
+    BOOST_CHECK_EQUAL(ps.get<std::string>("ps2.foo"), "bar");
+}
+
+BOOST_AUTO_TEST_CASE(overrideTypes) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
+    dafBase::PropertySet ps;
+    ps.set("int", 42);
+    BOOST_CHECK_EQUAL(ps.get<int>("int"), 42);
+
+    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    psp->set("int", 3.14159);
+
+    ps.override(psp);
+
+    BOOST_CHECK(!ps.isArray("int"));
+    BOOST_CHECK_EQUAL(ps.get<double>("int"), 3.14159);
+}
+
 BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test harness macros" */
     dafBase::PropertySet ps;
     ps.set("ps1.pre", 1);
