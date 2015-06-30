@@ -66,9 +66,6 @@ public:
     explicit DateTime(std::string const& iso8601);
 
     long long nsecs(Timescale scale = TAI) const;
-    double mjd(Timescale scale = TAI) const {  // deprecated, please use get(MJD)
-        return _getMjd(scale);
-    }
     double get(DateSystem system = MJD, Timescale scale = TAI) const;
     std::string toString(void) const;
 
