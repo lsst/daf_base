@@ -39,9 +39,6 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), 399006021000000000L)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.TAI), 45205.125 + 21.0/86400.0)
-        # Following interface is deprecated
-        self.assertAlmostEqual(ts.mjd(DateTime.UTC), 45205.125)
-        self.assertAlmostEqual(ts.mjd(DateTime.TAI), 45205.125 + 21.0/86400.0)
 
     def testLeapSecond(self):
         trials = ((45205., 21),
