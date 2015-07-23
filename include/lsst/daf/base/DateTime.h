@@ -45,6 +45,8 @@
 #include <sys/time.h>
 #include <string>
 
+#include "boost/python.hpp"
+
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
 namespace serialization {
@@ -59,7 +61,8 @@ class DateTime {
 public:
     enum Timescale { TAI, UTC, TT };
     enum DateSystem { JD, MJD, EPOCH };
-    explicit DateTime(long long nsecs = 0LL, Timescale scale = TAI);
+    explicit DateTime();
+    explicit DateTime(long long nsecs, Timescale scale = TAI);
     explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
     DateTime(int year, int month, int day, int hr, int min, int sec,
              Timescale scale = TAI);
@@ -74,29 +77,20 @@ public:
     struct timeval timeval(void) const; // Always UTC
 
     bool operator==(DateTime const& rhs) const;
+    bool operator!=(DateTime const& rhs) const;
 
     static DateTime now(void);
 
-    static void initializeLeapSeconds(std::string const& leapString);
-
 private:
-    long long _nsecs;  ///< Nanoseconds since Unix epoch
+    boost::python::object _pyself;
 
-    double _getMjd(Timescale scale) const;
-    double _getJd(Timescale scale) const;
-    double _getEpoch(Timescale scale) const;
-
-    void setNsecsFromMjd(double mjd, Timescale scale);
-    void setNsecsFromJd(double jd, Timescale scale);
-    void setNsecsFromEpoch(double epoch, Timescale scale);
-    
     friend class boost::serialization::access;
     /** Serialize DateTime to/from a Boost archive.
       * @param[in,out] ar   Archive to access.
       * @param[in] version  Version of class serializer.
       */
     template <class Archive> void serialize(Archive ar, int const version) {
-        ar & _nsecs;
+      //    ar & _nsecs;
     }
 
 };
