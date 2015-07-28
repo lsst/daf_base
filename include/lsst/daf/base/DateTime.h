@@ -72,6 +72,7 @@ public:
     long long nsecs(Timescale scale = TAI) const;
     double get(DateSystem system = MJD, Timescale scale = TAI) const;
     std::string toString(void) const;
+    PyObject * getPythonObject(void);
 
     struct tm gmtime(void) const; // Always UTC
     struct timespec timespec(void) const; // Always UTC

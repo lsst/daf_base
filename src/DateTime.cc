@@ -311,6 +311,13 @@ std::string dafBase::DateTime::toString(void) const {
   }
 }
 
+PyObject * dafBase::DateTime::getPythonObject(void) {
+  PyObject * obj;
+  obj = _pyself.ptr();
+  Py_INCREF(obj);
+  return obj;
+}
+
 /** Equality operator.
  * \return True if both DateTimes have the same nanosecond representation.
  */
