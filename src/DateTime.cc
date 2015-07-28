@@ -127,6 +127,42 @@ dafBase::DateTime::DateTime() {
 }
 
 /** Constructor.
+ * \param[in] lsstxDateTime Python Object corresponding to
+ *                        an lsstx.DateTime.DateTime Python object.
+ */
+dafBase::DateTime::DateTime(PyObject * lsstxDateTime) {
+  boost::python::object cls;
+  boost::python::object dtclass;
+  int is_instance = 0;
+
+  // Check that the Python object is of a suitable class
+  cls = getPyClass();
+  dtclass = cls.attr("DateTime");
+
+  is_instance = PyObject_IsInstance(lsstxDateTime, dtclass.ptr());
+  std::cout << "Is class an instance? " << is_instance << std::endl;
+  if (is_instance == -1) {
+    _translatePyException();
+  }
+  if (!is_instance) {
+    throw LSST_EXCEPT(pexEx::InvalidParameterError,
+                      "Argument to constructor must be lsstx.DateTime.DateTime object");
+  }
+
+  try {
+    // Convert the PyObject * to a boost::python::object making sure that we
+    // increment the reference count so the object won't get freed in this function.
+    boost::python::object obj(boost::python::handle<>(boost::python::borrowed(lsstxDateTime)));
+
+    // Run the copy constructor
+    _pyself = obj.attr("copy")();
+  } catch (boost::python::error_already_set const &) {
+    std::cout << "Caught python error in DateTime(PyObject)" << std::endl;
+    _translatePyException();
+  }
+}
+
+/** Constructor.
  * \param[in] nsecs Number of nanoseconds since the epoch.
  * \param[in] scale Timescale of input (TAI or UTC, default TAI). X
  */

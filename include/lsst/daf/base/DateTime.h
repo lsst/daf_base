@@ -62,6 +62,7 @@ public:
     enum Timescale { TAI, UTC, TT };
     enum DateSystem { JD, MJD, EPOCH };
     explicit DateTime();
+    explicit DateTime(PyObject * lsstxDateTime);
     explicit DateTime(long long nsecs, Timescale scale = TAI);
     explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
     DateTime(int year, int month, int day, int hr, int min, int sec,
