@@ -48,7 +48,7 @@ namespace pexEx   = lsst::pex::exceptions;
 /// Nanoseconds per day/second as a long long.
 static long long const LL_NSEC_PER_SEC = 1000000000LL;
 
-std::string _getStringFromPyExc( boost::python::error_already_set const &e ) {
+std::string _getStringFromPyExc() {
   using namespace boost::python;
   PyObject * extype, * value, * traceback;
   std::string errstr;
@@ -81,7 +81,7 @@ std::string _getStringFromPyExc( boost::python::error_already_set const &e ) {
 // One problem is that the traceback reports this function rather than the
 // caller. Obviously we also lose the Python exception details.
 
-void _translatePyException( boost::python::error_already_set const &e ) {
+void _translatePyException() {
   using namespace boost::python;
   PyObject * extype, * value, * traceback;
   std::string errstr;
@@ -135,9 +135,9 @@ dafBase::DateTime::DateTime(long long nsecs, Timescale scale) {
   try {
     boost::python::object cls = getPyClass();
     _pyself = cls.attr("DateTime")(nsecs, (int)scale);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in DateTime(nsecs, scale)" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -150,9 +150,9 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
   try {
     boost::python::object cls = getPyClass();
     _pyself = cls.attr("DateTime")(date, (int)system, (int)scale);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in DateTime(mjd, system, scale)" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -172,9 +172,9 @@ dafBase::DateTime::DateTime(int year, int month, int day,
   try {
     boost::python::object cls = getPyClass();
     _pyself = cls.attr("DateTime")(year, month, day, hr, min, sec, (int)scale);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in DateTime(y, m, d, h, m, s, scale)" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 
 }
@@ -189,9 +189,9 @@ dafBase::DateTime::DateTime(std::string const& iso8601) {
    try {
     boost::python::object cls = getPyClass();
     _pyself = cls.attr("DateTime")(iso8601);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in DateTime(iso8601)" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -209,9 +209,9 @@ double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
   try {
     boost::python::object retval = _pyself.attr("get")((int)system, (int)scale);
     return boost::python::extract<double>(retval);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in get()" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -223,9 +223,9 @@ long long dafBase::DateTime::nsecs(Timescale scale) const {
   try {
     boost::python::object retval = _pyself.attr("nsecs")((int)scale);
     return boost::python::extract<long long>(retval);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in nsecs()" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -269,9 +269,9 @@ std::string dafBase::DateTime::toString(void) const {
   try {
     boost::python::object retval = _pyself.attr("__str__")();
     return boost::python::extract<std::string>(retval);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in toString()" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -282,9 +282,9 @@ bool dafBase::DateTime::operator==(DateTime const& rhs) const {
   try {
     boost::python::object retval = _pyself.attr("__eq__")(rhs._pyself);
     return boost::python::extract<bool>(retval);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in __eq__()" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
@@ -295,9 +295,9 @@ bool dafBase::DateTime::operator!=(DateTime const& rhs) const {
   try {
     boost::python::object retval = _pyself.attr("__ne__")(rhs._pyself);
     return boost::python::extract<bool>(retval);
-  } catch (boost::python::error_already_set const &e) {
+  } catch (boost::python::error_already_set const &) {
     std::cout << "Caught python error in __ne__()" << std::endl;
-    _translatePyException(e);
+    _translatePyException();
   }
 }
 
