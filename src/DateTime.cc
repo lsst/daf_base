@@ -37,7 +37,6 @@
  */
 
 #include "boost/python.hpp"
-#define LSST_DAF_BASE_DATETIME_INTERNAL 1
 #include "lsst/daf/base/DateTime.h"
 
 #include "lsst/pex/exceptions.h"
