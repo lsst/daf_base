@@ -245,9 +245,8 @@ del _PS_toDict
     %extend lsst::daf::base::PropertyList {
 static std::type_info const TYPE_ ## typeName = typeid(type);
 void setPropertySet(
-    std::string const& name, PropertySet::Ptr const& value,
-    bool inPlace=true) {
-    $self->set(name, value, inPlace);
+    std::string const& name, PropertySet::Ptr const& value) {
+    $self->set(name, value);
 }
 }
 %enddef
@@ -290,17 +289,15 @@ _PL_typeMenu = {bool: "Bool",
 
 def _PL_getValue(self, name, asArray=False):
     return _propertyContainerGet(self, name, asArray)
-def _PL_setValue(self, name, value, comment=None, inPlace=True):
+def _PL_setValue(self, name, value, comment=None):
     args = []
     if comment is not None:
         args.append(comment)
-    args.append(inPlace)
     return _propertyContainerSet(self, name, value, _PL_typeMenu, *args)
-def _PL_addValue(self, name, value, comment=None, inPlace=True):
+def _PL_addValue(self, name, value, comment=None):
     args = []
     if comment is not None:
         args.append(comment)
-    args.append(inPlace)
     return _propertyContainerAdd(self, name, value, _PL_typeMenu, *args)
 
 PropertyList.get = _PL_getValue
