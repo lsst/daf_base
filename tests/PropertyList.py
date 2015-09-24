@@ -222,27 +222,17 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("NAXIS1", 513, "length of data axis 1")
         correct.append(("NAXIS1", 513, "length of data axis 1"))
         self.assertEqual(apl.toList(), correct)
-        apl.set("RA", 1.414, inPlace=False)
-        del correct[3]
-        correct.append(("RA", 1.414, "decimal degrees"))
+        apl.set("RA", 1.414)
+        correct[3] = ("RA", 1.414, "decimal degrees")
         self.assertEqual(apl.toList(), correct)
         apl.set("DEC", 1.732)
-        correct[3] = ("DEC", 1.732, "decimal radians")
+        correct[4] = ("DEC", 1.732, "decimal radians")
         self.assertEqual(apl.toList(), correct)
         apl.set("DEC", -6.28, "")
-        correct[3] = ("DEC", -6.28, "")
+        correct[4] = ("DEC", -6.28, "")
         self.assertEqual(apl.toList(), correct)
         apl.add("COMMENT", "This is a test line 3", "")
-        correct.insert(6, ("COMMENT", "This is a test line 3", ""))
-        self.assertEqual(apl.toList(), correct)
-        apl.add("COMMENT", "This is a test line 4", "", inPlace=False)
-        correct.append(correct[4])
-        correct.append(correct[5])
-        correct.append(correct[6])
-        correct.append(("COMMENT", "This is a test line 4", ""))
-        del correct[4]
-        del correct[4]
-        del correct[4]
+        correct.insert(7, ("COMMENT", "This is a test line 3", ""))
         self.assertEqual(apl.toList(), correct)
 
         self.checkPickle(apl)

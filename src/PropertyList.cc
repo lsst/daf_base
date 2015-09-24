@@ -181,21 +181,16 @@ std::string PropertyList::toString(bool topLevelOnly,
   * value.
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::set(
-    std::string const& name, T const& value, bool inPlace) {
+    std::string const& name, T const& value) {
     PropertySet::set(name, value);
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
 }
 
 void PropertyList::set(
-    std::string const& name, PropertySet::Ptr const& value,
-    bool inPlace) {
+    std::string const& name, PropertySet::Ptr const& value) {
     Ptr pl = boost::dynamic_pointer_cast<PropertyList, PropertySet>(value);
     PropertySet::set(name, value);
     _comments.erase(name);
@@ -204,10 +199,7 @@ void PropertyList::set(
     for (vector<string>::const_iterator i = names.begin();
          i != names.end(); ++i) {
         if (pl) {
-            _commentOrderFix(name + "." + *i, pl->getComment(*i), inPlace);
-        }
-        else if (inPlace) {
-            _moveToEnd(name + "." + *i);
+            _commentOrderFix(name + "." + *i, pl->getComment(*i));
         }
     }
 }
@@ -216,48 +208,36 @@ void PropertyList::set(
   * string value.
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string (converted to \c std::string ).
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void PropertyList::set(
-    std::string const& name, char const* value, bool inPlace) {
-    set(name, string(value), inPlace);
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
+    std::string const& name, char const* value) {
+    set(name, string(value));
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
   * vector of new values.
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::set(
-    std::string const& name, vector<T> const& value, bool inPlace) {
+    std::string const& name, vector<T> const& value) {
     PropertySet::set(name, value);
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
 }
 
 /** Appends a single value to the vector of values for a property name
   * (possibly hierarchical).  Sets the value if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::add(
-    std::string const& name, T const& value, bool inPlace) {
+    std::string const& name, T const& value) {
     PropertySet::add(name, value);
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
 }
 
 /** Appends a <tt>char const*</tt> value to the vector of values for a
@@ -265,20 +245,18 @@ void PropertyList::add(
   * does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void PropertyList::add(
-    std::string const& name, char const* value, bool inPlace) {
-    add(name, string(value), inPlace);
+    std::string const& name, char const* value) {
+    add(name, string(value));
 }
 
 /** Appends a vector of values to the vector of values for a property name
   * (possibly hierarchical).  Sets the values if the property does not exist.
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   * @note
@@ -286,11 +264,8 @@ void PropertyList::add(
   */
 template <typename T>
 void PropertyList::add(
-    std::string const& name, vector<T> const& value, bool inPlace) {
+    std::string const& name, vector<T> const& value) {
     PropertySet::add(name, value);
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
 }
 
 
@@ -302,15 +277,14 @@ void PropertyList::add(
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Value to set.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::set(
     std::string const& name, T const& value,
-    std::string const& comment, bool inPlace) {
+    std::string const& comment) {
     PropertySet::set(name, value);
-    _commentOrderFix(name, comment, inPlace);
+    _commentOrderFix(name, comment);
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
@@ -318,13 +292,12 @@ void PropertyList::set(
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Character string value to set.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void PropertyList::set(
     std::string const& name, char const* value,
-    std::string const& comment, bool inPlace) {
-    set(name, string(value), comment, inPlace);
+    std::string const& comment) {
+    set(name, string(value), comment);
 }
 
 /** Replace all values for a property name (possibly hierarchical) with a
@@ -332,15 +305,14 @@ void PropertyList::set(
   * @param[in] name Property name to set, possibly hierarchical.
   * @param[in] value Vector of values to set.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::set(
     std::string const& name, vector<T> const& value,
-    std::string const& comment, bool inPlace) {
+    std::string const& comment) {
     PropertySet::set(name, value);
-    _commentOrderFix(name, comment, inPlace);
+    _commentOrderFix(name, comment);
 }
 
 /** Appends a single value to the vector of values for a property name
@@ -348,16 +320,15 @@ void PropertyList::set(
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Value to append.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 template <typename T>
 void PropertyList::add(
     std::string const& name, T const& value,
-    std::string const& comment, bool inPlace) {
+    std::string const& comment) {
     PropertySet::add(name, value);
-    _commentOrderFix(name, comment, inPlace);
+    _commentOrderFix(name, comment);
 }
 
 /** Appends a <tt>char const*</tt> value to the vector of values for a
@@ -366,15 +337,14 @@ void PropertyList::add(
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value String value to append.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 
 void PropertyList::add(
     std::string const& name, char const* value,
-    std::string const& comment, bool inPlace) {
-    add(name, string(value), comment, inPlace);
+    std::string const& comment) {
+    add(name, string(value), comment);
 }
 
 /** Appends a vector of values to the vector of values for a property name
@@ -382,7 +352,6 @@ void PropertyList::add(
   * @param[in] name Property name to append to, possibly hierarchical.
   * @param[in] value Vector of values to append.
   * @param[in] comment Comment to set.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   * @note
@@ -391,9 +360,9 @@ void PropertyList::add(
 template <typename T>
 void PropertyList::add(
     std::string const& name, vector<T> const& value,
-    std::string const& comment, bool inPlace) {
+    std::string const& comment) {
     PropertySet::add(name, value);
-    _commentOrderFix(name, comment, inPlace);
+    _commentOrderFix(name, comment);
 }
 
 
@@ -405,37 +374,31 @@ void PropertyList::add(
   * @param[in] dest Destination property name.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
   * @param[in] name Property name to extract.
-  * @param[in] inPlace If false, property is moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Name does not exist in source.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void PropertyList::copy(
     std::string const& dest, PropertySet::ConstPtr source,
-    std::string const& name, bool inPlace) {
+    std::string const& name) {
     PropertySet::copy(dest, source, name);
     ConstPtr pl =
         boost::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
     if (pl) {
         _comments[name] = pl->_comments.find(name)->second;
-        if (!inPlace) {
-            _moveToEnd(name);
-        }
     }
 }
 
 /** Appends all value vectors from the \a source to their corresponding
   * properties.  Sets values if a property does not exist.
   * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @param[in] inPlace If false, existing properties are moved to end of list.
   * @throws TypeError Type does not match existing values.
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   * @note
   * May only partially combine the PropertySets if an exception occurs.
   */
-void PropertyList::combine(PropertySet::ConstPtr source,
-                                    bool inPlace) {
+void PropertyList::combine(PropertySet::ConstPtr source) {
     ConstPtr pl =
         boost::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
@@ -446,10 +409,6 @@ void PropertyList::combine(PropertySet::ConstPtr source,
              i != pl->end(); ++i) {
             bool present = _comments.find(*i) != _comments.end();
             if (!present) {
-                newOrder.push_back(*i);
-            }
-            else if (!inPlace) {
-                newOrder.remove(*i);
                 newOrder.push_back(*i);
             }
         }
@@ -487,17 +446,9 @@ void PropertyList::_set(std::string const& name,
     }
 }
 
-void PropertyList::_moveToEnd(std::string const& name) {
-    _order.remove(name);
-    _order.push_back(name);
-}
-
 void PropertyList::_commentOrderFix(
-    std::string const& name, std::string const& comment, bool inPlace) {
+    std::string const& name, std::string const& comment) {
     _comments[name] = comment;
-    if (!inPlace) {
-        _moveToEnd(name);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -511,18 +462,18 @@ void PropertyList::_commentOrderFix(
     template t PropertyList::get<t>(string const& name) const; \
     template t PropertyList::get<t>(string const& name, t const& defaultValue) const; \
     template vector<t> PropertyList::getArray<t>(string const& name) const; \
-    template void PropertyList::set<t>(string const& name, t const& value, bool inPlace); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, t const& value, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value, bool inPlace); \
-    template void PropertyList::set<t>(string const& name, t const& value, string const& comment, bool inPlace); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, t const& value, string const& comment, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment, bool inPlace); \
-    template void PropertyList::set<t>(string const& name, t const& value, char const* comment, bool inPlace); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, t const& value, char const* comment, bool inPlace); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment, bool inPlace);
+    template void PropertyList::set<t>(string const& name, t const& value); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value); \
+    template void PropertyList::add<t>(string const& name, t const& value); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value); \
+    template void PropertyList::set<t>(string const& name, t const& value, string const& comment); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment); \
+    template void PropertyList::add<t>(string const& name, t const& value, string const& comment); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment); \
+    template void PropertyList::set<t>(string const& name, t const& value, char const* comment); \
+    template void PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment); \
+    template void PropertyList::add<t>(string const& name, t const& value, char const* comment); \
+    template void PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment);
 
 INSTANTIATE(bool)
 INSTANTIATE(char)
