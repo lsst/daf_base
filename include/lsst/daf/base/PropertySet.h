@@ -52,7 +52,7 @@
   * @ingroup daf_base
   */
 
-#include <lsst/tr1/unordered_map.h>
+#include <unordered_map>
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -163,7 +163,7 @@ protected:
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
-    typedef std::tr1::unordered_map<std::string,
+    typedef std::unordered_map<std::string,
             boost::shared_ptr< std::vector<boost::any> > > AnyMap;
 
     AnyMap::iterator _find(std::string const& name);

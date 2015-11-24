@@ -53,7 +53,7 @@
   * @ingroup daf_base
   */
 
-#include <lsst/tr1/unordered_map.h>
+#include <unordered_map>
 #include <list>
 #include <string>
 #include <typeinfo>
@@ -198,7 +198,7 @@ public:
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertyListFormatter)
 
-    typedef std::tr1::unordered_map<std::string, std::string> CommentMap;
+    typedef std::unordered_map<std::string, std::string> CommentMap;
 
     virtual void _set(std::string const& name,
                       boost::shared_ptr< std::vector<boost::any> > vp);
