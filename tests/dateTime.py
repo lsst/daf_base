@@ -205,6 +205,14 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(dt.minute, minute)
         self.assertEqual(dt.second, second)
 
+    def testNone(self):
+        dt = DateTime.now()
+        self.assertNotEqual(dt, None)
+
+    def testEmpty(self):
+        dt = DateTime.now()
+        self.assertNotEqual(dt, [])
+
 class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
     def setUp(self):

@@ -103,6 +103,10 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
             return self.toString()
         def __repr__(self):
             return 'lsst.daf.base.DateTime("' + self.toString() + '")'
+        def __eq__(self, other):
+            # Allow comparisons with non-DateTimes like None and []
+            return isinstance(other, lsst.daf.base.DateTime) and \
+                _baseLib.DateTime___eq__(self, other)
     %}
 }
 
