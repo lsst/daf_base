@@ -212,12 +212,31 @@ def _PS_setValue(self, name, value):
 def _PS_addValue(self, name, value):
     return _propertyContainerAdd(self, name, value, _PS_typeMenu)
 
+def _PS_toDict(self):
+    """Returns a (possibly nested) dictionary with all properties.
+    """
+
+    def helper(ps):
+        d = {}
+        for name in ps.names():
+            v = ps.get(name)
+    
+            if isinstance(v, PropertySet):
+                d[name] = helper(v)
+            else:
+                d[name] = v
+        return d
+
+    return helper(self)
+
 PropertySet.get = _PS_getValue
 PropertySet.set = _PS_setValue
 PropertySet.add = _PS_addValue
+PropertySet.toDict = _PS_toDict
 del _PS_getValue
 del _PS_setValue
 del _PS_addValue
+del _PS_toDict
 %}
 
 // This has to come after PropertyList.h
