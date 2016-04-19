@@ -322,8 +322,21 @@ def _PL_toList(self):
             ret.append((name, self.get(name), self.getComment(name)))
     return ret
 
+def _PL_toOrderedDict(self):
+    """Return an ordered dictionary with all properties in the order that
+    they were inserted.
+    """
+    from collections import OrderedDict
+
+    d = OrderedDict()
+    for name in self.getOrderedNames():
+        d[name] = self.get(name)
+    return d
+
 PropertyList.toList = _PL_toList
+PropertyList.toOrderedDict = _PL_toOrderedDict
 del _PL_toList
+del _PL_toOrderedDict
 %}
 
 

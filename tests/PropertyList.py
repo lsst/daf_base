@@ -247,6 +247,44 @@ class PropertyListTestCase(unittest.TestCase):
 
         self.checkPickle(apl)
 
+    def testToOrderedDict(self):
+        from collections import OrderedDict
+
+        apl = dafBase.PropertyList()
+        apl.set("SIMPLE", True)
+        apl.set("BITPIX", -32)
+        apl.set("NAXIS", 2)
+        apl.set("RA", 3.14159)
+        apl.set("DEC", 2.71828)
+        apl.set("COMMENT", "This is a test")
+        apl.add("COMMENT", "This is a test line 2")
+        correct = OrderedDict([
+                ("SIMPLE", True),
+                ("BITPIX", -32),
+                ("NAXIS", 2),
+                ("RA", 3.14159),
+                ("DEC", 2.71828),
+                ("COMMENT", ("This is a test", "This is a test line 2"))
+                ])
+        self.assertEqual(apl.toOrderedDict(), correct)
+
+        apl.set("NAXIS1", 513)
+        correct["NAXIS1"] = 513
+        self.assertEqual(apl.toOrderedDict(), correct)
+        apl.set("RA", 1.414, inPlace=False)
+        del correct["RA"]
+        correct["RA"] = 1.414
+        self.assertEqual(apl.toOrderedDict(), correct)
+        apl.set("DEC", 1.732)
+        correct["DEC"] = 1.732
+        self.assertEqual(apl.toOrderedDict(), correct)
+        apl.set("DEC", -6.28)
+        correct["DEC"] = -6.28
+        self.assertEqual(apl.toOrderedDict(), correct)
+        apl.add("COMMENT", "This is a test line 3")
+        correct["COMMENT"] = correct["COMMENT"] + ("This is a test line 3", )
+        self.assertEqual(apl.toOrderedDict(), correct)
+
     def testHierarchy(self):
         apl = dafBase.PropertyList()
         apl.set("CURRENT", 49.5)
