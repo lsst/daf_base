@@ -313,16 +313,28 @@ del _PL_getValue
 del _PL_setValue
 del _PL_addValue
 
-def _PL_toList(self):
+def _PL_toList(self, comments=True):
+    """Return a list of properties in the order that they were inserted.
+
+    Keyword arguments:
+        comments -- add comments as third element (default=True)
+    """
     orderedNames = self.getOrderedNames()
     ret = []
     for name in orderedNames:
         if self.isArray(name):
             values = self.get(name)
-            for v in values:
-                ret.append((name, v, self.getComment(name)))
+            if comments:
+                for v in values:
+                    ret.append((name, v, self.getComment(name)))
+            else:
+                for v in values:
+                    ret.append((name, v))
         else:
-            ret.append((name, self.get(name), self.getComment(name)))
+            if comments:
+                ret.append((name, self.get(name), self.getComment(name)))
+            else:
+                ret.append((name, self.get(name)))
     return ret
 
 PropertyList.toList = _PL_toList

@@ -247,6 +247,53 @@ class PropertyListTestCase(unittest.TestCase):
 
         self.checkPickle(apl)
 
+    def testOrderNoComments(self):
+        apl = dafBase.PropertyList()
+        apl.set("SIMPLE", True)
+        apl.set("BITPIX", -32)
+        apl.set("NAXIS", 2)
+        apl.set("RA", 3.14159, "decimal degrees")
+        apl.set("DEC", 2.71828, "decimal radians")
+        apl.set("COMMENT", "This is a test")
+        apl.add("COMMENT", "This is a test line 2")
+        correct = [
+                ("SIMPLE", True),
+                ("BITPIX", -32),
+                ("NAXIS", 2),
+                ("RA", 3.14159),
+                ("DEC", 2.71828),
+                ("COMMENT", "This is a test"),
+                ("COMMENT", "This is a test line 2")
+                ]
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.set("NAXIS1", 513, "length of data axis 1")
+        correct.append(("NAXIS1", 513))
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.set("RA", 1.414, inPlace=False)
+        del correct[3]
+        correct.append(("RA", 1.414))
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.set("DEC", 1.732)
+        correct[3] = ("DEC", 1.732)
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.set("DEC", -6.28, "")
+        correct[3] = ("DEC", -6.28)
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.add("COMMENT", "This is a test line 3", "")
+        correct.insert(6, ("COMMENT", "This is a test line 3"))
+        self.assertEqual(apl.toList(comments=False), correct)
+        apl.add("COMMENT", "This is a test line 4", "", inPlace=False)
+        correct.append(correct[4])
+        correct.append(correct[5])
+        correct.append(correct[6])
+        correct.append(("COMMENT", "This is a test line 4"))
+        del correct[4]
+        del correct[4]
+        del correct[4]
+        self.assertEqual(apl.toList(comments=False), correct)
+
+        self.checkPickle(apl)
+        
     def testHierarchy(self):
         apl = dafBase.PropertyList()
         apl.set("CURRENT", 49.5)
