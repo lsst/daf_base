@@ -313,11 +313,11 @@ del _PL_getValue
 del _PL_setValue
 del _PL_addValue
 
-def _PL_toList(self, comments=True):
+def _PL_toList(self, comments=False):
     """Return a list of properties in the order that they were inserted.
 
     Keyword arguments:
-        comments -- add comments as third element (default=True)
+        comments -- add comments as third element (default=False)
     """
     orderedNames = self.getOrderedNames()
     ret = []
