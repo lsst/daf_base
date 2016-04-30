@@ -292,7 +292,7 @@ void dafBase::Citizen::census(
     ) {
     ReadGuard guard(citizenLock);
 
-    boost::scoped_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
+    std::unique_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
 
     for (std::vector<Citizen const *>::const_iterator citizen = leaks->begin(), end = leaks->end();
          citizen != end; ++citizen) {
@@ -314,7 +314,7 @@ bool cmpId(dafBase::Citizen const *a, dafBase::Citizen const *b)
 //! Return a (newly allocated) std::vector of active Citizens sorted by ID
 //
 //! You are responsible for deleting it; or you can say
-//!    boost::scoped_ptr<std::vector<Citizen const*> const>
+//!    std::unique_ptr<std::vector<Citizen const*> const>
 //!        leaks(Citizen::census());
 //! and not bother (that becomes std::unique_ptr in C++11)
 //
