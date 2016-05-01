@@ -53,9 +53,9 @@ BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
     dafBase::PropertySet::Ptr psp = plp;
     BOOST_CHECK_EQUAL(!plp, false);
-    boost::shared_ptr<dafBase::Persistable> pp = plp;
+    std::shared_ptr<dafBase::Persistable> pp = plp;
     BOOST_CHECK_EQUAL(!pp, false);
-    boost::shared_ptr<dafBase::Citizen> cp = plp;
+    std::shared_ptr<dafBase::Citizen> cp = plp;
     BOOST_CHECK_EQUAL(!cp, false);
 }
 
@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
     dafBase::PropertySet::Ptr psp2 = psp->deepCopy();
     BOOST_CHECK_EQUAL(psp2->get<int>("int"), 31);
     dafBase::PropertyList::Ptr plp2 =
-        boost::dynamic_pointer_cast<dafBase::PropertyList,
+        std::dynamic_pointer_cast<dafBase::PropertyList,
         dafBase::PropertySet>(psp2);
     BOOST_CHECK_EQUAL(!plp2, false);
     BOOST_CHECK_EQUAL(plp2->get<int>("int"), 31);
@@ -427,12 +427,12 @@ BOOST_AUTO_TEST_CASE(combineAsPS) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a 
     plp1->set("int", 42, "comment");
     plp2->set("float", 3.14159, "stuff");
     dafBase::PropertySet::Ptr psp =
-        boost::static_pointer_cast<dafBase::PropertySet,
+        std::static_pointer_cast<dafBase::PropertySet,
         dafBase::PropertyList>(plp1);
     psp.get()->set("foo", 36);
     psp.get()->combine(plp2);
     dafBase::PropertyList::Ptr newPlp =
-        boost::dynamic_pointer_cast<dafBase::PropertyList,
+        std::dynamic_pointer_cast<dafBase::PropertyList,
         dafBase::PropertySet>(psp);
     BOOST_CHECK_EQUAL(!newPlp, false);
     BOOST_CHECK_EQUAL(newPlp->get<int>("int"), 42);

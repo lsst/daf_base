@@ -26,8 +26,7 @@
 //! \brief Implementation of Citizen
 
 #include <iostream>
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>         // should use std::unique_ptr from C++11 when available
+#include <memory>
 #include <boost/format.hpp>
 #include <ctype.h>
 #include <cerrno>

@@ -128,7 +128,7 @@ PropertySetAddType(float, Float)
 PropertySetAddType(double, Double)
 PropertySetAddType(std::string, String)
 PropertySetAddType(lsst::daf::base::DateTime, DateTime)
-PropertySetAddType(boost::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
+PropertySetAddType(std::shared_ptr<lsst::daf::base::PropertySet>, PropertySet)
 
 %pythoncode %{
 def _propertyContainerElementTypeName(container, name):
