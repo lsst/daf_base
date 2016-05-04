@@ -53,14 +53,15 @@
   * @ingroup daf_base
   */
 
-#include <unordered_map>
 #include <list>
+#include <memory>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "boost/any.hpp"
-#include <memory>
+
 #include "lsst/daf/base/PropertySet.h"
 
 namespace lsst {

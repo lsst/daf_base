@@ -21,10 +21,11 @@
  */
  
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 #include <boost/format.hpp>
-#include <memory>
+
 #include "lsst/pex/exceptions.h"
 #include "lsst/daf/base/Citizen.h"
 

@@ -25,11 +25,13 @@
 //! \file
 //! \brief Implementation of Citizen
 
+#include <ctype.h>
+
+#include <cerrno>
 #include <iostream>
 #include <memory>
+
 #include <boost/format.hpp>
-#include <ctype.h>
-#include <cerrno>
 
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/pex/exceptions.h"

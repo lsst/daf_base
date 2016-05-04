@@ -52,14 +52,15 @@
   * @ingroup daf_base
   */
 
-#include <unordered_map>
+#include <memory>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "boost/any.hpp"
 #include "boost/noncopyable.hpp"
-#include <memory>
+
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/pex/exceptions.h"
