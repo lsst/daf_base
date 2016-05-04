@@ -23,12 +23,12 @@
  */
  
 
-// Provides dynamic down casts from boost::shared_ptr<lsst::daf::base::Persistable>
+// Provides dynamic down casts from std::shared_ptr<lsst::daf::base::Persistable>
 %define %lsst_persistable(CppType...)
 
     %extend CppType {
-        static boost::shared_ptr<CppType > swigConvert(boost::shared_ptr<lsst::daf::base::Persistable> const & ptr) {
-            return boost::dynamic_pointer_cast<CppType >(ptr);
+        static std::shared_ptr<CppType > swigConvert(std::shared_ptr<lsst::daf::base::Persistable> const & ptr) {
+            return std::dynamic_pointer_cast<CppType >(ptr);
         }
     }
 

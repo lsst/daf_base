@@ -53,14 +53,15 @@
   * @ingroup daf_base
   */
 
-#include <unordered_map>
 #include <list>
+#include <memory>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "boost/any.hpp"
-#include "boost/shared_ptr.hpp"
+
 #include "lsst/daf/base/PropertySet.h"
 
 namespace lsst {
@@ -81,8 +82,8 @@ namespace base {
 class PropertyList : public PropertySet {
 public:
 // Typedefs
-    typedef boost::shared_ptr<PropertyList> Ptr;
-    typedef boost::shared_ptr<PropertyList const> ConstPtr;
+    typedef std::shared_ptr<PropertyList> Ptr;
+    typedef std::shared_ptr<PropertyList const> ConstPtr;
 
 // Constructors
     PropertyList(void);
@@ -201,7 +202,7 @@ private:
     typedef std::unordered_map<std::string, std::string> CommentMap;
 
     virtual void _set(std::string const& name,
-                      boost::shared_ptr< std::vector<boost::any> > vp);
+                      std::shared_ptr< std::vector<boost::any> > vp);
     virtual void _moveToEnd(std::string const& name);
     virtual void _commentOrderFix(
         std::string const& name, std::string const& comment, bool inPlace);

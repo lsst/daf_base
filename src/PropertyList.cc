@@ -196,7 +196,7 @@ void PropertyList::set(
 void PropertyList::set(
     std::string const& name, PropertySet::Ptr const& value,
     bool inPlace) {
-    Ptr pl = boost::dynamic_pointer_cast<PropertyList, PropertySet>(value);
+    Ptr pl = std::dynamic_pointer_cast<PropertyList, PropertySet>(value);
     PropertySet::set(name, value);
     _comments.erase(name);
     _order.remove(name);
@@ -415,7 +415,7 @@ void PropertyList::copy(
     std::string const& name, bool inPlace) {
     PropertySet::copy(dest, source, name);
     ConstPtr pl =
-        boost::dynamic_pointer_cast<PropertyList const, PropertySet const>(
+        std::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
     if (pl) {
         _comments[name] = pl->_comments.find(name)->second;
@@ -437,7 +437,7 @@ void PropertyList::copy(
 void PropertyList::combine(PropertySet::ConstPtr source,
                                     bool inPlace) {
     ConstPtr pl =
-        boost::dynamic_pointer_cast<PropertyList const, PropertySet const>(
+        std::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
     std::list<std::string> newOrder;
     if (pl) {
@@ -479,7 +479,7 @@ void PropertyList::remove(std::string const& name) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void PropertyList::_set(std::string const& name,
-          boost::shared_ptr< std::vector<boost::any> > vp) {
+          std::shared_ptr< std::vector<boost::any> > vp) {
     PropertySet::_set(name, vp);
     if (_comments.find(name) == _comments.end()) {
         _comments.insert(std::make_pair(name, std::string()));

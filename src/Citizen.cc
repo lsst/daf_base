@@ -25,12 +25,13 @@
 //! \file
 //! \brief Implementation of Citizen
 
-#include <iostream>
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>         // should use std::unique_ptr from C++11 when available
-#include <boost/format.hpp>
 #include <ctype.h>
+
 #include <cerrno>
+#include <iostream>
+#include <memory>
+
+#include <boost/format.hpp>
 
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/pex/exceptions.h"
@@ -292,7 +293,7 @@ void dafBase::Citizen::census(
     ) {
     ReadGuard guard(citizenLock);
 
-    boost::scoped_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
+    std::unique_ptr<std::vector<Citizen const*> const> leaks(Citizen::census());
 
     for (std::vector<Citizen const *>::const_iterator citizen = leaks->begin(), end = leaks->end();
          citizen != end; ++citizen) {
@@ -314,7 +315,7 @@ bool cmpId(dafBase::Citizen const *a, dafBase::Citizen const *b)
 //! Return a (newly allocated) std::vector of active Citizens sorted by ID
 //
 //! You are responsible for deleting it; or you can say
-//!    boost::scoped_ptr<std::vector<Citizen const*> const>
+//!    std::unique_ptr<std::vector<Citizen const*> const>
 //!        leaks(Citizen::census());
 //! and not bother (that becomes std::unique_ptr in C++11)
 //

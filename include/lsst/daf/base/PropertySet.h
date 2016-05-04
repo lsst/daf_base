@@ -52,14 +52,15 @@
   * @ingroup daf_base
   */
 
-#include <unordered_map>
+#include <memory>
 #include <string>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "boost/any.hpp"
 #include "boost/noncopyable.hpp"
-#include "boost/shared_ptr.hpp"
+
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/pex/exceptions.h"
@@ -87,8 +88,8 @@ class PropertySet :
     {
 public:
 // Typedefs
-    typedef boost::shared_ptr<PropertySet> Ptr;
-    typedef boost::shared_ptr<PropertySet const> ConstPtr;
+    typedef std::shared_ptr<PropertySet> Ptr;
+    typedef std::shared_ptr<PropertySet const> ConstPtr;
 
 // Constructors
     explicit PropertySet(bool flat=false);
@@ -155,21 +156,21 @@ public:
 
 protected:
     virtual void _set(std::string const& name,
-                      boost::shared_ptr< std::vector<boost::any> > vp);
+                      std::shared_ptr< std::vector<boost::any> > vp);
     virtual void _add(std::string const& name,
-                      boost::shared_ptr< std::vector<boost::any> > vp);
+                      std::shared_ptr< std::vector<boost::any> > vp);
     virtual std::string _format(std::string const& name) const;
 
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
     typedef std::unordered_map<std::string,
-            boost::shared_ptr< std::vector<boost::any> > > AnyMap;
+            std::shared_ptr< std::vector<boost::any> > > AnyMap;
 
     AnyMap::iterator _find(std::string const& name);
     AnyMap::const_iterator _find(std::string const& name) const;
     virtual void _findOrInsert(std::string const& name,
-                      boost::shared_ptr< std::vector<boost::any> > vp);
+                      std::shared_ptr< std::vector<boost::any> > vp);
     void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
     void _cycleCheckAnyVec(std::vector<boost::any> const& v,
                           std::string const& name);

@@ -47,7 +47,7 @@
   * @ingroup daf_base
   */
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <typeinfo>
 
 namespace lsst {
@@ -73,7 +73,7 @@ namespace base {
 
 class Persistable {
 public:
-    typedef boost::shared_ptr<Persistable> Ptr;
+    typedef std::shared_ptr<Persistable> Ptr;
 
     Persistable(void);
     virtual ~Persistable(void);

@@ -81,7 +81,7 @@ dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
                 }
             }
         } else {
-            boost::shared_ptr< vector<boost::any> > vp(
+            std::shared_ptr< vector<boost::any> > vp(
                 new vector<boost::any>(*(i->second)));
             n->_map[i->first] = vp;
         }
@@ -479,7 +479,7 @@ std::string dafBase::PropertySet::toString(bool topLevelOnly,
     vector<string> nv = names();
     sort(nv.begin(), nv.end());
     for (vector<string>::const_iterator i = nv.begin(); i != nv.end(); ++i) {
-        boost::shared_ptr< vector<boost::any> > vp = _map.find(*i)->second;
+        std::shared_ptr< vector<boost::any> > vp = _map.find(*i)->second;
         type_info const& t = vp->back().type();
         if (t == typeid(Ptr)) {
             s << indent << *i << " = ";
@@ -509,7 +509,7 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
     s << std::showpoint; // Always show a decimal point for floats
     AnyMap::const_iterator j = _map.find(name);
     s << j->first << " = ";
-    boost::shared_ptr< vector<boost::any> > vp = j->second;
+    std::shared_ptr< vector<boost::any> > vp = j->second;
     if (vp->size() > 1) {
         s << "[ ";
     }
@@ -579,7 +579,7 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
   */
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name, T const& value) {
-    boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
+    std::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->push_back(value);
     _set(name, vp);
 }
@@ -594,7 +594,7 @@ template <typename T>
 void dafBase::PropertySet::set(std::string const& name,
                                vector<T> const& value) {
     if (value.empty()) return;
-    boost::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
+    std::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
     vp->insert(vp->end(), value.begin(), value.end());
     _set(name, vp);
 }
@@ -722,7 +722,7 @@ void dafBase::PropertySet::copy(std::string const& dest,
                           name + " not in source");
     }
     remove(dest);
-    boost::shared_ptr< vector<boost::any> > vp(
+    std::shared_ptr< vector<boost::any> > vp(
         new vector<boost::any>(*(sj->second)));
     _set(dest, vp);
 }
@@ -835,7 +835,7 @@ dafBase::PropertySet::_find(std::string const& name) const {
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_set(
-    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+    std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
     _findOrInsert(name, vp);
 }
 
@@ -846,7 +846,7 @@ void dafBase::PropertySet::_set(
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_add(
-    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+    std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
 
     AnyMap::const_iterator dp = _find(name);
     if (dp == _map.end()) {
@@ -872,7 +872,7 @@ void dafBase::PropertySet::_add(
   * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
   */
 void dafBase::PropertySet::_findOrInsert(
-    std::string const& name, boost::shared_ptr< std::vector<boost::any> > vp) {
+    std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
     if (vp->back().type() == typeid(Ptr)) {
         if (_flat) {
             Ptr source = boost::any_cast<Ptr>(vp->back());
@@ -900,7 +900,7 @@ void dafBase::PropertySet::_findOrInsert(
     if (j == _map.end()) {
         PropertySet::Ptr pp(new PropertySet);
         pp->_findOrInsert(suffix, vp);
-        boost::shared_ptr< vector<boost::any> > temp(new vector<boost::any>);
+        std::shared_ptr< vector<boost::any> > temp(new vector<boost::any>);
         temp->push_back(pp);
         _map[prefix] = temp;
         return;

@@ -21,11 +21,11 @@
  */
  
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 #include <boost/format.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
+
 #include "lsst/pex/exceptions.h"
 #include "lsst/daf/base/Citizen.h"
 
@@ -46,7 +46,7 @@ class MyClass : public lsst::daf::base::Citizen {
     }
     int add_one() { return ++*ptr; }
 private:
-    boost::scoped_ptr<int> ptr;         // no need to track this alloc
+    std::unique_ptr<int> ptr;         // no need to track this alloc
 };
 
 using namespace lsst::daf::base;
@@ -63,7 +63,7 @@ using namespace lsst::daf::base;
 BOOST_AUTO_TEST_SUITE(CitizenSuite)
 
 MyClass *foo() {
-    boost::scoped_ptr<Shoe> x(new Shoe(1));
+    std::unique_ptr<Shoe> x(new Shoe(1));
     MyClass *my_instance = new MyClass();
 
     BOOST_CHECK_EQUAL(Citizen::census(0), 5);
@@ -78,12 +78,12 @@ BOOST_AUTO_TEST_CASE(all) {
     Shoe x;
     const Citizen::memId firstId = Citizen::getNextMemId(); // after allocating x
     
-    boost::scoped_ptr<Shoe> y(new Shoe);
-    boost::scoped_ptr<Shoe> z(new Shoe(10));
+    std::unique_ptr<Shoe> y(new Shoe);
+    std::unique_ptr<Shoe> z(new Shoe(10));
     
     MyClass *mine = foo();
 
-    boost::scoped_ptr<const std::vector<const Citizen *> > leaks(Citizen::census());
+    std::unique_ptr<const std::vector<const Citizen *> > leaks(Citizen::census());
     BOOST_CHECK_EQUAL(leaks->end() - leaks->begin(), 4);
     BOOST_CHECK_EQUAL(Citizen::census(0), 4);
     BOOST_CHECK_EQUAL(Citizen::census(0, firstId), 3);
