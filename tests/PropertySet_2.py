@@ -318,6 +318,52 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.get("b.c"), 20)
         self.assertEqual(ps.exists("b"), False)
 
+    def testToDict(self):
+        ps = dafBase.PropertySet()
+        ps.setBool("bool", True)
+        ps.setShort("short", 42)
+        ps.setInt("int", 2008)
+        ps.setLongLong("int64_t", 0xfeeddeadbeefL)
+        ps.setInt("ints", (10, 9, 8))
+
+        ps2 = dafBase.PropertySet()
+        ps2.set("ps", ps)
+        ps2.setFloat("float", 3.14159)
+        ps2.setDouble("double", 2.718281828459045)
+        ps2.set("char*", "foo")
+        ps2.setString("string", "bar")
+        ps2.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+
+        d = ps2.toDict()
+        self.assertIsInstance(d, dict)
+
+        self.assertIsInstance(d["float"], float)
+        self.assertAlmostEqual(d["float"], 3.14159, 6)
+        self.assertIsInstance(d["double"], float)
+        self.assertEqual(d["double"], 2.718281828459045)
+
+        self.assertIsInstance(d["char*"], str)
+        self.assertEqual(d["char*"], "foo")
+        self.assertIsInstance(d["string"], str)
+        self.assertEqual(d["string"], "bar")
+        self.assertIsInstance(d["dt"], dafBase.DateTime)
+        self.assertEqual(d["dt"].nsecs(), 1238657233314159265L)
+
+        d2 = d["ps"]
+        self.assertIsInstance(d2, dict)
+
+        self.assertIsInstance(d2["bool"], bool)
+        self.assertEqual(d2["bool"], True)
+        self.assertIsInstance(d2["short"], long)
+        self.assertEqual(d2["short"], 42)
+        self.assertIsInstance(d2["int"], int)
+        self.assertEqual(d2["int"], 2008)
+        self.assertIsInstance(d2["int64_t"], long)
+        self.assertEqual(d2["int64_t"], 0xfeeddeadbeefL)
+        self.assertIsInstance(d2["ints"], tuple)
+        self.assertIsInstance(d2["ints"][0], int)
+        self.assertEqual(d2["ints"], (10, 9, 8))
+
 def suite():
     """Returns a suite containing all the test cases in this module."""
 
