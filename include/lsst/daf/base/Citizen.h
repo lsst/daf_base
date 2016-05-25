@@ -32,9 +32,6 @@
 #include <vector>
 #include <typeinfo>
 
-#include "boost/noncopyable.hpp"
-
-
 namespace lsst {
 namespace daf {
 namespace base {
@@ -129,10 +126,18 @@ namespace base {
      *
      * @sa Citizen::markPersistent()
      */
-    class PersistentCitizenScope : private boost::noncopyable {
+    class PersistentCitizenScope {
     public:
         PersistentCitizenScope();
         ~PersistentCitizenScope();
+
+        // No copying
+        PersistentCitizenScope (const PersistentCitizenScope&) = delete;
+        PersistentCitizenScope& operator=(const PersistentCitizenScope&) = delete;
+    
+        // No moving
+        PersistentCitizenScope (PersistentCitizenScope&&) = delete;
+        PersistentCitizenScope& operator=(PersistentCitizenScope&&) = delete;
     };
 #endif
 
