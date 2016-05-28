@@ -59,7 +59,6 @@
 #include <vector>
 
 #include "boost/any.hpp"
-#include "boost/noncopyable.hpp"
 
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
@@ -80,12 +79,7 @@ namespace base {
 #pragma warning (disable: 444)
 #endif
 
-class PropertySet :
-    public Persistable, public Citizen
-#ifndef SWIG
-    , public boost::noncopyable
-#endif
-    {
+class PropertySet : public Persistable, public Citizen {
 public:
 // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;
@@ -95,6 +89,15 @@ public:
     explicit PropertySet(bool flat=false);
     virtual ~PropertySet(void);
 
+#ifndef SWIG
+    // No copying
+    PropertySet (const PropertySet&) = delete;
+    PropertySet& operator=(const PropertySet&) = delete;
+
+    // No moving
+    PropertySet (PropertySet&&) = delete;
+    PropertySet& operator=(PropertySet&&) = delete;
+#endif
 // Accessors
     virtual Ptr deepCopy(void) const;
     // Returns a PropertySet::Ptr pointing to a new deep copy.
