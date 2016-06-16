@@ -1,6 +1,7 @@
 setupRequired(utils)
 setupRequired(pex_exceptions)
 setupRequired(numpy)
+setupRequired(pybind11)
 
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
 envPrepend(DYLD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)

@@ -22,3 +22,4 @@
 
 from baseLib import *
 from .version import *
+import exampleLib
