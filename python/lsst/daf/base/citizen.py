@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import lsst.daf.base as dafBase
 
@@ -16,7 +17,7 @@ You can retrieve a citizen's signature from python with obj.repr()
     if both:
         if new:
             if delete and new != delete:
-                raise RuntimeError, "You may not specify new, delete, and both"
+                raise RuntimeError("You may not specify new, delete, and both")
             delete = new
         else:
             new = delete
@@ -47,7 +48,7 @@ You can get the next memId to be allocated with mortal("set"), e.g.
 
     nleak = dafBase.Citizen.census(0, memId0)
     if nleak != 0:
-        print "%d Objects leaked" % dafBase.Citizen.census(0, memId0)
+        print("%d Objects leaked" % dafBase.Citizen.census(0, memId0))
 
         census = dafBase.Citizen.census()
         census = [census[i].repr() for i in range(len(census))] # using [i] for some swiggy reason
@@ -69,15 +70,15 @@ You can get the next memId to be allocated with mortal("set"), e.g.
                     census.append(c)
 
             nleak = len(census)
-            print "%d leaked objects match" % nleak
+            print("%d leaked objects match" % nleak)
             
         if nleakPrintMax <= 0 or nleak <= nleakPrintMax:
             for c in census:
                 memId, addr, type = c.split()
                 memId = int(memId[:-1])
                 if memId >= memId0:
-                    print c
+                    print(c)
         else:
-            print "..."
+            print("...")
             for i in range(nleakPrintMax - 1, -1, -1):
-                print census[i]
+                print(census[i])

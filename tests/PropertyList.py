@@ -20,6 +20,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import print_function
 import unittest
 import pickle
 
@@ -307,7 +308,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertTrue(isinstance(aps, dafBase.PropertySet)) # ... but a bug that this test uses
 
         with self.assertRaises(AttributeError):
-            print aps.getComment("FIVE")
+            print(aps.getComment("FIVE"))
 
         aps = dafBase.PropertyList.cast(aps)
         self.assertEqual(aps.getComment("FIVE"), "v")
