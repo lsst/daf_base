@@ -21,6 +21,8 @@
 #
 
 from __future__ import print_function
+from past.builtins import long
+
 import unittest
 import pickle
 
@@ -54,7 +56,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", 0xfeeddeadbeefL)
+        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.set("char*", "foo")
@@ -71,7 +73,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getInt("int"), 2008)
         self.assertEqual(apl.typeOf("int64_t"),
                 dafBase.PropertyList.TYPE_LongLong)
-        self.assertEqual(apl.getLongLong("int64_t"), 0xfeeddeadbeefL)
+        self.assertEqual(apl.getLongLong("int64_t"), long(0xfeeddeadbeef))
         self.assertEqual(apl.typeOf("float"), dafBase.PropertyList.TYPE_Float)
         self.assertAlmostEqual(apl.getFloat("float"), 3.14159, 6)
         self.assertEqual(apl.typeOf("double"), dafBase.PropertyList.TYPE_Double)
@@ -84,7 +86,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getInt("int2"), 2009)
         self.assertEqual(apl.get("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
-        self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265L)
+        self.assertEqual(apl.getDateTime("dt").nsecs(), long(1238657233314159265))
         self.assertEqual(apl.getDouble("subclass"), 1.23456789)
         self.checkPickle(apl)
 
@@ -167,7 +169,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", 0xfeeddeadbeefL)
+        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
