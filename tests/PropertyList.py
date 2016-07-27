@@ -41,7 +41,7 @@ class PropertyListTestCase(unittest.TestCase):
 
     def testConstruct(self):
         apl = dafBase.PropertyList()
-        self.assert_(apl is not None)
+        self.assertIsNotNone(apl)
 
     def checkPickle(self, original):
         new = pickle.loads(pickle.dumps(original))

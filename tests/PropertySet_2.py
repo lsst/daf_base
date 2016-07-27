@@ -34,7 +34,7 @@ class PropertySetTestCase(unittest.TestCase):
 
     def testConstruct(self):
         ps = dafBase.PropertySet()
-        self.assert_(ps is not None)
+        self.assertIsNotNone(ps)
 
     def testScalar(self):
         ps = dafBase.PropertySet()
@@ -190,7 +190,7 @@ class FlatTestCase(unittest.TestCase):
 
     def testConstruct(self):
         ps = dafBase.PropertySet(flat=True)
-        self.assert_(ps is not None)
+        self.assertIsNotNone(ps)
 
     def testScalar(self):
         ps = dafBase.PropertySet(flat=True)
