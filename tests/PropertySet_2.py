@@ -369,11 +369,11 @@ class FlatTestCase(unittest.TestCase):
 
         self.assertIsInstance(d2["bool"], bool)
         self.assertEqual(d2["bool"], True)
-        self.assertIsInstance(d2["short"], long)
+        self.assertIsInstance(d2["short"], int)
         self.assertEqual(d2["short"], 42)
         self.assertIsInstance(d2["int"], int)
         self.assertEqual(d2["int"], 2008)
-        self.assertIsInstance(d2["int64_t"], long)
+        self.assertIsInstance(d2["int64_t"], int)
         self.assertEqual(d2["int64_t"], long(0xfeeddeadbeef))
         self.assertIsInstance(d2["ints"], tuple)
         self.assertIsInstance(d2["ints"][0], int)
