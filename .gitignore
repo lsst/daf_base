@@ -11,10 +11,12 @@ _build*
 *_wrap.cc
 *Lib.py
 doc/html
+doc/xml
 doc/doxygen.conf
 doc/*.tag
 doc/*.inc
 tests/.tests
+tests/.cache
 version.py
 tests/PropertyList
 tests/PropertySet_1
