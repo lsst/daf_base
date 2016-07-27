@@ -24,7 +24,7 @@ import unittest
 import numpy
 
 from past.builtins import long
-import lsst.utils.tests as utilsTests
+import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
@@ -379,23 +379,17 @@ class FlatTestCase(unittest.TestCase):
         self.assertIsInstance(d2["ints"][0], int)
         self.assertEqual(d2["ints"], (10, 9, 8))
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
 
-    utilsTests.init()
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-    suites = []
-    suites += unittest.makeSuite(PropertySetTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
 
-    return unittest.TestSuite(suites)
+def setup_module(module):
+    lsst.utils.tests.init()
 
-def run(exit=False):
-    """Run the tests"""
-    return utilsTests.run(suite(), exit)
-
-if __name__ == '__main__':
-    run(True)
+if __name__ == "__main__":
+    lsst.utils.tests.init()
+    unittest.main()
 
 
 # BOOST_AUTO_TEST_CASE(getScalarThrow) {

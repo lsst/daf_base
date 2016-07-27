@@ -26,7 +26,7 @@ from past.builtins import long
 import unittest
 import pickle
 
-import lsst.utils.tests as utilsTests
+import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
@@ -324,23 +324,17 @@ class PropertyListTestCase(unittest.TestCase):
         pl2 = pl1.deepCopy()  # should not segfault
         self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
 
-    utilsTests.init()
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-    suites = []
-    suites += unittest.makeSuite(PropertyListTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
 
-    return unittest.TestSuite(suites)
+def setup_module(module):
+    lsst.utils.tests.init()
 
-def run(exit=False):
-    """Run the tests"""
-    return utilsTests.run(suite(), exit)
-
-if __name__ == '__main__':
-    run(True)
+if __name__ == "__main__":
+    lsst.utils.tests.init()
+    unittest.main()
 
 # BOOST_AUTO_TEST_CASE(arrayProperties) {
 #     dafBase::PropertyList apl;
