@@ -204,9 +204,11 @@ class FlatTestCase(unittest.TestCase):
         ps.setString("string", "bar")
         ps.set("int2", 2009)
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("autobool", True)
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
-        self.assertEqual(ps.getBool("bool"), True)
+        self.assertIs(ps.getBool("bool"), True)
+        self.assertIs(ps.get("bool"), True)
         self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
         self.assertEqual(ps.getShort("short"), 42)
         self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
@@ -227,6 +229,16 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), long(1238657233314159265))
+        self.assertEqual(ps.typeOf("autobool"), dafBase.PropertySet.TYPE_Bool)
+        self.assertIs(ps.get("autobool"), True)
+
+    def testIntOverflow(self):
+        ps = dafBase.PropertySet()
+        ps.add("foo", 123)
+        self.assertRaises(OverflowError, ps.add, "foo", 2147483649)
+        self.assertRaises(OverflowError, ps.add, "foo", 2147483649123456789123456789)
+        ps.addLongLong("fooL", 123)
+        self.assertRaises(OverflowError, ps.add, "fooL", 2147483649123456789123456789)
 
     def testGetDefault(self):
         ps = dafBase.PropertySet(flat=True)
