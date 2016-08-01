@@ -2,8 +2,9 @@
 
 #
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
 #
+# Copyright 2008-2016  AURA/LSST.
+# 
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -31,6 +32,7 @@ from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
 import os
 import time
+import cPickle as pickle
 
 
 class DateTimeTestCase(unittest.TestCase):
@@ -380,6 +382,10 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(dt.minute, minute)
         self.assertEqual(dt.second, second)
 
+    def testPickle(self):
+        ts = DateTime(1192755473000000000L, DateTime.UTC)
+        nts = pickle.loads(pickle.dumps(ts, 2))
+        self.assertEqual(nts.nsecs(DateTime.UTC), 1192755473000000000L)
 
 class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
