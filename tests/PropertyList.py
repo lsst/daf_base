@@ -1,6 +1,7 @@
 # 
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
+#
+# Copyright 2008-2016  AURA/LSST.
 # 
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -17,16 +18,15 @@
 # 
 # You should have received a copy of the LSST License Statement and 
 # the GNU General Public License along with this program.  If not, 
-# see <http://www.lsstcorp.org/LegalNotices/>.
+# see <https://www.lsstcorp.org/LegalNotices/>.
 #
 
 import unittest
-import pickle
+import cPickle as pickle
 
 import lsst.utils.tests as utilsTests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
-
 
 class FloatSubClass(float):
     """Intended to be something like numpy.float64, without introducing a dependency on numpy"""
@@ -41,7 +41,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assert_(apl is not None)
 
     def checkPickle(self, original):
-        new = pickle.loads(pickle.dumps(original))
+        new = pickle.loads(pickle.dumps(original,2))
         self.assertEqual(original.nameCount(), new.nameCount())
         self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
         for name in original.getOrderedNames():
@@ -102,14 +102,14 @@ class PropertyListTestCase(unittest.TestCase):
 
     def testGetVector(self):
         apl = dafBase.PropertyList()
-        v = (42, 2008, 1)
+        v = [42, 2008, 1]
         apl.setInt("ints", v)
-        apl.setInt("ints2", (10, 9, 8))
+        apl.setInt("ints2", [10, 9, 8])
         w = apl.getArrayInt("ints")
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
         self.assertEqual(apl.getInt("ints2"), 8)
-        self.assertEqual(apl.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(apl.getArrayInt("ints2"), [10, 9, 8])
         w = apl.get("ints", asArray=True)
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
@@ -118,7 +118,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = apl.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, (999,))
+        self.assertEqual(x, [999,])
 
         self.checkPickle(apl)
 
@@ -133,7 +133,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(v[1], w[1])
         self.assertEqual(v[2], w[2])
         self.assertEqual(apl.getInt("ints2"), 8)
-        self.assertEqual(apl.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(apl.getArrayInt("ints2"), [10, 9, 8])
 
         self.checkPickle(apl)
 
@@ -185,10 +185,10 @@ class PropertyListTestCase(unittest.TestCase):
         v = [42, 2008, 1]
         apl.set("ints", v)
         apl.add("ints", [-42, -2008, -1])
-        subclass = (FloatSubClass(1.23), FloatSubClass(4.56), FloatSubClass(7.89))
+        subclass = [FloatSubClass(1.23), FloatSubClass(4.56), FloatSubClass(7.89)]
         apl.add("subclass", subclass)
         self.assertEqual(apl.getArrayInt("ints"),
-                (42, 2008, 1, -42, -2008, -1))
+                [42, 2008, 1, -42, -2008, -1])
         self.assertEqual(apl.get("subclass"), subclass)
 
     def testComment(self):
@@ -264,7 +264,7 @@ class PropertyListTestCase(unittest.TestCase):
                 ("NAXIS", 2),
                 ("RA", 3.14159),
                 ("DEC", 2.71828),
-                ("COMMENT", ("This is a test", "This is a test line 2"))
+                ("COMMENT", ["This is a test", "This is a test line 2"])
                 ])
         self.assertEqual(apl.toOrderedDict(), correct)
 
@@ -282,7 +282,7 @@ class PropertyListTestCase(unittest.TestCase):
         correct["DEC"] = -6.28
         self.assertEqual(apl.toOrderedDict(), correct)
         apl.add("COMMENT", "This is a test line 3")
-        correct["COMMENT"] = correct["COMMENT"] + ("This is a test line 3", )
+        correct["COMMENT"] = correct["COMMENT"] + ["This is a test line 3", ]
         self.assertEqual(apl.toOrderedDict(), correct)
 
     def testHierarchy(self):
@@ -306,22 +306,6 @@ class PropertyListTestCase(unittest.TestCase):
             'top.sibling = 42\ntop.bottom = "x"\n')
 
         self.checkPickle(apl)
-
-    def testCastPropertySet(self):
-        """Test that we can dynamically cast a PropertySet pointer to a PropertyList; DM-1524"""
-        apl = dafBase.PropertyList()
-        apl.set("ONE", 1, "i")
-        apl.set("FIVE", 5, "v")
-        apl.set("TEN", 10, "x")
-
-        aps = apl.deepCopy()            # returns a PTR(PropertySet), not PropertyList (arguably a bug)
-        self.assertTrue(isinstance(aps, dafBase.PropertySet)) # ... but a bug that this test uses
-
-        with self.assertRaises(AttributeError):
-            print aps.getComment("FIVE")
-
-        aps = dafBase.PropertyList.cast(aps)
-        self.assertEqual(aps.getComment("FIVE"), "v")
 
     def testCombineHierarchical(self):
         # Test that we can perform a deep copy of a PropertyList containing a
