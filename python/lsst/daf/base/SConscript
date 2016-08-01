@@ -1,3 +1,4 @@
 # -*- python -*-
 from lsst.sconsUtils import scripts
-scripts.BasicSConscript.python(['baseLib'])
+scripts.BasicSConscript.pybind11(['dateTime', 'persistable',
+	'propertyList', 'propertySet', 'citizen'])
