@@ -1,7 +1,8 @@
 #
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
 #
+# Copyright 2008-2016  AURA/LSST.
+# 
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -21,5 +22,5 @@
 #
 from __future__ import absolute_import
 
-from .baseLib import *
 from .version import *
+from .baseLib import *
