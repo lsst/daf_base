@@ -96,7 +96,7 @@ class DateTimeTestCase(unittest.TestCase):
 
     def testNow(self):
         successes = 0
-        for i in range(10):       # pylint: disable-msg=W0612
+        for _ in range(10):
             secs = time.time()
             ts = DateTime.now()
             diff = ts.nsecs(DateTime.UTC)/1.0e9 - secs
