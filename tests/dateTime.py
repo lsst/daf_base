@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -11,17 +11,16 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-
 
 from __future__ import division
 import unittest
@@ -32,6 +31,7 @@ from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
 import os
 import time
+
 
 class DateTimeTestCase(unittest.TestCase):
     """A test case for DateTime."""
@@ -99,7 +99,7 @@ class DateTimeTestCase(unittest.TestCase):
         for i in range(10):       # pylint: disable-msg=W0612
             secs = time.time()
             ts = DateTime.now()
-            diff = ts.nsecs(DateTime.UTC) / 1.0e9 - secs
+            diff = ts.nsecs(DateTime.UTC)/1.0e9 - secs
             if diff > -0.001 and diff < 0.1:
                 successes += 1
         self.assertGreaterEqual(successes, 3)
@@ -148,9 +148,9 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(), '2004-03-01T12:39:45.100000000Z')
         ts = DateTime("2004-03-01T12:39:45.01Z")
         self.assertEqual(ts.toString(), '2004-03-01T12:39:45.010000000Z')
-        ts = DateTime("2004-03-01T12:39:45.000000001Z") # nanosecond
+        ts = DateTime("2004-03-01T12:39:45.000000001Z")  # nanosecond
         self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000001Z')
-        ts = DateTime("2004-03-01T12:39:45.0000000001Z") # too small
+        ts = DateTime("2004-03-01T12:39:45.0000000001Z")  # too small
         self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000000Z')
 
     def testNegative(self):
@@ -208,8 +208,10 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(dt.minute, minute)
         self.assertEqual(dt.second, second)
 
+
 class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
+
     def setUp(self):
         self.tz = os.environ.setdefault('TZ', "")
         os.environ['TZ'] = self.timezone
@@ -220,14 +222,18 @@ class TimeZoneBaseTestCase(DateTimeTestCase):
         else:
             os.environ['TZ'] = self.tz
 
+
 class BritishTimeTestCase(TimeZoneBaseTestCase):
     timezone = "Europe/London"
+
 
 class BritishTime2TestCase(TimeZoneBaseTestCase):
     timezone = "GMT0BST"
 
+
 class PacificTimeTestCase(TimeZoneBaseTestCase):
     timezone = "PST8PDT"
+
 
 if __name__ == '__main__':
     unittest.main()

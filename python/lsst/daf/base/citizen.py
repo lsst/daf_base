@@ -3,6 +3,7 @@ from builtins import range
 import re
 import lsst.daf.base as dafBase
 
+
 def setCallbacks(new=None, delete=None, both=False):
     """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
 
@@ -28,6 +29,7 @@ You can retrieve a citizen's signature from python with obj.repr()
     if delete:
         dafBase.Citizen.setDeleteCallbackId(delete)
 
+
 def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
     """Print leaked memory blocks
     @param memId0 Only consider blocks allocated after this memId
@@ -43,7 +45,7 @@ You can get the next memId to be allocated with mortal("set"), e.g.
     # work work work
     mortal(memId0)
     """
-    
+
     if memId0 == 'set':
         return dafBase.Citizen.getNextMemId()
 
@@ -52,14 +54,14 @@ You can get the next memId to be allocated with mortal("set"), e.g.
         print("%d Objects leaked" % dafBase.Citizen.census(0, memId0))
 
         census = dafBase.Citizen.census()
-        census = [census[i].repr() for i in range(len(census))] # using [i] for some swiggy reason
+        census = [census[i].repr() for i in range(len(census))]  # using [i] for some swiggy reason
         if showTypes:
             if showTypes[0] == '!':
                 invert = True           # invert the matching logic
                 showTypes = showTypes[1:]
             else:
                 invert = False
-                
+
             _census, census = census, []
             for c in _census:
                 memId, addr, dtype = c.split()
@@ -72,7 +74,7 @@ You can get the next memId to be allocated with mortal("set"), e.g.
 
             nleak = len(census)
             print("%d leaked objects match" % nleak)
-            
+
         if nleakPrintMax <= 0 or nleak <= nleakPrintMax:
             for c in census:
                 memId, addr, type = c.split()

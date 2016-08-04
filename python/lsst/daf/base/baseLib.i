@@ -219,7 +219,7 @@ def _PS_toDict(self):
     d = {}
     for name in self.names():
         v = self.get(name)
-    
+
         if isinstance(v, PropertySet):
             d[name] = PropertySet.toDict(v)
         else:
