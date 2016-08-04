@@ -115,84 +115,73 @@ public:
 
 // Modifiers
     template <typename T> void set(
-        std::string const& name, T const& value, bool inPlace=true);
+        std::string const& name, T const& value);
     void set(
-        std::string const& name, PropertySet::Ptr const& value,
-        bool inPlace=true);
+        std::string const& name, PropertySet::Ptr const& value);
     template <typename T> void set(
-        std::string const& name, std::vector<T> const& value,
-        bool inPlace=true);
+        std::string const& name, std::vector<T> const& value);
     void set(
-        std::string const& name, char const* value, bool inPlace=true);
+        std::string const& name, char const* value);
     template <typename T> void add(
-        std::string const& name, T const& value, bool inPlace=true);
+        std::string const& name, T const& value);
     template <typename T> void add(
-        std::string const& name, std::vector<T> const& value,
-        bool inPlace=true);
+        std::string const& name, std::vector<T> const& value);
     void add(
-        std::string const& name, char const* value, bool inPlace=true);
+        std::string const& name, char const* value);
 
     template <typename T> void set(
         std::string const& name, T const& value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
     void set(
         std::string const& name, char const* value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
     template <typename T> void add(
         std::string const& name, T const& value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
     void add(
         std::string const& name, char const* value,
-        std::string const& comment, bool inPlace=true);
+        std::string const& comment);
 
     template <typename T> void set(
         std::string const& name, T const& value,
-        char const* comment, bool inPlace=true) {
-        set(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        set(name, value, std::string(comment));
     }
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
-        char const* comment, bool inPlace=true) {
-        set(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        set(name, value, std::string(comment));
     }
     void set(
         std::string const& name, char const* value,
-        char const* comment, bool inPlace=true) {
-        set(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        set(name, value, std::string(comment));
     }
     template <typename T> void add(
         std::string const& name, T const& value,
-        char const* comment, bool inPlace=true) {
-        add(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        add(name, value, std::string(comment));
     }
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
-        char const* comment, bool inPlace=true) {
-        add(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        add(name, value, std::string(comment));
     }
     void add(
         std::string const& name, char const* value,
-        char const* comment, bool inPlace=true) {
-        add(name, value, std::string(comment), inPlace);
+        char const* comment) {
+        add(name, value, std::string(comment));
     }
 
     virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
-                      std::string const& name) {
-        copy(dest, source, name, true);
-    }
-    virtual void combine(PropertySet::ConstPtr source) {
-        combine(source, true);
-    }
-
-    virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
-                      std::string const& name, bool inPlace);
-    virtual void combine(PropertySet::ConstPtr source, bool inPlace);
+                      std::string const& name);
+    virtual void combine(PropertySet::ConstPtr source);
 
     virtual void remove(std::string const& name);
 
@@ -205,7 +194,7 @@ private:
                       std::shared_ptr< std::vector<boost::any> > vp);
     virtual void _moveToEnd(std::string const& name);
     virtual void _commentOrderFix(
-        std::string const& name, std::string const& comment, bool inPlace);
+        std::string const& name, std::string const& comment);
 
     CommentMap _comments;
     std::list<std::string> _order;
