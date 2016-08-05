@@ -1,7 +1,7 @@
-# 
+#
 # LSST Data Management System
 # Copyright 2008, 2009, 2010 LSST Corporation.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -9,21 +9,24 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# You should have received a copy of the LSST License Statement and 
-# the GNU General Public License along with this program.  If not, 
+#
+# You should have received a copy of the LSST License Statement and
+# the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
+
+from __future__ import print_function
+from past.builtins import long
 
 import unittest
 import pickle
 
-import lsst.utils.tests as utilsTests
+import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
 
@@ -38,7 +41,7 @@ class PropertyListTestCase(unittest.TestCase):
 
     def testConstruct(self):
         apl = dafBase.PropertyList()
-        self.assert_(apl is not None)
+        self.assertIsNotNone(apl)
 
     def checkPickle(self, original):
         new = pickle.loads(pickle.dumps(original))
@@ -53,7 +56,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", 0xfeeddeadbeefL)
+        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.set("char*", "foo")
@@ -69,8 +72,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.typeOf("int"), dafBase.PropertyList.TYPE_Int)
         self.assertEqual(apl.getInt("int"), 2008)
         self.assertEqual(apl.typeOf("int64_t"),
-                dafBase.PropertyList.TYPE_LongLong)
-        self.assertEqual(apl.getLongLong("int64_t"), 0xfeeddeadbeefL)
+                         dafBase.PropertyList.TYPE_LongLong)
+        self.assertEqual(apl.getLongLong("int64_t"), long(0xfeeddeadbeef))
         self.assertEqual(apl.typeOf("float"), dafBase.PropertyList.TYPE_Float)
         self.assertAlmostEqual(apl.getFloat("float"), 3.14159, 6)
         self.assertEqual(apl.typeOf("double"), dafBase.PropertyList.TYPE_Double)
@@ -83,7 +86,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getInt("int2"), 2009)
         self.assertEqual(apl.get("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
-        self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265L)
+        self.assertEqual(apl.getDateTime("dt").nsecs(), long(1238657233314159265))
         self.assertEqual(apl.getDouble("subclass"), 1.23456789)
         self.checkPickle(apl)
 
@@ -159,14 +162,14 @@ class PropertyListTestCase(unittest.TestCase):
         apl = dafBase.PropertyList()
         apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
         self.assertEqual(apl.toString(),
-                "dt = 2009-04-02T07:26:39.314159265Z\n")
+                         "dt = 2009-04-02T07:26:39.314159265Z\n")
 
     def testGetScalarThrow(self):
         apl = dafBase.PropertyList()
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", 0xfeeddeadbeefL)
+        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
@@ -188,7 +191,7 @@ class PropertyListTestCase(unittest.TestCase):
         subclass = (FloatSubClass(1.23), FloatSubClass(4.56), FloatSubClass(7.89))
         apl.add("subclass", subclass)
         self.assertEqual(apl.getArrayInt("ints"),
-                (42, 2008, 1, -42, -2008, -1))
+                         (42, 2008, 1, -42, -2008, -1))
         self.assertEqual(apl.get("subclass"), subclass)
 
     def testComment(self):
@@ -210,14 +213,14 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("RA", 3.14159, "decimal degrees")
         apl.set("DEC", 2.71828, "decimal radians")
         correct = [
-                ("SIMPLE", True, ""),
-                ("BITPIX", -32, ""),
-                ("NAXIS", 2, ""),
-                ("COMMENT", "This is a test", ""),
-                ("COMMENT", "This is a test line 2", ""),
-                ("RA", 3.14159, "decimal degrees"),
-                ("DEC", 2.71828, "decimal radians"),
-                ]
+            ("SIMPLE", True, ""),
+            ("BITPIX", -32, ""),
+            ("NAXIS", 2, ""),
+            ("COMMENT", "This is a test", ""),
+            ("COMMENT", "This is a test line 2", ""),
+            ("RA", 3.14159, "decimal degrees"),
+            ("DEC", 2.71828, "decimal radians"),
+        ]
         self.assertEqual(apl.toList(), correct)
         apl.set("NAXIS1", 513, "length of data axis 1")
         correct.append(("NAXIS1", 513, "length of data axis 1"))
@@ -249,13 +252,13 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("COMMENT", "This is a test")
         apl.add("COMMENT", "This is a test line 2")
         correct = OrderedDict([
-                ("SIMPLE", True),
-                ("BITPIX", -32),
-                ("NAXIS", 2),
-                ("RA", 3.14159),
-                ("DEC", 2.71828),
-                ("COMMENT", ("This is a test", "This is a test line 2"))
-                ])
+            ("SIMPLE", True),
+            ("BITPIX", -32),
+            ("NAXIS", 2),
+            ("RA", 3.14159),
+            ("DEC", 2.71828),
+            ("COMMENT", ("This is a test", "This is a test line 2"))
+        ])
         self.assertEqual(apl.toOrderedDict(), correct)
 
         apl.set("NAXIS1", 513)
@@ -291,8 +294,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.get("top.sibling"), 42)
         self.assertRaises(pexExcept.NotFoundError, apl.get, "top")
         self.assertEqual(apl.toString(),
-            'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
-            'top.sibling = 42\ntop.bottom = "x"\n')
+                         'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
+                         'top.sibling = 42\ntop.bottom = "x"\n')
 
         self.checkPickle(apl)
 
@@ -304,10 +307,10 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("TEN", 10, "x")
 
         aps = apl.deepCopy()            # returns a PTR(PropertySet), not PropertyList (arguably a bug)
-        self.assertTrue(isinstance(aps, dafBase.PropertySet)) # ... but a bug that this test uses
+        self.assertTrue(isinstance(aps, dafBase.PropertySet))  # ... but a bug that this test uses
 
         with self.assertRaises(AttributeError):
-            print aps.getComment("FIVE")
+            print(aps.getComment("FIVE"))
 
         aps = dafBase.PropertyList.cast(aps)
         self.assertEqual(aps.getComment("FIVE"), "v")
@@ -318,26 +321,20 @@ class PropertyListTestCase(unittest.TestCase):
         # This was a segfault prior to addressing DM-882.
         pl1 = dafBase.PropertyList()
         pl1.set("a.b", 1)
-        pl2 = pl1.deepCopy() # should not segfault
+        pl2 = pl1.deepCopy()  # should not segfault
         self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
 
-def suite():
-    """Returns a suite containing all the test cases in this module."""
 
-    utilsTests.init()
+class TestMemory(lsst.utils.tests.MemoryTestCase):
+    pass
 
-    suites = []
-    suites += unittest.makeSuite(PropertyListTestCase)
-    suites += unittest.makeSuite(utilsTests.MemoryTestCase)
 
-    return unittest.TestSuite(suites)
+def setup_module(module):
+    lsst.utils.tests.init()
 
-def run(exit=False):
-    """Run the tests"""
-    return utilsTests.run(suite(), exit)
-
-if __name__ == '__main__':
-    run(True)
+if __name__ == "__main__":
+    lsst.utils.tests.init()
+    unittest.main()
 
 # BOOST_AUTO_TEST_CASE(arrayProperties) {
 #     dafBase::PropertyList apl;
@@ -349,7 +346,7 @@ if __name__ == '__main__':
 #     apl.set("int", 365);
 #     apl.set("ints2", -42);
 #     apl.add("ints2", -2008);
-# 
+#
 #     BOOST_CHECK_EQUAL(apl.isArray("ints"), true);
 #     BOOST_CHECK_EQUAL(apl.isArray("int"), false);
 #     BOOST_CHECK_EQUAL(apl.isArray("ints2"), true);
@@ -360,12 +357,12 @@ if __name__ == '__main__':
 #     BOOST_CHECK(apl.typeOf("int") == typeid(int));
 #     BOOST_CHECK(apl.typeOf("ints2") == typeid(int));
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(hierarchy) {
 #     dafBase::PropertyList apl;
 #     dafBase::PropertyList::Ptr aplp(new
 #     dafBase::PropertyList);
-# 
+#
 #     aplp->set("pre", 1);
 #     apl.set("apl1", aplp);
 #     aplp->set("post", 2);
@@ -376,7 +373,7 @@ if __name__ == '__main__':
 #     apl.set("apl2.minus", -10.24);
 #     apl.set("apl3.sub1", "foo");
 #     apl.set("apl3.sub2", "bar");
-# 
+#
 #     BOOST_CHECK(apl.exists("apl1"));
 #     BOOST_CHECK(apl.exists("apl2"));
 #     BOOST_CHECK(apl.exists("apl3"));
@@ -386,7 +383,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK(apl.exists("apl2.minus"));
 #     BOOST_CHECK(apl.exists("apl3.sub1"));
 #     BOOST_CHECK(apl.exists("apl3.sub2"));
-# 
+#
 #     BOOST_CHECK(apl.isPropertyListPtr("apl1"));
 #     BOOST_CHECK(apl.isPropertyListPtr("apl2"));
 #     BOOST_CHECK(apl.isPropertyListPtr("apl3"));
@@ -397,7 +394,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK(!apl.isPropertyListPtr("apl2.minus"));
 #     BOOST_CHECK(!apl.isPropertyListPtr("apl3.sub1"));
 #     BOOST_CHECK(!apl.isPropertyListPtr("apl3.sub2"));
-# 
+#
 #     dafBase::PropertyList::Ptr aplp1 =
 #     apl.get<dafBase::PropertyList::Ptr>("apl1");
 #     dafBase::PropertyList::Ptr aplp2 =
@@ -420,7 +417,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(aplp2->get<double>("minus"), -10.24);
 #     BOOST_CHECK_EQUAL(aplp3->get<std::string>("sub1"), "foo");
 #     BOOST_CHECK_EQUAL(aplp3->get<std::string>("sub2"), "bar");
-# 
+#
 #     // Make sure checking a subproperty doesn't create it.
 #     BOOST_CHECK(!apl.exists("apl2.pre"));
 #     BOOST_CHECK(!apl.exists("apl2.pre"));
@@ -434,7 +431,7 @@ if __name__ == '__main__':
 #     // Make sure checking a subproperty doesn't create its parent.
 #     BOOST_CHECK(!apl.exists("apl4"));
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(variousThrows) {
 #     dafBase::PropertyList apl;
 #     apl.set("int", 42);
@@ -457,7 +454,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_NO_THROW(apl.remove("foo.bar"));
 #     BOOST_CHECK_NO_THROW(apl.remove("int.sub"));
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(names) {
 #     dafBase::PropertyList apl;
 #     apl.set("apl1.pre", 1);
@@ -466,10 +463,10 @@ if __name__ == '__main__':
 #     apl.set("double", 3.14);
 #     apl.set("apl2.plus", 10.24);
 #     apl.set("apl2.minus", -10.24);
-# 
+#
 #     BOOST_CHECK_EQUAL(apl.nameCount(), 4U);
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 8U);
-# 
+#
 #     std::vector<std::string> v = apl.names();
 #     BOOST_CHECK_EQUAL(v.size(), 4U);
 #     std::sort(v.begin(), v.end());
@@ -489,7 +486,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(v[6], "apl2.minus");
 #     BOOST_CHECK_EQUAL(v[7], "apl2.plus");
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(paramNames) {
 #     dafBase::PropertyList apl;
 #     apl.set("apl1.pre", 1);
@@ -498,7 +495,7 @@ if __name__ == '__main__':
 #     apl.set("double", 3.14);
 #     apl.set("apl2.plus", 10.24);
 #     apl.set("apl2.minus", -10.24);
-# 
+#
 #     std::vector<std::string> v = apl.paramNames();
 #     BOOST_CHECK_EQUAL(v.size(), 2U);
 #     std::sort(v.begin(), v.end());
@@ -514,7 +511,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(v[4], "apl2.minus");
 #     BOOST_CHECK_EQUAL(v[5], "apl2.plus");
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(propertySetNames) {
 #     dafBase::PropertyList apl;
 #     apl.set("apl1.pre", 1);
@@ -524,7 +521,7 @@ if __name__ == '__main__':
 #     apl.set("apl2.plus", 10.24);
 #     apl.set("apl2.minus", -10.24);
 #     apl.set("apl3.sub.subsub", "foo");
-# 
+#
 #     std::vector<std::string> v = apl.propertySetNames();
 #     BOOST_CHECK_EQUAL(v.size(), 3U);
 #     std::sort(v.begin(), v.end());
@@ -539,7 +536,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(v[2], "apl3");
 #     BOOST_CHECK_EQUAL(v[3], "apl3.sub");
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(getAs) {
 #     dafBase::PropertyList apl;
 #     apl.set("bool", true);
@@ -559,7 +556,7 @@ if __name__ == '__main__':
 #     dafBase::PropertyList);
 #     aplp->set("bottom", "x");
 #     apl.set("top", aplp);
-# 
+#
 #     BOOST_CHECK_EQUAL(apl.getAsBool("bool"), true);
 #     BOOST_CHECK_THROW(apl.getAsBool("char"), boost::bad_any_cast);
 #     BOOST_CHECK_EQUAL(apl.getAsInt("bool"), 1);
@@ -592,7 +589,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_THROW(apl.getAsPropertyListPtr("top.bottom"),
 #                       boost::bad_any_cast);
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(combine) {
 #     dafBase::PropertyList apl;
 #     apl.set("apl1.pre", 1);
@@ -602,7 +599,7 @@ if __name__ == '__main__':
 #     apl.set("apl2.plus", 10.24);
 #     apl.set("apl2.minus", -10.24);
 #     apl.set("apl3.sub.subsub", "foo");
-# 
+#
 #     dafBase::PropertyList::Ptr aplp(new
 #     dafBase::PropertyList);
 #     aplp->set("apl1.pre", 3);
@@ -610,9 +607,9 @@ if __name__ == '__main__':
 #     aplp->set("int", 2008);
 #     aplp->set("apl2.foo", "bar");
 #     aplp->set("apl4.top", "bottom");
-# 
+#
 #     apl.combine(aplp);
-# 
+#
 #     BOOST_CHECK(apl.isPropertyListPtr("apl1"));
 #     BOOST_CHECK(apl.isPropertyListPtr("apl2"));
 #     BOOST_CHECK(apl.isPropertyListPtr("apl3"));
@@ -642,19 +639,19 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(v[0], 42);
 #     BOOST_CHECK_EQUAL(v[1], 2008);
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(combineThrow) {
 #     dafBase::PropertyList apl;
 #     apl.set("int", 42);
-# 
+#
 #     dafBase::PropertyList::Ptr aplp(new
 #     dafBase::PropertyList);
 #     aplp->set("int", 3.14159);
-# 
+#
 #     BOOST_CHECK_THROW(apl.combine(aplp),
 #                       lsst::pex::exceptions::DomainError);
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(remove) {
 #     dafBase::PropertyList apl;
 #     apl.set("int", 42);
@@ -663,7 +660,7 @@ if __name__ == '__main__':
 #     apl.set("apl1.minus", -1);
 #     apl.set("apl1.zero", 0);
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 6U);
-# 
+#
 #     apl.remove("int");
 #     BOOST_CHECK(!apl.exists("int"));
 #     BOOST_CHECK_EQUAL(apl.getAsDouble("double"), 3.14159);
@@ -671,7 +668,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(apl.getAsInt("apl1.minus"), -1);
 #     BOOST_CHECK_EQUAL(apl.getAsInt("apl1.zero"), 0);
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 5U);
-# 
+#
 #     apl.remove("apl1.zero");
 #     BOOST_CHECK(!apl.exists("int"));
 #     BOOST_CHECK_EQUAL(apl.getAsDouble("double"), 3.14159);
@@ -679,7 +676,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(apl.getAsInt("apl1.plus"), 1);
 #     BOOST_CHECK_EQUAL(apl.getAsInt("apl1.minus"), -1);
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 4U);
-# 
+#
 #     apl.remove("apl1");
 #     BOOST_CHECK(!apl.exists("int"));
 #     BOOST_CHECK_EQUAL(apl.getAsDouble("double"), 3.14159);
@@ -688,7 +685,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK(!apl.exists("apl1.minus"));
 #     BOOST_CHECK(!apl.exists("apl1.zero"));
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 1U);
-# 
+#
 #     apl.remove("double");
 #     BOOST_CHECK(!apl.exists("int"));
 #     BOOST_CHECK(!apl.exists("double"));
@@ -698,7 +695,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK(!apl.exists("apl1.zero"));
 #     BOOST_CHECK_EQUAL(apl.nameCount(false), 0U);
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(deepCopy) {
 #     dafBase::PropertyList apl;
 #     apl.set("int", 42);
@@ -706,7 +703,7 @@ if __name__ == '__main__':
 #     dafBase::PropertyList);
 #     aplp->set("bottom", "x");
 #     apl.set("top", aplp);
-# 
+#
 #     dafBase::PropertyList::Ptr aplp2 = apl.deepCopy();
 #     BOOST_CHECK(aplp2->exists("int"));
 #     BOOST_CHECK(aplp2->exists("top.bottom"));
@@ -722,7 +719,7 @@ if __name__ == '__main__':
 #     BOOST_CHECK_EQUAL(aplp2->getAsInt("int"), 42);
 #     BOOST_CHECK_EQUAL(aplp2->getAsString("top.bottom"), "x");
 # }
-# 
+#
 # BOOST_AUTO_TEST_CASE(toString) {
 #     dafBase::PropertyList apl;
 #     apl.set("bool", true);
@@ -746,7 +743,7 @@ if __name__ == '__main__':
 #     apl.add("v", 10);
 #     apl.add("v", 9);
 #     apl.add("v", 8);
-# 
+#
 #     BOOST_CHECK_EQUAL(apl.toString(),
 #         "bool = 1\n"
 #         "char = '*'\n"
