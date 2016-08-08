@@ -5,15 +5,27 @@ import lsst.daf.base as dafBase
 
 
 def setCallbacks(new=None, delete=None, both=False):
-    """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
+    """Set the callback IDs for the `Citizen`.
 
-You probably want to chant the following to gdb:
-   break defaultNewCallback
-   break defaultDeleteCallback
+    These callbacks can be used within :command:`gdb`::
 
-You might want to put this in your .gdbinit file.
+        break defaultNewCallback
+        break defaultDeleteCallback
 
-You can retrieve a citizen's signature from python with obj.repr()
+    Enable these by default by including the above lines in a ``~/.gdbinit``
+    file.
+
+    You can retrieve a `Citizen`\ 's object's signature with
+    `lsst.daf.base.Citizen.repr`.
+
+    Parameters
+    ----------
+    new : `obj`, optional
+        Callback ID for creation.
+    delete : `obj`, optional
+        Callback ID for deletion.
+    both : `bool`, optional
+        If `True`, set both `new` and `delete` to the same value.
     """
 
     if both:
@@ -31,19 +43,33 @@ You can retrieve a citizen's signature from python with obj.repr()
 
 
 def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
-    """Print leaked memory blocks
-    @param memId0 Only consider blocks allocated after this memId
-    @param nleakPrintMax Maximum number of leaks to print; <= 0 means unlimited
-    @param first Print the first nleakPrintMax blocks; if False print the last blocks.
-    @param showTypes Only print objects matching this regex (if starts with !, print objects that don't match)
+    """Print leaked memory blocks.
 
-    If you want finer control than nleakPrintMax/first provide, use
-    dafBase.Citizen.census() to get the entire list
+    You can get the next memory ID to be allocated with ``mortal("set")``,
+    e.g.::
 
-You can get the next memId to be allocated with mortal("set"), e.g.
-    memId0 = mortal("set")
-    # work work work
-    mortal(memId0)
+       memId0 = mortal("set")
+       # ...
+       mortal(memId0)
+
+    Parameters
+    ----------
+    memId0 : `int`
+        Only consider blocks allocated after this memory ID.
+    nleakPrintMax : `int`
+        Maximum number of leaks to print. Negative `nleakPrintMax` means
+        unlimited printouts.
+    first : `bool`
+        Print the first `nleakPrintMax` blocks. If `False`, print the last
+        blocks.
+    showTypes : `str`
+        Only print objects matching this regex. If `showTypes` starts
+        with ``!``, objects that *don't* match are printed.
+
+    See also
+    --------
+    :meth:`dafBase.Citizen.census` : Provides the entire list, allowing
+        you to imlement custom filtering.
     """
 
     if memId0 == 'set':
