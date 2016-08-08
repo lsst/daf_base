@@ -14,9 +14,16 @@ GitHub repository
 Python API Reference
 ====================
 
-TK
+.. automodapi:: lsst.daf.base
+   :skip: long
+
+.. automodapi:: lsst.daf.base.citizen
 
 C++ API Reference
 =================
 
-TK
+.. doxygenindex::
+   :project: daf_base
+
+..
+  This comment clears the epilogue from being added to doxygenindex

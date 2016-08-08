@@ -16,3 +16,6 @@ _g.update(build_package_configs(
               'Research in Astronomy, Inc.',
     version=lsst.daf.base.version.__version__,
     doxygen_xml_dirname=os.path.join(os.path.dirname(__file__), 'xml')))
+
+# DEBUG only
+automodsumm_writereprocessed = True
