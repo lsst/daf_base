@@ -208,7 +208,7 @@ def _guessIntegerType(container, name, value):
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type"""
-    if hasattr(value, "__iter__"):
+    if hasattr(value, "__iter__") and not isinstance(value, str):
         exemplar = value[0]
     else:
         exemplar = value

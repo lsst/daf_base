@@ -48,6 +48,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setString("string", "bar")
         ps.set("int2", 2009)
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("blank", "")
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
         self.assertEqual(ps.getBool("bool"), True)
@@ -71,6 +72,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), long(1238657233314159265))
+        self.assertEqual(ps.getString("blank"), "")
 
     def testNumPyScalars(self):
         """Test that we can also pass NumPy array scalars to PropertySet setters.
