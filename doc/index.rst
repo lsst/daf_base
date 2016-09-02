@@ -23,7 +23,22 @@ Python API Reference
 C++ API Reference
 =================
 
-.. doxygenindex::
-   :project: daf_base
+lsst::daf::base
+---------------
+
+Classes
+^^^^^^^
+
+.. toctree::
+   cpp/lsst_daf_base_Citizen
+   cpp/lsst_daf_base_DateTime
+   cpp/lsst_daf_base_Persistable
+   cpp/lsst_daf_base_PropertyList
+   cpp/lsst_daf_base_PropertySet
+   cpp/lsst_daf_base_PersistentCitizenScope
+
+..
+  .. doxygenindex::
+     :project: daf_base
 
 .. .
