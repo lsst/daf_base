@@ -551,7 +551,7 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
         } else if (t == typeid(string)) {
             s << '"' << boost::any_cast<string>(v) << '"';
         } else if (t == typeid(dafBase::DateTime)) {
-            s << boost::any_cast<dafBase::DateTime>(v).toString();
+            s << boost::any_cast<dafBase::DateTime>(v).toString(dafBase::DateTime::UTC);
         } else if (t == typeid(Ptr)) {
             s << "{ ... }";
         } else if (t == typeid(Persistable::Ptr)) {

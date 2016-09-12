@@ -105,36 +105,69 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertGreaterEqual(successes, 3)
 
     def testIsoEpoch(self):
-        ts = DateTime("19700101T000000Z")
+        ts = DateTime("19700101T000000Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.UTC), long(0))
-        self.assertEqual(ts.toString(), "1970-01-01T00:00:00.000000000Z")
+        self.assertEqual(ts.toString(ts.UTC), "1970-01-01T00:00:00.000000000Z")
 
-    def testIsoBasic(self):
-        ts = DateTime("20090402T072639.314159265Z")
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
-        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.314159265Z")
+    def testIsoUTCBasic(self):
+        """Test basic ISO string input and output of UTC dates"""
+        for dateSep in ("-", ""):  # "-" date separator is optional
+            for timeSep in (":", ""):  # ":" time separator is optional
+                for decPt in (".", ","):  # "." or "," may be used as decimal point
+                    dateStr = "2009{0}04{0}02T07{1}26{1}39{2}314159265Z".format(dateSep, timeSep, decPt)
+                    ts = DateTime(dateStr, DateTime.UTC)
+                    self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
+                    self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
+                    self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
+
+    def testIsoNonUTCBasics(self):
+        """Test basic ISO string input and output of TAI and TT dates"""
+        for scale in (DateTime.TAI, DateTime.TT):
+            for dateSep in ("-", ""):  # "-" date separator is optional
+                for timeSep in (":", ""):  # ":" time separator is optional
+                    for decPt in (".", ","):  # "." or "," may be used as decimal point
+                        dateStr = "2009{0}04{0}02T07{1}26{1}39{2}314159265".format(dateSep, timeSep, decPt)
+                        ts = DateTime(dateStr, scale)
+                        self.assertEqual(ts.toString(scale), "2009-04-02T07:26:39.314159265")
 
     def testIsoExpanded(self):
-        ts = DateTime("2009-04-02T07:26:39.314159265Z")
+        ts = DateTime("2009-04-02T07:26:39.314159265Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
-        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.314159265Z")
+        self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
 
     def testIsoNoNSecs(self):
-        ts = DateTime("2009-04-02T07:26:39Z")
+        ts = DateTime("2009-04-02T07:26:39Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233000000000))
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199000000000))
-        self.assertEqual(ts.toString(), "2009-04-02T07:26:39.000000000Z")
+        self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.000000000Z")
 
     def testIsoThrow(self):
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("20090401"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("20090401T"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("2009-04-01T"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("2009-04-01T23:36:05"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("20090401T23:36:05-0700"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("2009/04/01T23:36:05Z"))
-        self.assertRaises(pexExcept.DomainError, lambda: DateTime("2009/04/01T23:36:05Z"))
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("2009-04-01T23:36:05", DateTime.UTC)  # Z time zone required for UTC
+        for scale in (DateTime.TAI, DateTime.TT):
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04-01T23:36:05Z", scale)  # Z time zone forbidden for TAI or TT
+
+        for scale in (DateTime.TAI, DateTime.TT, DateTime.UTC):
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("20090401", scale)  # time required
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("20090401T", DateTime.UTC)  # time required
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04-01T", DateTime.UTC)  # time required
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04-01T23:36:05-0700", DateTime.UTC)  # time zone offset not supported
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009/04/01T23:36:05Z", DateTime.UTC)  # "/" not valid
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04-01T23:36", DateTime.UTC)  # partial time
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04", DateTime.UTC)  # partial date without time
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("2009-04T23:36.05", DateTime.UTC)  # partial date with time
+            with self.assertRaises(pexExcept.DomainError):
+                DateTime("09-04-01T23:36:05", DateTime.UTC)  # 2 digit year
 
     def testNsecsTT(self):
         ts = DateTime(long(1192755538184000000), DateTime.TT)
@@ -144,51 +177,51 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
 
     def testFracSecs(self):
-        ts = DateTime("2004-03-01T12:39:45.1Z")
-        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.100000000Z')
-        ts = DateTime("2004-03-01T12:39:45.01Z")
-        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.010000000Z')
-        ts = DateTime("2004-03-01T12:39:45.000000001Z")  # nanosecond
-        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000001Z')
-        ts = DateTime("2004-03-01T12:39:45.0000000001Z")  # too small
-        self.assertEqual(ts.toString(), '2004-03-01T12:39:45.000000000Z')
+        ts = DateTime("2004-03-01T12:39:45.1Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.100000000Z')
+        ts = DateTime("2004-03-01T12:39:45.01Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.010000000Z')
+        ts = DateTime("2004-03-01T12:39:45.000000001Z", DateTime.UTC)  # nanosecond
+        self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.000000001Z')
+        ts = DateTime("2004-03-01T12:39:45.0000000001Z", DateTime.UTC)  # too small
+        self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.000000000Z')
 
     def testNegative(self):
-        ts = DateTime("1969-03-01T00:00:32Z")
-        self.assertEqual(ts.toString(), '1969-03-01T00:00:32.000000000Z')
-        ts = DateTime("1969-01-01T00:00:00Z")
-        self.assertEqual(ts.toString(), '1969-01-01T00:00:00.000000000Z')
-        ts = DateTime("1969-01-01T00:00:40Z")
-        self.assertEqual(ts.toString(), '1969-01-01T00:00:40.000000000Z')
-        ts = DateTime("1969-01-01T00:00:38Z")
-        self.assertEqual(ts.toString(), '1969-01-01T00:00:38.000000000Z')
-        ts = DateTime("1969-03-01T12:39:45Z")
-        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.000000000Z')
-        ts = DateTime("1969-03-01T12:39:45.000000001Z")
-        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.000000001Z')
+        ts = DateTime("1969-03-01T00:00:32Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-03-01T00:00:32.000000000Z')
+        ts = DateTime("1969-01-01T00:00:00Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-01-01T00:00:00.000000000Z')
+        ts = DateTime("1969-01-01T00:00:40Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-01-01T00:00:40.000000000Z')
+        ts = DateTime("1969-01-01T00:00:38Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-01-01T00:00:38.000000000Z')
+        ts = DateTime("1969-03-01T12:39:45Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.000000000Z')
+        ts = DateTime("1969-03-01T12:39:45.000000001Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.000000001Z')
 
         # Note slight inaccuracy in UTC-TAI-UTC round-trip
-        ts = DateTime("1969-03-01T12:39:45.12345Z")
-        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.123449996Z')
-        ts = DateTime("1969-03-01T12:39:45.123456Z")
-        self.assertEqual(ts.toString(), '1969-03-01T12:39:45.123455996Z')
+        ts = DateTime("1969-03-01T12:39:45.12345Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.123449996Z')
+        ts = DateTime("1969-03-01T12:39:45.123456Z", DateTime.UTC)
+        self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.123455996Z')
 
         ts = DateTime()
-        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918240Z')
+        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918240Z')
 
         ts = DateTime(long(-1), DateTime.TAI)
-        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918239Z')
+        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918239Z')
         ts = DateTime(long(0), DateTime.TAI)
-        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918240Z')
+        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918240Z')
         ts = DateTime(long(1), DateTime.TAI)
-        self.assertEqual(ts.toString(), '1969-12-31T23:59:51.999918241Z')
+        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918241Z')
 
         ts = DateTime(long(-1), DateTime.UTC)
-        self.assertEqual(ts.toString(), '1969-12-31T23:59:59.999999999Z')
+        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:59.999999999Z')
         ts = DateTime(long(0), DateTime.UTC)
-        self.assertEqual(ts.toString(), '1970-01-01T00:00:00.000000000Z')
+        self.assertEqual(ts.toString(ts.UTC), '1970-01-01T00:00:00.000000000Z')
         ts = DateTime(long(1), DateTime.UTC)
-        self.assertEqual(ts.toString(), '1970-01-01T00:00:00.000000001Z')
+        self.assertEqual(ts.toString(ts.UTC), '1970-01-01T00:00:00.000000001Z')
 
     def testConvert(self):
         year = 2012

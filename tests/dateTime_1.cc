@@ -37,8 +37,8 @@ using lsst::daf::base::DateTime;
 BOOST_AUTO_TEST_SUITE(DateTimeSuite)
 
 BOOST_AUTO_TEST_CASE(Gmtime) {
-    DateTime dt("20090402T072639.314159265Z");
-    struct tm t(dt.gmtime());
+    DateTime dt("20090402T072639.314159265Z", DateTime::UTC);
+    struct tm t(dt.gmtime(DateTime::UTC));
     BOOST_CHECK_EQUAL(t.tm_sec, 39);
     BOOST_CHECK_EQUAL(t.tm_min, 26);
     BOOST_CHECK_EQUAL(t.tm_hour, 7);
@@ -51,15 +51,15 @@ BOOST_AUTO_TEST_CASE(Gmtime) {
 }
 
 BOOST_AUTO_TEST_CASE(Timespec) {
-    DateTime dt("20090402T072639.314159265Z");
-    struct timespec ts(dt.timespec());
+    DateTime dt("20090402T072639.314159265Z", DateTime::UTC);
+    struct timespec ts(dt.timespec(DateTime::UTC));
     BOOST_CHECK_EQUAL(ts.tv_sec, 1238657199);
     BOOST_CHECK_EQUAL(ts.tv_nsec, 314159265);
 }
 
 BOOST_AUTO_TEST_CASE(Timeval) {
-    DateTime dt("20090402T072639.314159265Z");
-    struct timeval tv(dt.timeval());
+    DateTime dt("20090402T072639.314159265Z", DateTime::UTC);
+    struct timeval tv(dt.timeval(DateTime::UTC));
     BOOST_CHECK_EQUAL(tv.tv_sec, 1238657199);
     BOOST_CHECK_EQUAL(tv.tv_usec, 314159);
 }
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(Throw) {
                       lsst::pex::exceptions::DomainError);
     // Date before UTC->TAI conversion is valid and too far in the past for
     // 32-bit Unix mktime()
-    BOOST_CHECK_THROW(DateTime("1901-01-01T12:34:56Z"),
+    BOOST_CHECK_THROW(DateTime("1901-01-01T12:34:56Z", DateTime::UTC),
                       lsst::pex::exceptions::DomainError);
     if (sizeof(time_t) == 4) {
         // Date too far in the past for Unix mktime()
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(Throw) {
         // Date too far in the future for Unix mktime()
         BOOST_CHECK_THROW(DateTime(2039, 1, 1, 12, 34, 56),
                           lsst::pex::exceptions::DomainError);
-        BOOST_CHECK_THROW(DateTime("2039-01-01T12:34:56Z"),
+        BOOST_CHECK_THROW(DateTime("2039-01-01T12:34:56Z", DateTime::UTC),
                           lsst::pex::exceptions::DomainError);
     }
 

@@ -47,7 +47,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.set("char*", "foo")
         ps.setString("string", "bar")
         ps.set("int2", 2009)
-        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         ps.set("blank", "")
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
@@ -163,7 +163,7 @@ class PropertySetTestCase(unittest.TestCase):
 
     def testDateTimeToString(self):
         ps = dafBase.PropertySet()
-        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         self.assertEqual(ps.toString(),
                          "dt = 2009-04-02T07:26:39.314159265Z\n")
 
@@ -205,7 +205,7 @@ class FlatTestCase(unittest.TestCase):
         ps.set("char*", "foo")
         ps.setString("string", "bar")
         ps.set("int2", 2009)
-        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         ps.set("autobool", True)
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
@@ -306,7 +306,7 @@ class FlatTestCase(unittest.TestCase):
 
     def testDateTimeToString(self):
         ps = dafBase.PropertySet(flat=True)
-        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         self.assertEqual(ps.toString(),
                          "dt = 2009-04-02T07:26:39.314159265Z\n")
 
@@ -349,7 +349,7 @@ class FlatTestCase(unittest.TestCase):
         ps2.setDouble("double", 2.718281828459045)
         ps2.set("char*", "foo")
         ps2.setString("string", "bar")
-        ps2.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        ps2.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
 
         d = ps2.toDict()
         self.assertIsInstance(d, dict)

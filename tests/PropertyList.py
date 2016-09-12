@@ -62,7 +62,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("char*", "foo")
         apl.setString("string", "bar")
         apl.set("int2", 2009)
-        apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         apl.set("subclass", FloatSubClass(1.23456789))
 
         self.assertEqual(apl.typeOf("bool"), dafBase.PropertyList.TYPE_Bool)
@@ -160,7 +160,7 @@ class PropertyListTestCase(unittest.TestCase):
 
     def testDateTimeToString(self):
         apl = dafBase.PropertyList()
-        apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z"))
+        apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         self.assertEqual(apl.toString(),
                          "dt = 2009-04-02T07:26:39.314159265Z\n")
 
