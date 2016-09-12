@@ -77,7 +77,7 @@ static double const SEC_PER_DAY   = 86400.0;
 #endif
 
 // Difference between Terrestrial Time and TAI.
-static double const TT_MINUS_TAI_NSECS = 32184000000LL;
+static long long const TT_MINUS_TAI_NSECS = 32184000000LL;
 
 /* Leap second table as string.
  *

@@ -116,6 +116,7 @@ class DateTimeTestCase(unittest.TestCase):
                 for decPt in (".", ","):  # "." or "," may be used as decimal point
                     dateStr = "2009{0}04{0}02T07{1}26{1}39{2}314159265Z".format(dateSep, timeSep, decPt)
                     ts = DateTime(dateStr, DateTime.UTC)
+                    self.assertEqual(ts.nsecs(DateTime.TT), long(1238657265498159265))
                     self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
                     self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
                     self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
