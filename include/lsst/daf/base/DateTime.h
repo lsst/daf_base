@@ -63,15 +63,15 @@ public:
     explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
     DateTime(int year, int month, int day, int hr, int min, int sec,
              Timescale scale = TAI);
-    explicit DateTime(std::string const& iso8601);
+    explicit DateTime(std::string const& iso8601, Timescale scale);
 
     long long nsecs(Timescale scale = TAI) const;
     double get(DateSystem system = MJD, Timescale scale = TAI) const;
-    std::string toString(void) const;
+    std::string toString(Timescale scale) const;
 
-    struct tm gmtime(void) const; // Always UTC
-    struct timespec timespec(void) const; // Always UTC
-    struct timeval timeval(void) const; // Always UTC
+    struct tm gmtime(Timescale time) const;
+    struct timespec timespec(Timescale time) const;
+    struct timeval timeval(Timescale time) const;
 
     bool operator==(DateTime const& rhs) const;
 
