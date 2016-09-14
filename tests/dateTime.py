@@ -170,6 +170,15 @@ class DateTimeTestCase(unittest.TestCase):
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("09-04-01T23:36:05", DateTime.UTC)  # 2 digit year
 
+    def testStr(self):
+        ts = DateTime("2004-03-01T12:39:45.1Z", DateTime.UTC)
+        self.assertEqual(str(ts), "2004-03-01T12:39:45.100000000Z")
+        self.assertEqual(repr(ts), """lsst.daf.base.DateTime("2004-03-01T12:39:45.100000000Z")""")
+
+        ts = DateTime("2004-03-01T12:39:45.000000001Z", DateTime.UTC)
+        self.assertEqual(str(ts), "2004-03-01T12:39:45.000000001Z")
+        self.assertEqual(repr(ts), """lsst.daf.base.DateTime("2004-03-01T12:39:45.000000001Z")""")
+
     def testNsecsTT(self):
         ts = DateTime(long(1192755538184000000), DateTime.TT)
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
