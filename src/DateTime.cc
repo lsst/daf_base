@@ -348,7 +348,7 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
 
 
 /** Constructor.
- * \param[in] year Year number.
+ * \param[in] year Year number. Must be in the range [1902, 2261], inclusive.
  * \param[in] month Month number (Jan = 1).
  * \param[in] day Day number (1 to 31).
  * \param[in] hr Hour number (0 to 23).
@@ -359,6 +359,13 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
 dafBase::DateTime::DateTime(int year, int month, int day,
                             int hr, int min, int sec, Timescale scale) {
 
+    int const minYear = 1902;
+    int const maxYear = 2261;
+    if ((year < minYear) || (year > maxYear)) {
+        throw LSST_EXCEPT(
+            lsst::pex::exceptions::DomainError,
+            (boost::format("Year = %d out of range [%04d, %04d]") % year % minYear % maxYear).str());
+    }
 
     struct tm tm;
     tm.tm_year = year - 1900;
@@ -378,17 +385,32 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     // it doesn't try to deal with the anomalies of local time zones.
     time_t secs = timegm(&tm);
     
-    // long long nsecs will blow out beyond sep 21, 1677 0:00:00, and apr 12 2262 00:00:00
+    // long long nsecs will blow out beyond 1677-09-21T00:00:00 and 2262-04-12T00:00:00
     // (refering to the values of EPOCH_IN_MJD +/- MAX_DAYS ... exceeds 64 bits.)
-    // However, a tm struct is only 32 bits, and saturates at:
-    //    low end - Dec 13 1901, 20:45:52
-    //    hi end  - Jan 19 2038, 03:14:07
+    // On older machines a tm struct is only 32 bits, and saturates at:
+    //    low end - 1901-12-13, 20:45:52
+    //    hi end  - 2038-01-19, 03:14:07
+    // On newer machines the upper limit is a date in 2262, but the low end is unchanged,
+    // and a unit test will show the problem for dates later than 2038-01-19
+
+    // timegm returns -1 on error, but the date at unix epoch -1 second also returns a valid value of -1,
+    // so be sure to test for that
     
     if (secs == -1) {
-        throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainError,
-                          (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
-                           % year % month % day % hr % min % sec).str());
+        bool isBad = true;  // assume the worst
+        if (year == 1969) {
+            // date may be the one date at which unix sec = -1; try a different year
+            tm.tm_year = 70;
+            if (timegm(&tm) != -1) {
+                isBad = false;
+            }
+        }
+        if (isBad) {
+            throw LSST_EXCEPT(
+                lsst::pex::exceptions::DomainError,
+                (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
+                 % year % month % day % hr % min % sec).str());
+        }
     }
     
     _nsecs = nsecAnyToTai(secs * LL_NSEC_PER_SEC, scale);
