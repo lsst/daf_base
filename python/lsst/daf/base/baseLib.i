@@ -99,10 +99,8 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
             return datetime.datetime.utcfromtimestamp(nsecs/10**9)
         def __reduce__(self):
             return self.__class__, (self.nsecs(),)
-        def __str__(self):
-            return self.toString()
         def __repr__(self):
-            return 'lsst.daf.base.DateTime("' + self.toString() + '")'
+            return "DateTime(\"{}\", TAI)".format(self.toString(lsst.daf.base.DateTime.TAI))
     %}
 }
 

@@ -170,6 +170,77 @@ class DateTimeTestCase(unittest.TestCase):
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("09-04-01T23:36:05", DateTime.UTC)  # 2 digit year
 
+        # earliest allowed UTC date is the earliest date in the leap second table
+        try:
+            minLeapSecUTC = "1961-01-01T00:00:00Z"
+            dt = DateTime(minLeapSecUTC, DateTime.UTC)
+            dt.toString(DateTime.UTC)
+        except Exception:
+            self.fail("minLeapSecUTC={} failed, but should be OK".format(minLeapSecUTC))
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("1960-01-01T23:59:59Z", DateTime.UTC)  # just before leap second table starts
+
+        # earliest allowed date for TAI and TT is year = 1902
+        for timeSys in (DateTime.TAI, DateTime.TT):
+            try:
+                earliestDate = "1902-01-01T00:00:00"
+                dt = DateTime(earliestDate, timeSys)
+                dt.toString(DateTime.TAI)
+                dt.toString(DateTime.TT)
+            except Exception:
+                self.fail("{} system={} failed, but should be OK".format(earliestDate, timeSys))
+
+        # dates before the leap second table can be created using TAI or TT, but not viewed in UTC
+        earlyDt = DateTime("1960-01-01T00:00:00", DateTime.TAI)
+        with self.assertRaises(pexExcept.DomainError):
+            earlyDt.toString(DateTime.UTC)
+
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("1901-12-12T23:59:59Z", DateTime.TAI)  # too early
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("1700-01-01T00:00:00Z", DateTime.TAI)  # way too early
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("2262-01-01T00:00:00Z", DateTime.TAI)  # too late
+        with self.assertRaises(pexExcept.DomainError):
+            DateTime("3200-01-01T00:00:00Z", DateTime.TAI)  # way too late
+
+    def testWraparound(self):
+        """Test that a date later than 2038-01-19, 03:14:07 does not wrap around
+
+        This will fail on old versions of unix, and indicates that DateTime is not safe
+        """
+        dateStr = "2040-01-01T00:00:00.000000000"
+        self.assertEquals(str(DateTime(dateStr, DateTime.TAI)), "DateTime(\"{}\", TAI)".format(dateStr))
+
+    def testDM7622(self):
+        """Test DM-7622: date with unix time = -1 seconds must be usable
+
+        Note that the call in question parses the ISO string without paying
+        attention to the scale (it applies the scale later),
+        so the same ISO string is wanted in all cases
+        (except with a trailing Z for UTC, and without for TAI and TT)
+        """
+        negOneSecIso = "1969-12-31T23:59:59.000000000"
+        for scale in (DateTime.UTC, DateTime.TAI, DateTime.TT):
+            dateStr = negOneSecIso + ("Z" if scale == DateTime.UTC else "")
+            try:
+                dt = DateTime(dateStr, scale)
+            except Exception:
+                self.fail("Date {} unusable; DM-7622 is still with us".format(dateStr, scale))
+            self.assertEqual(dt.nsecs(scale), int(-1e9))
+
+    def testStr(self):
+        timeStr1 = "2004-03-01T12:39:45.1"
+        fullTimeStr1 = "2004-03-01T12:39:45.100000000"
+        dt1 = DateTime(timeStr1, DateTime.TAI)
+        self.assertEqual(str(dt1), "DateTime(\"{}\", TAI)".format(fullTimeStr1))
+        self.assertEqual(repr(dt1), "DateTime(\"{}\", TAI)".format(fullTimeStr1))
+
+        timeStr2 = "2004-03-01T12:39:45.000000001"
+        dt2 = DateTime(timeStr2, DateTime.TAI)
+        self.assertEqual(str(dt2), "DateTime(\"{}\", TAI)".format(timeStr2))
+        self.assertEqual(repr(dt2), "DateTime(\"{}\", TAI)".format(timeStr2))
+
     def testNsecsTT(self):
         ts = DateTime(long(1192755538184000000), DateTime.TT)
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
