@@ -25,13 +25,15 @@ PYBIND11_PLUGIN(_dateTime) {
         .export_values();
 
     cls.def(py::init<long long, DateTime::Timescale>(),
-            py::arg("nsecs") = 0LL, py::arg("scale") = DateTime::TAI)
+            py::arg("nsecs") = 0LL, py::arg("scale") = DateTime::Timescale::TAI)
         .def(py::init<long long, DateTime::Timescale>())
         .def(py::init<double, DateTime::DateSystem, DateTime::Timescale>())
         .def(py::init<int, int, int, int, int, int, DateTime::Timescale>())
         .def(py::init<const std::string &>())
-        .def("nsecs", &DateTime::nsecs, py::arg("scale") = DateTime::TAI)
-        .def("get", &DateTime::get)
+        .def("nsecs", &DateTime::nsecs, py::arg("scale") = DateTime::Timescale::TAI)
+        .def("get", &DateTime::get,
+            py::arg("system") = DateTime::DateSystem::MJD,
+            py::arg("scale") = DateTime::Timescale::TAI)
         .def("toString", &DateTime::toString)
         .def("gmtime", &DateTime::gmtime)
         .def("timespec", &DateTime::timespec)
