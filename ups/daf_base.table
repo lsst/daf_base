@@ -1,5 +1,7 @@
 setupRequired(utils)
 setupRequired(pex_exceptions)
+setupRequired(pybind11)
+setupRequired(python)
 setupRequired(numpy)
 setupRequired(python_future)
 
