@@ -21,10 +21,11 @@
 # see <https://www.lsstcorp.org/LegalNotices/>.
 #
 
+from __future__ import absolute_import
 from __future__ import print_function
 from builtins import range
 import re
-from _citizen import *
+from ._citizen import *
 
 
 def setCallbacks(new=None, delete=None, both=False):
