@@ -25,6 +25,7 @@
 
 from __future__ import division
 import unittest
+from builtins import int
 from builtins import range
 from past.builtins import long
 
@@ -32,7 +33,10 @@ from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
 import os
 import time
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 
 class DateTimeTestCase(unittest.TestCase):
@@ -316,9 +320,9 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(dt.second, second)
 
     def testPickle(self):
-        ts = DateTime(1192755473000000000L, DateTime.UTC)
+        ts = DateTime(int(1192755473000000000), DateTime.UTC)
         nts = pickle.loads(pickle.dumps(ts, 2))
-        self.assertEqual(nts.nsecs(DateTime.UTC), 1192755473000000000L)
+        self.assertEqual(nts.nsecs(DateTime.UTC), int(1192755473000000000))
 
 class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
