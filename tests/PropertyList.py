@@ -25,11 +25,15 @@ from __future__ import print_function
 from past.builtins import long
 
 import unittest
-import cPickle as pickle
-
 import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 
 class FloatSubClass(float):
     """Intended to be something like numpy.float64, without introducing a dependency on numpy"""
