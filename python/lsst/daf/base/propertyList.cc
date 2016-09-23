@@ -20,24 +20,16 @@ template <typename T, typename C> void addAccessors(C &cls, std::string const& n
             py::arg("name"));
 
     const std::string setName = "set" + name;
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&, bool)) &PropertyList::set<T>,
-            py::arg("name"), py::arg("value"), py::arg("inPlace")=true);
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, bool)) &PropertyList::set<T>,
-            py::arg("name"), py::arg("value"), py::arg("inPlace")=true);
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&, bool)) &PropertyList::set<T>,
-            py::arg("name"), py::arg("value"), py::arg("comment"), py::arg("inPlace")=true);
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&, bool)) &PropertyList::set<T>,
-            py::arg("name"), py::arg("value"), py::arg("comment"), py::arg("inPlace")=true);
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&)) &PropertyList::set<T>);
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&)) &PropertyList::set<T>);
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&)) &PropertyList::set<T>);
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&)) &PropertyList::set<T>);
 
     const std::string addName = "add" + name;
-    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, T const&, bool)) &PropertyList::add<T>,
-            py::arg("name"), py::arg("value"), py::arg("inPlace")=true);
-    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, bool)) &PropertyList::add<T>,
-            py::arg("name"), py::arg("value"), py::arg("inPlace")=true);
-    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&, bool)) &PropertyList::add<T>,
-            py::arg("name"), py::arg("value"), py::arg("comment"), py::arg("inPlace")=true);
-    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&, bool)) &PropertyList::add<T>,
-            py::arg("name"), py::arg("value"), py::arg("comment"), py::arg("inPlace")=true);
+    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, T const&)) &PropertyList::add<T>);
+    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&)) &PropertyList::add<T>);
+    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&)) &PropertyList::add<T>);
+    cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&)) &PropertyList::add<T>);
 
     const std::string typeName = "TYPE_" + name;
     cls.attr(typeName.c_str()) = py::cast(typeid(T), py::return_value_policy::reference);
@@ -66,11 +58,11 @@ PYBIND11_PLUGIN(_propertyList) {
      * same way for clarity, but not strictly needed (I think).
      */
     cls.def("__getstate__", [](const PropertyList &pl) -> py::object {
-        static py::object module{PyImport_ImportModule("lsst.daf.base.baseLib"), false};
+        static py::object module{PyImport_ImportModule("lsst.daf.base.baseLib"), true};
         if (!module.ptr()) {
             throw py::error_already_set();
         } else {
-            static py::object func{PyObject_GetAttrString(module.ptr(), "getstate"), false};
+            static py::object func{PyObject_GetAttrString(module.ptr(), "getstate"), true};
             if (!func.ptr()) {
                 throw py::error_already_set();
             } else {
@@ -86,11 +78,11 @@ PYBIND11_PLUGIN(_propertyList) {
            when the object just has a trivial default constructor */
         new (&pl) PropertyList();
 
-        static py::object module{PyImport_ImportModule("lsst.daf.base.baseLib"), false};
+        static py::object module{PyImport_ImportModule("lsst.daf.base.baseLib"), true};
         if (!module.ptr()) {
             throw py::error_already_set();
         } else {
-            static py::object func{PyObject_GetAttrString(module.ptr(), "setstate"), false};
+            static py::object func{PyObject_GetAttrString(module.ptr(), "setstate"), true};
             if (!func.ptr()) {
                 throw py::error_already_set();
             } else {
@@ -110,8 +102,7 @@ PYBIND11_PLUGIN(_propertyList) {
     addAccessors<std::string>(cls, "String");
     addAccessors<DateTime>(cls, "DateTime");
 
-    cls.def("setPropertySet", (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&, bool)) &PropertyList::set,
-            py::arg("name"), py::arg("value"), py::arg("inPlace")=true);
+    cls.def("setPropertySet", (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&)) &PropertyList::set);
 
     return mod.ptr();
 }
