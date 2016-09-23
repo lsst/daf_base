@@ -22,6 +22,7 @@
 #
 
 from __future__ import absolute_import
+from past.builtins import long
 
 from .citizen import *
 from .dateTime import *
@@ -61,16 +62,65 @@ def _propertyContainerGet(container, name, asArray=False):
         pass
     raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
 
+import numbers
+def _guessIntegerType(container, name, value):
+    """Given an existing container and name, determine the type
+    that should be used for the supplied value. The supplied value
+    is assumed to be a scalar.
+
+    On Python 3 all ints are LongLong but we need to be able to store them
+    in Int containers if that is what is being used (testing for truncation).
+    Int is assumed to mean 32bit integer (2147483647 to -2147483648).
+
+    If there is no pre-existing value we have to decide what to do. For now
+    we pick Int if the value is less than maxsize.
+
+    Returns None if the value supplied is a bool or not an integral value.
+    """
+    useType = None
+    maxInt = 2147483647
+    minInt = -2147483648
+
+    # We do not want to convert bool to int so let the system work that
+    # out itself
+    if isinstance(value, bool):
+        return useType
+
+    if isinstance(value, numbers.Integral):
+        try:
+            containerType = _propertyContainerElementTypeName(container, name)
+        except lsst.pex.exceptions.NotFoundError:
+            # nothing in the container so choose based on size. Safe option is to
+            # always use LongLong
+            if value <= maxInt and value >= minInt:
+                useType = "Int"
+            else:
+                useType = "LongLong"
+        else:
+            if containerType == "Int":
+                # Always use an Int even if we know it won't fit. The later
+                # code will trigger OverflowError if appropriate. Setting the
+                # type to LongLong here will trigger a TypeError instead so it's
+                # best to trigger a predictable OverflowError.
+                useType = "Int"
+            elif containerType == "LongLong":
+                useType = "LongLong"
+    return useType
+
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type"""
-    if hasattr(value, "__iter__"):
+    if hasattr(value, "__iter__") and not isinstance(value, str):
         exemplar = value[0]
     else:
         exemplar = value
 
     t = type(exemplar)
-    if t in typeMenu:
-        return getattr(container, "set" + typeMenu[t])(name, value, *args)
+    setType = _guessIntegerType(container, name, exemplar)
+
+    if setType is not None or t in typeMenu:
+        if setType is None:
+            setType = typeMenu[t]
+        return getattr(container, "set" + setType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
@@ -85,18 +135,23 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
         exemplar = value
 
     t = type(exemplar)
-    if t in typeMenu:
-        return getattr(container, "add" + typeMenu[t])(name, value, *args)
+    addType = _guessIntegerType(container, name, exemplar)
+
+    if addType is not None or t in typeMenu:
+        if addType is None:
+            addType = typeMenu[t]
+        return getattr(container, "add" + addType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
     raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
+
 # Mapping of type to method names
 _PS_typeMenu = {bool: "Bool",
-                int: "Int",
                 long: "LongLong",
+                int: "Int", # overwrites long on Python 3.x
                 float: "Double",
                 str: "String",
                 DateTime: "DateTime",
@@ -149,8 +204,8 @@ del _PL__len__
 
 # Mapping of type to method names
 _PL_typeMenu = {bool: "Bool",
-                int: "Int",
                 long: "LongLong",
+                int: "Int", # overwrites long on Python 3.x
                 float: "Double",
                 str: "String",
                 DateTime: "DateTime",
@@ -160,17 +215,15 @@ _PL_typeMenu = {bool: "Bool",
 
 def _PL_getValue(self, name, asArray=False):
     return _propertyContainerGet(self, name, asArray)
-def _PL_setValue(self, name, value, comment=None, inPlace=True):
+def _PL_setValue(self, name, value, comment=None):
     args = []
     if comment is not None:
         args.append(comment)
-    args.append(inPlace)
     return _propertyContainerSet(self, name, value, _PL_typeMenu, *args)
-def _PL_addValue(self, name, value, comment=None, inPlace=True):
+def _PL_addValue(self, name, value, comment=None):
     args = []
     if comment is not None:
         args.append(comment)
-    args.append(inPlace)
     return _propertyContainerAdd(self, name, value, _PL_typeMenu, *args)
 
 PropertyList.get = _PL_getValue
