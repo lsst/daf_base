@@ -36,13 +36,12 @@
 
 #include <limits>
 #include <cmath>
-
-#include "lsst/daf/base/DateTime.h"
+#include <vector>
 
 #include "boost/format.hpp"
 #include "boost/regex.hpp"
-#include <vector>
 
+#include "lsst/daf/base/DateTime.h"
 #include "lsst/pex/exceptions.h"
 
 namespace dafBase = lsst::daf::base;
@@ -282,7 +281,11 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
 } // end anonymous namespace
 
 
-void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
+namespace lsst {
+namespace daf {
+namespace base {
+
+void DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
 
     if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
         throw LSST_EXCEPT(
@@ -297,7 +300,7 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
     _nsecs = nsecAnyToTai(static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY), scale);
 }
     
-void dafBase::DateTime::setNsecsFromJd(double jd, Timescale scale) {
+void DateTime::setNsecsFromJd(double jd, Timescale scale) {
     setNsecsFromMjd(jd - MJD_TO_JD, scale);
 }
     
@@ -306,13 +309,19 @@ void dafBase::DateTime::setNsecsFromJd(double jd, Timescale scale) {
  * @param[in] epoch The Julian epoch
  * @param[in] scale The time scale (TAI, TT or UTC)
  */
-void dafBase::DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
+void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
     setNsecsFromMjd(365.25*(epoch - 2000.0) + JD2000 - MJD_TO_JD, scale);
 }
     
+DateTime::DateTime() :
+    _nsecs(std::numeric_limits<std::int64_t>::min())
+{ }
 
+DateTime::DateTime(long long nsecs, Timescale scale) :
+    _nsecs(nsecAnyToTai(nsecs, scale))
+{ }
 
-dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
+DateTime::DateTime(double date, DateSystem system, Timescale scale) {
     switch (system) {
       case MJD:
         setNsecsFromMjd(date, scale);
@@ -324,16 +333,12 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
         setNsecsFromEpoch(date, scale);
         break;
       default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH.");
+        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
         break;
     }
 }
 
-
-
-dafBase::DateTime::DateTime(int year, int month, int day,
-                            int hr, int min, int sec, Timescale scale) {
-
+DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale) {
     int const minYear = 1902;
     int const maxYear = 2261;
     if ((year < minYear) || (year > maxYear)) {
@@ -391,7 +396,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     _nsecs = nsecAnyToTai(secs * LL_NSEC_PER_SEC, scale);
 }
 
-dafBase::DateTime::DateTime(std::string const& iso8601, Timescale scale) {
+DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     boost::regex re;
     if ((scale == TAI) || (scale == TT)) {
         // no time zone character accepted
@@ -430,7 +435,7 @@ dafBase::DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     }
 }
 
-double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
+double DateTime::get(DateSystem system, Timescale scale) const {
     switch (system) {
       case MJD:
         return _getMjd(scale);
@@ -480,7 +485,7 @@ struct tm DateTime::gmtime(Timescale scale) const {
     return gmt;
 }
 
-struct timespec dafBase::DateTime::timespec(Timescale scale) const {
+struct timespec DateTime::timespec(Timescale scale) const {
     struct timespec ts;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -488,7 +493,7 @@ struct timespec dafBase::DateTime::timespec(Timescale scale) const {
     return ts;
 }
 
-struct timeval dafBase::DateTime::timeval(Timescale scale) const {
+struct timeval DateTime::timeval(Timescale scale) const {
     struct timeval tv;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -496,7 +501,7 @@ struct timeval dafBase::DateTime::timeval(Timescale scale) const {
     return tv;
 }
 
-std::string dafBase::DateTime::toString(Timescale scale) const {
+std::string DateTime::toString(Timescale scale) const {
     struct tm gmt(this->gmtime(scale));
 
     long long fracnsecs = nsecTaiToAny(_nsecs, scale) % LL_NSEC_PER_SEC;
@@ -510,11 +515,11 @@ std::string dafBase::DateTime::toString(Timescale scale) const {
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec % fracnsecs).str();
 }
 
-bool dafBase::DateTime::operator==(DateTime const& rhs) const {
+bool DateTime::operator==(DateTime const& rhs) const {
     return _nsecs == rhs._nsecs;
 }
 
-dafBase::DateTime dafBase::DateTime::now(void) {
+DateTime DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);
     if (ret != 0) {
@@ -525,7 +530,7 @@ dafBase::DateTime dafBase::DateTime::now(void) {
     return DateTime(nsecs, DateTime::UTC);
 }
 
-void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
+void DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;
     leapSecTable.clear();
     boost::regex re("^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
@@ -543,3 +548,5 @@ void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
         leapSecTable.push_back(l);
     }
 }
+
+}}} // namespace lsst::daf::base

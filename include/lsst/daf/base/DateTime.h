@@ -69,7 +69,7 @@ public:
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
-    explicit DateTime(long long nsecs = 0LL, Timescale scale = TAI);
+    explicit DateTime(long long nsecs=0LL, Timescale scale=TAI);
 
     /**
      * Construct a DateTime from a double in the specified system and scale
@@ -79,7 +79,7 @@ public:
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
-    explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
+    explicit DateTime(double date, DateSystem system=MJD, Timescale scale=TAI);
 
     /**
      * Construct a DateTime from year, month, day, etc. (tm struct fields)
@@ -94,7 +94,7 @@ public:
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01,
      *      or the year < 1902 or > 2261
      */
-    DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale = TAI);
+    DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale=TAI);
 
     /**
      * Construct a DateTime from an ISO8601 string
@@ -121,7 +121,7 @@ public:
      * @return the date as nanoseconds since the unix epoch in the specified time scale
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */    
-    long long nsecs(Timescale scale = TAI) const;
+    long long nsecs(Timescale scale=TAI) const;
 
     /**
      * Get date as a double in a specified representation, such as MJD
@@ -131,7 +131,7 @@ public:
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */    
-    double get(DateSystem system = MJD, Timescale scale = TAI) const;
+    double get(DateSystem system=MJD, Timescale scale=TAI) const;
 
     /** Get date as an ISO8601-formatted string.
      *
