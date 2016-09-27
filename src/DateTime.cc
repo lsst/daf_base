@@ -1,9 +1,9 @@
 // -*- lsst-c++ -*-
 
-/* 
+/*
  * LSST Data Management System
  * Copyright 2008, 2009, 2010 LSST Corporation.
- * 
+ *
  * This product includes software developed by the
  * LSST Project (http://www.lsst.org/).
  *
@@ -11,14 +11,14 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the LSST License Statement and 
- * the GNU General Public License along with this program.  If not, 
+ *
+ * You should have received a copy of the LSST License Statement and
+ * the GNU General Public License along with this program.  If not,
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
 
@@ -263,7 +263,7 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
     	month += 12;
     }
     int a = int(year/100);
-    int b =  2 - a + int(a/4); 
+    int b =  2 - a + int(a/4);
 
     int yy = 1582, mm = 10; //, d = 4;
     if (year < yy || (year == yy && month < mm) || (year == yy && month == mm && day <= 4)) {
@@ -299,11 +299,11 @@ void DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
     }
     _nsecs = nsecAnyToTai(static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY), scale);
 }
-    
+
 void DateTime::setNsecsFromJd(double jd, Timescale scale) {
     setNsecsFromMjd(jd - MJD_TO_JD, scale);
 }
-    
+
 /**
  * @brief a function to convert epoch to internal nsecs
  * @param[in] epoch The Julian epoch
@@ -312,7 +312,7 @@ void DateTime::setNsecsFromJd(double jd, Timescale scale) {
 void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
     setNsecsFromMjd(365.25*(epoch - 2000.0) + JD2000 - MJD_TO_JD, scale);
 }
-    
+
 DateTime::DateTime() :
     _nsecs(std::numeric_limits<std::int64_t>::min())
 { }
@@ -358,13 +358,13 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
     tm.tm_yday = 0;
     tm.tm_isdst = 0;
     tm.tm_gmtoff = 0;
-    
+
     // Convert to seconds since the epoch, correcting to UTC.
     // Although timegm() is non-standard, it is a commonly-supported
     // extension and is much safer/more reliable than mktime(3) in that
     // it doesn't try to deal with the anomalies of local time zones.
     time_t secs = timegm(&tm);
-    
+
     // long long nsecs will blow out beyond 1677-09-21T00:00:00 and 2262-04-12T00:00:00
     // (refering to the values of EPOCH_IN_MJD +/- MAX_DAYS ... exceeds 64 bits.)
     // On older machines a tm struct is only 32 bits, and saturates at:
@@ -375,7 +375,7 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
 
     // timegm returns -1 on error, but the date at unix epoch -1 second also returns a valid value of -1,
     // so be sure to test for that
-    
+
     if (secs == -1) {
         bool isBad = true;  // assume the worst
         if (year == 1969) {
@@ -392,7 +392,7 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
                  % year % month % day % hr % min % sec).str());
         }
     }
-    
+
     _nsecs = nsecAnyToTai(secs * LL_NSEC_PER_SEC, scale);
 }
 

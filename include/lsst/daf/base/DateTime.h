@@ -1,9 +1,9 @@
 // -*- lsst-c++ -*-
 
-/* 
+/*
  * LSST Data Management System
  * Copyright 2008, 2009, 2010 LSST Corporation.
- * 
+ *
  * This product includes software developed by the
  * LSST Project (http://www.lsst.org/).
  *
@@ -11,17 +11,17 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the LSST License Statement and 
- * the GNU General Public License along with this program.  If not, 
+ *
+ * You should have received a copy of the LSST License Statement and
+ * the GNU General Public License along with this program.  If not,
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
- 
+
 #ifndef LSST_DAF_BASE_DATETIME_H
 #define LSST_DAF_BASE_DATETIME_H
 
@@ -83,7 +83,7 @@ public:
 
     /**
      * Construct a DateTime from year, month, day, etc. (tm struct fields)
-     * 
+     *
      * @param[in] year   year; must be in the range [1902, 2261], inclusive.
      * @param[in] month  month number, where January = 1
      * @param[in] day  day of the month (1 to 31).
@@ -120,7 +120,7 @@ public:
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @return the date as nanoseconds since the unix epoch in the specified time scale
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
-     */    
+     */
     long long nsecs(Timescale scale=TAI) const;
 
     /**
@@ -130,7 +130,7 @@ public:
      * @param[in] system  desired time system (JD, MJD, or EPOCH)
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
-     */    
+     */
     double get(DateSystem system=MJD, Timescale scale=TAI) const;
 
     /** Get date as an ISO8601-formatted string.
@@ -244,7 +244,7 @@ private:
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */
     void setNsecsFromEpoch(double epoch, Timescale scale);
-    
+
     friend class boost::serialization::access;
 
     /**
