@@ -57,8 +57,9 @@ namespace base {
 
 class DateTime {
 public:
-    enum Timescale { TAI, UTC, TT };
-    enum DateSystem { JD, MJD, EPOCH };
+    enum DateSystem { JD=0, MJD, EPOCH };
+    enum Timescale { TAI=5, UTC, TT };  // use values that do not overlap DateSystem
+                                        // to avoid confusing one for the other in Python
 
     /**
      * Construct a DateTime from nanoseconds since the unix epoch

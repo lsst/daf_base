@@ -261,6 +261,48 @@ class DateTimeTestCase(unittest.TestCase):
         ts = DateTime("2004-03-01T12:39:45.0000000001Z", DateTime.UTC)  # too small
         self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.000000000Z')
 
+
+    def testGetBadScaleAndSystem(self):
+        """Test that date system constants cannot be used for time scale and vise versa in getters"""
+        ts = DateTime("2004-03-01T12:39:45.1", DateTime.TAI)  # an arbitrary date
+        minScale = min(*self.timeScales)
+        maxScale = max(*self.dateSystems)
+        for badScale in (minScale - 1, maxScale + 1) + tuple(self.dateSystems):
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.nsecs(badScale)
+            for system in self.dateSystems:
+                with self.assertRaises(pexExcept.InvalidParameterError):
+                    ts.get(system, badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.gmtime(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.timespec(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.timeval(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.toString(badScale)
+        minSystem = min(*self.dateSystems)
+        maxSystem = max(*self.dateSystems)
+        for scale in self.timeScales:
+            for badSystem in (minSystem-1, maxSystem+1) + tuple(self.timeScales):
+                with self.assertRaises(pexExcept.InvalidParameterError):
+                    ts.get(badSystem, scale)
+
+    def testConstructBadScaleAndSystem(self):
+        minScale = min(*self.timeScales)
+        maxScale = max(*self.dateSystems)
+        for badScale in (minScale - 1, maxScale + 1) + tuple(self.dateSystems):
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime(1000, badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime("2001-02-02T02:02:02", badScale)
+            with self.assertRaises(pexExcept.DomainError):  # Z forbidden except for UTC
+                DateTime("2001-02-02T02:02:02Z", badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime(2001, 2, 2, 2, 2, 2, badScale)
+        # sanity check the tm field constructor arguments
+        DateTime(2001, 2, 2, 2, 2, 2, DateTime.TT)
+
     def testNegative(self):
         ts = DateTime("1969-03-01T00:00:32Z", DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T00:00:32.000000000Z')
