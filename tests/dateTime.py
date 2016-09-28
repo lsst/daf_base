@@ -35,6 +35,9 @@ import time
 
 class DateTimeTestCase(unittest.TestCase):
     """A test case for DateTime."""
+    def setUp(self):
+        self.timeScales = (DateTime.TAI, DateTime.TT, DateTime.UTC)
+        self.dateSystems = (DateTime.JD, DateTime.MJD, DateTime.EPOCH)
 
     def testMJD(self):
         ts = DateTime(45205.125, DateTime.MJD, DateTime.UTC)
@@ -150,7 +153,7 @@ class DateTimeTestCase(unittest.TestCase):
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("2009-04-01T23:36:05Z", scale)  # Z time zone forbidden for TAI or TT
 
-        for scale in (DateTime.TAI, DateTime.TT, DateTime.UTC):
+        for scale in self.timeScales:
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("20090401", scale)  # time required
             with self.assertRaises(pexExcept.DomainError):
@@ -221,7 +224,7 @@ class DateTimeTestCase(unittest.TestCase):
         (except with a trailing Z for UTC, and without for TAI and TT)
         """
         negOneSecIso = "1969-12-31T23:59:59.000000000"
-        for scale in (DateTime.UTC, DateTime.TAI, DateTime.TT):
+        for scale in self.timeScales:
             dateStr = negOneSecIso + ("Z" if scale == DateTime.UTC else "")
             try:
                 dt = DateTime(dateStr, scale)
@@ -318,6 +321,7 @@ class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
 
     def setUp(self):
+        DateTimeTestCase.setUp(self)
         self.tz = os.environ.setdefault('TZ', "")
         os.environ['TZ'] = self.timezone
 
