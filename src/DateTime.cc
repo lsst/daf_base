@@ -398,14 +398,14 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
 
 DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     boost::regex re;
-    if ((scale == TAI) || (scale == TT)) {
-        // no time zone character accepted
-        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?");
-    } else {
+    if (scale == UTC) {
         // time zone "Z" required
         re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
                           "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
+    } else {
+        // no time zone character accepted
+        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
+                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?");
     }
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
