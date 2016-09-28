@@ -103,8 +103,8 @@ public:
      * @param[in] min  minute (0 to 59)
      * @param[in] sec  integer seconds (0 to 60)
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
-     * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01,
-     *      or the year < 1902 or > 2261
+     * @throw lsst.pex.exceptions.DomainError if `year` is < 1902 or > 2261,
+     * or if `scale` is UTC and the date is before 1961-01-01 (the start of the leap second table)
      */
     DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale=TAI);
 
@@ -121,8 +121,8 @@ public:
      *
      * @param[in] iso8601  ISO8601 string representation of date and time
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
-     * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01,
-     *      or the year < 1902 or > 2261 or iso8601 is not in an acceptable format
+     * @throw lsst.pex.exceptions.DomainError if `year` is < 1902 or > 2261,
+     * or if `scale` is UTC and the date is before 1961-01-01 (the start of the leap second table)
      */
     explicit DateTime(std::string const& iso8601, Timescale scale);
 
@@ -217,7 +217,7 @@ private:
     long long _nsecs;  ///< TAI nanoseconds since Unix epoch
 
     /// Raise RuntimeError if DateTime is not valid
-    void _assertValid() const { 
+    void _assertValid() const {
         if (!isValid()) {
             throw LSST_EXCEPT(pex::exceptions::RuntimeError, "DateTime not valid");
         }
