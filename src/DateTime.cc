@@ -314,7 +314,7 @@ void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
 }
 
 DateTime::DateTime() :
-    _nsecs(std::numeric_limits<std::int64_t>::min())
+    _nsecs(DateTime::invalid_nsecs)
 { }
 
 DateTime::DateTime(long long nsecs, Timescale scale) :
@@ -436,6 +436,7 @@ DateTime::DateTime(std::string const& iso8601, Timescale scale) {
 }
 
 double DateTime::get(DateSystem system, Timescale scale) const {
+    _assertValid();
     switch (system) {
       case MJD:
         return _getMjd(scale);
@@ -453,10 +454,15 @@ double DateTime::get(DateSystem system, Timescale scale) const {
 }
 
 long long DateTime::nsecs(Timescale scale) const {
+    if (!isValid()) {
+        // return the same invalid value for all time scales
+        return DateTime::invalid_nsecs;
+    }
     return nsecTaiToAny(_nsecs, scale);
 }
 
 double DateTime::_getMjd(Timescale scale) const {
+    _assertValid();
     double nsecs = nsecTaiToAny(_nsecs, scale);
     return nsecs / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
@@ -470,6 +476,7 @@ double DateTime::_getEpoch(Timescale scale) const {
 }
 
 struct tm DateTime::gmtime(Timescale scale) const {
+    _assertValid();
     struct tm gmt;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     // Round to negative infinity
@@ -486,6 +493,7 @@ struct tm DateTime::gmtime(Timescale scale) const {
 }
 
 struct timespec DateTime::timespec(Timescale scale) const {
+    _assertValid();
     struct timespec ts;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -494,6 +502,7 @@ struct timespec DateTime::timespec(Timescale scale) const {
 }
 
 struct timeval DateTime::timeval(Timescale scale) const {
+    _assertValid();
     struct timeval tv;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -502,6 +511,7 @@ struct timeval DateTime::timeval(Timescale scale) const {
 }
 
 std::string DateTime::toString(Timescale scale) const {
+    _assertValid();
     struct tm gmt(this->gmtime(scale));
 
     long long fracnsecs = nsecTaiToAny(_nsecs, scale) % LL_NSEC_PER_SEC;

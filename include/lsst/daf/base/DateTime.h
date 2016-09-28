@@ -41,9 +41,13 @@
   * @ingroup daf_base
   */
 
+#include <cstdint>
 #include <ctime>
+#include <limits>
 #include <sys/time.h>
 #include <string>
+
+#include "lsst/pex/exceptions.h"
 
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
@@ -60,17 +64,24 @@ public:
     enum DateSystem { JD=0, MJD, EPOCH };
     enum Timescale { TAI=5, UTC, TT };  // use values that do not overlap DateSystem
                                         // to avoid confusing one for the other in Python
+    // an invalid DateTime has _nsec == invalid_nsecs
+    constexpr static long long invalid_nsecs = std::numeric_limits<std::int64_t>::min();
+
+    /**
+     * Default constructor: construct an invalid DateTime
+     */
+    explicit DateTime();
 
     /**
      * Construct a DateTime from nanoseconds since the unix epoch
      *
      * @param[in] nsecs  integer nanoseconds since the unix epoch;
-                         if nsecs = minimum int64 the DateTime will be invalid,
+                         if nsecs == DateTime.invalid_nsecs then the DateTime is invalid,
                          regardless of scale
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
-    explicit DateTime(long long nsecs=0LL, Timescale scale=TAI);
+    explicit DateTime(long long nsecs, Timescale scale=TAI);
 
     /**
      * Construct a DateTime from a double in the specified system and scale
@@ -118,6 +129,9 @@ public:
     /**
      * Get date as nanoseconds since the unix epoch
      *
+     * @note If the DateTime is invalid then the returned value is DateTime.invalid_nsecs,
+     * regardless of scale.
+     *
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @return the date as nanoseconds since the unix epoch in the specified time scale
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
@@ -131,6 +145,7 @@ public:
      * @param[in] system  desired time system (JD, MJD, or EPOCH)
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
+     * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
     double get(DateSystem system=MJD, Timescale scale=TAI) const;
 
@@ -142,6 +157,7 @@ public:
      *
      * @param[in] scale  Desired time scale (TAI, TT or UTC).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
+     * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
     std::string toString(Timescale scale) const;
 
@@ -150,6 +166,7 @@ public:
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @return date as a tm struct
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
+     * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
     struct tm gmtime(Timescale scale) const;
 
@@ -159,6 +176,7 @@ public:
      * @param[in] scale  Desired time scale (TAI, TT or UTC)
      * @return date as a timespec struct
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
+     * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
     struct timespec timespec(Timescale scale) const;
 
@@ -168,8 +186,14 @@ public:
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @return date as a timeval struct
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
+     * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
     struct timeval timeval(Timescale scale) const;
+
+    /**
+     * Is this date valid?
+     */
+    bool isValid() const { return _nsecs != DateTime::invalid_nsecs; };
 
     bool operator==(DateTime const& rhs) const;
 
@@ -191,6 +215,13 @@ public:
 
 private:
     long long _nsecs;  ///< TAI nanoseconds since Unix epoch
+
+    /// Raise RuntimeError if DateTime is not valid
+    void _assertValid() const { 
+        if (!isValid()) {
+            throw LSST_EXCEPT(pex::exceptions::RuntimeError, "DateTime not valid");
+        }
+    }
 
     /**
      * Get date as Modified Julian Days in the specified time scale
