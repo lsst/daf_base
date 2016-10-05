@@ -1,9 +1,9 @@
 // -*- lsst-c++ -*-
 
-/* 
+/*
  * LSST Data Management System
  * Copyright 2008, 2009, 2010 LSST Corporation.
- * 
+ *
  * This product includes software developed by the
  * LSST Project (http://www.lsst.org/).
  *
@@ -11,18 +11,16 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the LSST License Statement and 
- * the GNU General Public License along with this program.  If not, 
+ *
+ * You should have received a copy of the LSST License Statement and
+ * the GNU General Public License along with this program.  If not,
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
- 
-
 
 /** \file
  * \brief Implementation of DateTime class.
@@ -38,13 +36,12 @@
 
 #include <limits>
 #include <cmath>
-
-#include "lsst/daf/base/DateTime.h"
+#include <vector>
 
 #include "boost/format.hpp"
 #include "boost/regex.hpp"
-#include <vector>
 
+#include "lsst/daf/base/DateTime.h"
 #include "lsst/pex/exceptions.h"
 
 namespace dafBase = lsst::daf::base;
@@ -125,6 +122,7 @@ static std::string leapString =
 2009 JAN  1 =JD 2454832.5  TAI-UTC=  34.0       S + (MJD - 41317.) X 0.0      S\n\
 2012 JUL  1 =JD 2456109.5  TAI-UTC=  35.0       S + (MJD - 41317.) X 0.0      S\n\
 2015 JUL  1 =JD 2457204.5  TAI-UTC=  36.0       S + (MJD - 41317.) X 0.0      S\n\
+2017 JAN  1 =JD 2457754.5  TAI-UTC=  37.0       S + (MJD - 41317.) X 0.0      S\n\
 ";
 
 // Anonymous namespace for structures, classes, and formerly file-static
@@ -151,9 +149,11 @@ LeapTable::LeapTable(void) {
     dafBase::DateTime::initializeLeapSeconds(leapString);
 }
 
-/** Convert UTC time to TAI time.
- * \param[in] nsecs Number of nanoseconds since the epoch in UTC
- * \return Number of nanoseconds since the epoch in TAI
+/**
+ * Convert UTC time to TAI time
+ *
+ * @param[in] nsecs Number of nanoseconds since the epoch in UTC
+ * @return Number of nanoseconds since the epoch in TAI
  */
 template<typename NsType>
 NsType utcToTai(NsType nsecs) {
@@ -175,9 +175,11 @@ NsType utcToTai(NsType nsecs) {
     return nsecs + leapNSecs;
 }
 
-/** Convert TAI time to UTC time.
- * \param[in] nsecs Number of nanoseconds since the epoch in TAI
- * \return Number of nanoseconds since the epoch in UTC
+/**
+ * Convert TAI time to UTC time
+ *
+ * @param[in] nsecs Number of nanoseconds since the epoch in TAI
+ * @return Number of nanoseconds since the epoch in UTC
  */
 template<typename NsType>
 NsType taiToUtc(NsType nsecs) {
@@ -201,10 +203,12 @@ NsType taiToUtc(NsType nsecs) {
     return nsecs - leapNSecs;
 }
 
-/** Convert a time in nsec from any time scale to TAI
- * \param[in] nsecs Number of nanoseconds since the epoch in TAI
- * \param[in] scale The time scale (TAI, TT or UTC)
- * \return Number of nanoseconds since the epoch in TAI
+/**
+ * Convert a time in nsec from any time scale to TAI
+ *
+ * @param[in] nsecs Number of nanoseconds since the epoch in TAI
+ * @param[in] scale The time scale (TAI, TT or UTC)
+ * @return Number of nanoseconds since the epoch in TAI
  */
 long long nsecAnyToTai(long long nsecs, dafBase::DateTime::Timescale scale) {
     switch(scale) {
@@ -220,10 +224,12 @@ long long nsecAnyToTai(long long nsecs, dafBase::DateTime::Timescale scale) {
     throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterError, os.str());
 }
 
-/** Convert a time in nsec from TAI to any time scale
- * \param[in] nsecs Number of nanoseconds since the epoch in TAI
- * \param[in] scale The time scale (TAI, TT or UTC)
- * \return Number of nanoseconds since the epoch in TAI
+/**
+ * Convert a time in nsec from TAI to any time scale
+ *
+ * @param[in] nsecs Number of nanoseconds since the epoch in TAI
+ * @param[in] scale The time scale (TAI, TT or UTC)
+ * @return Number of nanoseconds since the epoch in TAI
  */
 long long nsecTaiToAny(long long nsecs, dafBase::DateTime::Timescale scale) {
     switch(scale) {
@@ -242,14 +248,15 @@ long long nsecTaiToAny(long long nsecs, dafBase::DateTime::Timescale scale) {
 
 #ifdef CAL_TO_JD
 /**
- * A function to compute the Julian day from a calendar date.
- * \param[in] year Year number.
- * \param[in] month Month number (Jan = 1).
- * \param[in] day Day number (1 to 31).
- * \param[in] hr Hour number (0 to 23).
- * \param[in] min Minute number (0 to 59).
- * \param[in] sec Second number (0 to 60).
+ * Compute Julian Day from year, month, day, etc. (tm struct fields)
  *
+ * @param[in] year  year (4 digits)
+ * @param[in] month  month (Jan = 1)
+ * @param[in] day  day of month (1 to 31)
+ * @param[in] hr  hour (0 to 23)
+ * @param[in] min  minutes (0 to 59)
+ * @param[in] sec  integer seconds (0 to 60)
+ * @return Julian Days
  */
 double calendarToJd(int year, int month, int day, int hour, int min, double sec) {
     if ( month <= 2 ) {
@@ -257,7 +264,7 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
     	month += 12;
     }
     int a = int(year/100);
-    int b =  2 - a + int(a/4); 
+    int b =  2 - a + int(a/4);
 
     int yy = 1582, mm = 10; //, d = 4;
     if (year < yy || (year == yy && month < mm) || (year == yy && month == mm && day <= 4)) {
@@ -275,13 +282,11 @@ double calendarToJd(int year, int month, int day, int hour, int min, double sec)
 } // end anonymous namespace
 
 
-/**
- * @brief a function to convert MJD to integral nsecs
- * @param[in] mjd The Modified Julian Day
- * @param[in] scale The time scale (TAI, TT or UTC)
- *
- */
-void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
+namespace lsst {
+namespace daf {
+namespace base {
+
+void DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
 
     if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
         throw LSST_EXCEPT(
@@ -295,40 +300,29 @@ void dafBase::DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
     }
     _nsecs = nsecAnyToTai(static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY), scale);
 }
-    
-/**
- * @brief a function to convert JD to internal nsecs
- * @param[in] jd The Julian Day
- * @param[in] scale The time scale (TAI, TT or UTC)
- */
-void dafBase::DateTime::setNsecsFromJd(double jd, Timescale scale) {
+
+void DateTime::setNsecsFromJd(double jd, Timescale scale) {
     setNsecsFromMjd(jd - MJD_TO_JD, scale);
 }
-    
+
 /**
  * @brief a function to convert epoch to internal nsecs
  * @param[in] epoch The Julian epoch
  * @param[in] scale The time scale (TAI, TT or UTC)
  */
-void dafBase::DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
+void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
     setNsecsFromMjd(365.25*(epoch - 2000.0) + JD2000 - MJD_TO_JD, scale);
 }
-    
 
+DateTime::DateTime() :
+    _nsecs(DateTime::invalid_nsecs)
+{ }
 
-/** Constructor.
- * \param[in] nsecs Number of nanoseconds since the epoch.
- * \param[in] scale Timescale of input (TAI, TT or UTC, default TAI).
- */
-dafBase::DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecAnyToTai(nsecs, scale)) {
-}
+DateTime::DateTime(long long nsecs, Timescale scale) :
+    _nsecs(nsecAnyToTai(nsecs, scale))
+{ }
 
-/** Constructor.
- * \param[in] date Date.
- * \param[in] system The requested date system (JD, MJD, or Julian epoch)
- * \param[in] scale Timescale of input (TAI, TT or UTC, default TAI).
- */
-dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
+DateTime::DateTime(double date, DateSystem system, Timescale scale) {
     switch (system) {
       case MJD:
         setNsecsFromMjd(date, scale);
@@ -340,25 +334,12 @@ dafBase::DateTime::DateTime(double date, DateSystem system, Timescale scale) {
         setNsecsFromEpoch(date, scale);
         break;
       default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH.");
+        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
         break;
     }
 }
 
-
-
-/** Constructor.
- * \param[in] year Year number. Must be in the range [1902, 2261], inclusive.
- * \param[in] month Month number (Jan = 1).
- * \param[in] day Day number (1 to 31).
- * \param[in] hr Hour number (0 to 23).
- * \param[in] min Minute number (0 to 59).
- * \param[in] sec Second number (0 to 60).
- * \param[in] scale Timescale of input (TAI, TT or UTC, default TAI).
- */
-dafBase::DateTime::DateTime(int year, int month, int day,
-                            int hr, int min, int sec, Timescale scale) {
-
+DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale) {
     int const minYear = 1902;
     int const maxYear = 2261;
     if ((year < minYear) || (year > maxYear)) {
@@ -378,13 +359,13 @@ dafBase::DateTime::DateTime(int year, int month, int day,
     tm.tm_yday = 0;
     tm.tm_isdst = 0;
     tm.tm_gmtoff = 0;
-    
+
     // Convert to seconds since the epoch, correcting to UTC.
     // Although timegm() is non-standard, it is a commonly-supported
     // extension and is much safer/more reliable than mktime(3) in that
     // it doesn't try to deal with the anomalies of local time zones.
     time_t secs = timegm(&tm);
-    
+
     // long long nsecs will blow out beyond 1677-09-21T00:00:00 and 2262-04-12T00:00:00
     // (refering to the values of EPOCH_IN_MJD +/- MAX_DAYS ... exceeds 64 bits.)
     // On older machines a tm struct is only 32 bits, and saturates at:
@@ -395,7 +376,7 @@ dafBase::DateTime::DateTime(int year, int month, int day,
 
     // timegm returns -1 on error, but the date at unix epoch -1 second also returns a valid value of -1,
     // so be sure to test for that
-    
+
     if (secs == -1) {
         bool isBad = true;  // assume the worst
         if (year == 1969) {
@@ -412,27 +393,20 @@ dafBase::DateTime::DateTime(int year, int month, int day,
                  % year % month % day % hr % min % sec).str());
         }
     }
-    
+
     _nsecs = nsecAnyToTai(secs * LL_NSEC_PER_SEC, scale);
 }
 
-/** Constructor.  Accepts a restricted subset of ISO8601:
-  * yyyy-mm-ddThh:mm:ss.nnnnnnnnnZ where the - and : separators are optional,
-  * the fractional seconds are also optional, the decimal point may be a
-  * comma and the final Z is required for UTC and prohibited for TAI or TT
- * \param[in] iso8601 ISO8601 representation of date and time.
- * \param[in] scale Timescale of input (TAI, TT or UTC, default TAI).
- */
-dafBase::DateTime::DateTime(std::string const& iso8601, Timescale scale) {
+DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     boost::regex re;
-    if ((scale == TAI) || (scale == TT)) {
-        // no time zone character accepted
-        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?");
-    } else {
+    if (scale == UTC) {
         // time zone "Z" required
         re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
                           "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
+    } else {
+        // no time zone character accepted
+        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
+                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?");
     }
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
@@ -462,16 +436,8 @@ dafBase::DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     }
 }
 
-
-/** Generic Accessor
- * @return the date in the required system, for the requested scale
- * @param[in] system The type of date requested (JD, MJD, or EPOCH)
- * @param[in] scale The time scale (UTC, or TAI)
- *
- * @note The NSECS can't be requested here as they're in long long form.
- *       A factory could be constructed, but it's more trouble than it's worth at this point.
- */
-double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
+double DateTime::get(DateSystem system, Timescale scale) const {
+    _assertValid();
     switch (system) {
       case MJD:
         return _getMjd(scale);
@@ -483,55 +449,35 @@ double dafBase::DateTime::get(DateSystem system, Timescale scale) const {
         return _getEpoch(scale);
         break;
       default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterError,
-                          "DateSystem must be MJD, JD, or EPOCH.");
+        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
         break;
     }
 }
 
-
-/** Accessor.
- * \return Number of nanoseconds since the epoch in TAI, TT or UTC.
- */
-long long dafBase::DateTime::nsecs(Timescale scale) const {
+long long DateTime::nsecs(Timescale scale) const {
+    if (!isValid()) {
+        // return the same invalid value for all time scales
+        return DateTime::invalid_nsecs;
+    }
     return nsecTaiToAny(_nsecs, scale);
 }
 
-
-/** Convert to Modified Julian Day.
- * \param[in] scale Desired timescale (TAI, TT or UTC, default TAI).
- * \return The Modified Julian Day corresponding to the time.
- */
-double dafBase::DateTime::_getMjd(Timescale scale) const {
-
+double DateTime::_getMjd(Timescale scale) const {
+    _assertValid();
     double nsecs = nsecTaiToAny(_nsecs, scale);
     return nsecs / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
 
-
-/** Convert to Julian Day.
- * \param[in] scale Desired timescale (TAI, TT or UTC, default TAI).
- * \return The Julian Day corresponding to the time.
- */
-double dafBase::DateTime::_getJd(Timescale scale) const {
+double DateTime::_getJd(Timescale scale) const {
     return _getMjd(scale) + MJD_TO_JD;
 }
 
-/** Convert to Julian Epoch.
- * \param[in] scale Desired timescale (TAI, TT or UTC, default TAI).
- * \return The Julian Epoch corresponding to the time.
- */
-double dafBase::DateTime::_getEpoch(Timescale scale) const {
+double DateTime::_getEpoch(Timescale scale) const {
     return 2000.0 + (_getJd(scale) - JD2000)/365.25;
 }
 
-
-
-
-/** Convert to struct tm.  Truncate fractional seconds.
- * \return Structure with decoded time in specified time scale.
- */
-struct tm dafBase::DateTime::gmtime(Timescale scale) const {
+struct tm DateTime::gmtime(Timescale scale) const {
+    _assertValid();
     struct tm gmt;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     // Round to negative infinity
@@ -547,10 +493,8 @@ struct tm dafBase::DateTime::gmtime(Timescale scale) const {
     return gmt;
 }
 
-/** Convert to struct timespec.
- * \return Structure with time in seconds and nanoseconds.
- */
-struct timespec dafBase::DateTime::timespec(Timescale scale) const {
+struct timespec DateTime::timespec(Timescale scale) const {
+    _assertValid();
     struct timespec ts;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     ts.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -558,10 +502,8 @@ struct timespec dafBase::DateTime::timespec(Timescale scale) const {
     return ts;
 }
 
-/** Convert time to struct timeval.
- * \return Structure with time in seconds and microseconds.
- */
-struct timeval dafBase::DateTime::timeval(Timescale scale) const {
+struct timeval DateTime::timeval(Timescale scale) const {
+    _assertValid();
     struct timeval tv;
     long long nsecs = nsecTaiToAny(_nsecs, scale);
     tv.tv_sec = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -569,10 +511,8 @@ struct timeval dafBase::DateTime::timeval(Timescale scale) const {
     return tv;
 }
 
-/** Accessor.
- * \return ISO8601-formatted string representation.
- */
-std::string dafBase::DateTime::toString(Timescale scale) const {
+std::string DateTime::toString(Timescale scale) const {
+    _assertValid();
     struct tm gmt(this->gmtime(scale));
 
     long long fracnsecs = nsecTaiToAny(_nsecs, scale) % LL_NSEC_PER_SEC;
@@ -586,19 +526,11 @@ std::string dafBase::DateTime::toString(Timescale scale) const {
             gmt.tm_hour % gmt.tm_min % gmt.tm_sec % fracnsecs).str();
 }
 
-/** Equality operator.
- * \return True if both DateTimes have the same nanosecond representation.
- */
-bool dafBase::DateTime::operator==(DateTime const& rhs) const {
+bool DateTime::operator==(DateTime const& rhs) const {
     return _nsecs == rhs._nsecs;
 }
 
-/** Return current time as a DateTime.
-  *
-  * Assumes the system clock keeps UTC.
-  * \return DateTime representing the current time.
-  */
-dafBase::DateTime dafBase::DateTime::now(void) {
+DateTime DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);
     if (ret != 0) {
@@ -609,10 +541,7 @@ dafBase::DateTime dafBase::DateTime::now(void) {
     return DateTime(nsecs, DateTime::UTC);
 }
 
-/** Initialize leap second table.
-  * \param leapString Leap second table from USNO as a single multiline string.
-  */
-void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
+void DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;
     leapSecTable.clear();
     boost::regex re("^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
@@ -630,3 +559,5 @@ void dafBase::DateTime::initializeLeapSeconds(std::string const& leapString) {
         leapSecTable.push_back(l);
     }
 }
+
+}}} // namespace lsst::daf::base

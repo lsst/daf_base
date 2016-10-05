@@ -35,6 +35,9 @@ import time
 
 class DateTimeTestCase(unittest.TestCase):
     """A test case for DateTime."""
+    def setUp(self):
+        self.timeScales = (DateTime.TAI, DateTime.TT, DateTime.UTC)
+        self.dateSystems = (DateTime.JD, DateTime.MJD, DateTime.EPOCH)
 
     def testMJD(self):
         ts = DateTime(45205.125, DateTime.MJD, DateTime.UTC)
@@ -42,6 +45,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), long(399006021000000000))
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.TAI), 45205.125 + 21.0/86400.0)
+        self.assertTrue(ts.isValid())
 
     def testLeapSecond(self):
         trials = ((45205., 21),
@@ -86,6 +90,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
         self.assertEqual(ts.nsecs(), long(1192755506000000000))
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
+        self.assertTrue(ts.isValid())
 
     def testNsecsDefault(self):
         ts = DateTime(long(1192755506000000000))
@@ -93,6 +98,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
         self.assertEqual(ts.nsecs(), long(1192755506000000000))
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
+        self.assertTrue(ts.isValid())
 
     def testNow(self):
         successes = 0
@@ -130,18 +136,21 @@ class DateTimeTestCase(unittest.TestCase):
                         dateStr = "2009{0}04{0}02T07{1}26{1}39{2}314159265".format(dateSep, timeSep, decPt)
                         ts = DateTime(dateStr, scale)
                         self.assertEqual(ts.toString(scale), "2009-04-02T07:26:39.314159265")
+                        self.assertTrue(ts.isValid())
 
     def testIsoExpanded(self):
         ts = DateTime("2009-04-02T07:26:39.314159265Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
+        self.assertTrue(ts.isValid())
 
     def testIsoNoNSecs(self):
         ts = DateTime("2009-04-02T07:26:39Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233000000000))
         self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199000000000))
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.000000000Z")
+        self.assertTrue(ts.isValid())
 
     def testIsoThrow(self):
         with self.assertRaises(pexExcept.DomainError):
@@ -150,7 +159,7 @@ class DateTimeTestCase(unittest.TestCase):
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("2009-04-01T23:36:05Z", scale)  # Z time zone forbidden for TAI or TT
 
-        for scale in (DateTime.TAI, DateTime.TT, DateTime.UTC):
+        for scale in self.timeScales:
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("20090401", scale)  # time required
             with self.assertRaises(pexExcept.DomainError):
@@ -221,7 +230,7 @@ class DateTimeTestCase(unittest.TestCase):
         (except with a trailing Z for UTC, and without for TAI and TT)
         """
         negOneSecIso = "1969-12-31T23:59:59.000000000"
-        for scale in (DateTime.UTC, DateTime.TAI, DateTime.TT):
+        for scale in self.timeScales:
             dateStr = negOneSecIso + ("Z" if scale == DateTime.UTC else "")
             try:
                 dt = DateTime(dateStr, scale)
@@ -247,6 +256,7 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
         self.assertEqual(ts.nsecs(), long(1192755506000000000))
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
+        self.assertTrue(ts.isValid())
 
     def testFracSecs(self):
         ts = DateTime("2004-03-01T12:39:45.1Z", DateTime.UTC)
@@ -257,6 +267,65 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.000000001Z')
         ts = DateTime("2004-03-01T12:39:45.0000000001Z", DateTime.UTC)  # too small
         self.assertEqual(ts.toString(ts.UTC), '2004-03-01T12:39:45.000000000Z')
+
+    def testInvalid(self):
+        ts = DateTime()
+        self.assertFalse(ts.isValid())
+        for scale in self.timeScales:
+            self.assertEqual(ts.nsecs(scale), DateTime.invalid_nsecs)
+            for system in self.dateSystems:
+                with self.assertRaises(pexExcept.RuntimeError):
+                    ts.get(system, scale)
+            with self.assertRaises(pexExcept.RuntimeError):
+                ts.gmtime(scale)
+            with self.assertRaises(pexExcept.RuntimeError):
+                ts.timespec(scale)
+            with self.assertRaises(pexExcept.RuntimeError):
+                ts.timeval(scale)
+            with self.assertRaises(pexExcept.RuntimeError):
+                ts.toString(scale)
+        self.assertEqual(repr(ts), "DateTime()")
+
+    def testGetBadScaleAndSystem(self):
+        """Test that date system constants cannot be used for time scale and vise versa in getters"""
+        ts = DateTime("2004-03-01T12:39:45.1", DateTime.TAI)  # an arbitrary date
+        minScale = min(*self.timeScales)
+        maxScale = max(*self.dateSystems)
+        for badScale in (minScale - 1, maxScale + 1) + tuple(self.dateSystems):
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.nsecs(badScale)
+            for system in self.dateSystems:
+                with self.assertRaises(pexExcept.InvalidParameterError):
+                    ts.get(system, badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.gmtime(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.timespec(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.timeval(badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                ts.toString(badScale)
+        minSystem = min(*self.dateSystems)
+        maxSystem = max(*self.dateSystems)
+        for scale in self.timeScales:
+            for badSystem in (minSystem-1, maxSystem+1) + tuple(self.timeScales):
+                with self.assertRaises(pexExcept.InvalidParameterError):
+                    ts.get(badSystem, scale)
+
+    def testConstructBadScaleAndSystem(self):
+        minScale = min(*self.timeScales)
+        maxScale = max(*self.dateSystems)
+        for badScale in (minScale - 1, maxScale + 1) + tuple(self.dateSystems):
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime(1000, badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime("2001-02-02T02:02:02", badScale)
+            with self.assertRaises(pexExcept.DomainError):  # Z forbidden except for UTC
+                DateTime("2001-02-02T02:02:02Z", badScale)
+            with self.assertRaises(pexExcept.InvalidParameterError):
+                DateTime(2001, 2, 2, 2, 2, 2, badScale)
+        # sanity check the tm field constructor arguments
+        DateTime(2001, 2, 2, 2, 2, 2, DateTime.TT)
 
     def testNegative(self):
         ts = DateTime("1969-03-01T00:00:32Z", DateTime.UTC)
@@ -271,15 +340,13 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.000000000Z')
         ts = DateTime("1969-03-01T12:39:45.000000001Z", DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.000000001Z')
+        self.assertTrue(ts.isValid())
 
         # Note slight inaccuracy in UTC-TAI-UTC round-trip
         ts = DateTime("1969-03-01T12:39:45.12345Z", DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.123449996Z')
         ts = DateTime("1969-03-01T12:39:45.123456Z", DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.123455996Z')
-
-        ts = DateTime()
-        self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918240Z')
 
         ts = DateTime(long(-1), DateTime.TAI)
         self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918239Z')
@@ -318,6 +385,7 @@ class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""
 
     def setUp(self):
+        DateTimeTestCase.setUp(self)
         self.tz = os.environ.setdefault('TZ', "")
         os.environ['TZ'] = self.timezone
 

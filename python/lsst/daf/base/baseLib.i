@@ -100,7 +100,10 @@ VectorAddType(lsst::daf::base::DateTime, DateTime)
         def __reduce__(self):
             return self.__class__, (self.nsecs(),)
         def __repr__(self):
-            return "DateTime(\"{}\", TAI)".format(self.toString(lsst.daf.base.DateTime.TAI))
+            if self.isValid():
+                return "DateTime(\"{}\", TAI)".format(self.toString(lsst.daf.base.DateTime.TAI))
+            else:
+                return "DateTime()"
     %}
 }
 
