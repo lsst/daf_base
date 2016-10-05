@@ -29,7 +29,7 @@ PYBIND11_PLUGIN(_dateTime) {
         .def(py::init<long long, DateTime::Timescale>())
         .def(py::init<double, DateTime::DateSystem, DateTime::Timescale>())
         .def(py::init<int, int, int, int, int, int, DateTime::Timescale>())
-        .def(py::init<const std::string &>())
+        .def(py::init<const std::string &, DateTime::Timescale>())
         .def("nsecs", &DateTime::nsecs, py::arg("scale") = DateTime::Timescale::TAI)
         .def("get", &DateTime::get,
             py::arg("system") = DateTime::DateSystem::MJD,
@@ -40,7 +40,6 @@ PYBIND11_PLUGIN(_dateTime) {
         .def("timeval", &DateTime::timeval)
         .def_static("now", &DateTime::now)
         .def_static("initializeLeapSeconds", &DateTime::initializeLeapSeconds)
-        .def("__repr__", &DateTime::toString)
         .def(py::self == py::self)
         // Support pickling
         .def("__getstate__", [](const DateTime &d) {
