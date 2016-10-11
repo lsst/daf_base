@@ -14,7 +14,11 @@ DateTime.toPython = DateTime_toPython
 del DateTime_toPython
 
 def DateTime__repr__(self):
-    return "DateTime(\"{}\", TAI)".format(self.toString(DateTime.TAI))
+    if self.isValid():
+        return "DateTime(\"{}\", TAI)".format(self.toString(DateTime.TAI))
+    else:
+        return "DateTime()"
+
 DateTime.__repr__ = DateTime__repr__
 del DateTime__repr__
 

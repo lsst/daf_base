@@ -292,6 +292,7 @@ class DateTimeTestCase(unittest.TestCase):
                 ts.toString(scale)
         self.assertEqual(repr(ts), "DateTime()")
 
+    @unittest.skip("pybind11 enums are non interchangable")
     def testGetBadScaleAndSystem(self):
         """Test that date system constants cannot be used for time scale and vise versa in getters"""
         ts = DateTime("2004-03-01T12:39:45.1", DateTime.TAI)  # an arbitrary date
@@ -318,6 +319,7 @@ class DateTimeTestCase(unittest.TestCase):
                 with self.assertRaises(pexExcept.InvalidParameterError):
                     ts.get(badSystem, scale)
 
+    @unittest.skip("pybind11 enums are non interchangable")
     def testConstructBadScaleAndSystem(self):
         minScale = min(*self.timeScales)
         maxScale = max(*self.dateSystems)
