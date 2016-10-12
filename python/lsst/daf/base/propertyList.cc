@@ -40,7 +40,7 @@ PYBIND11_DECLARE_HOLDER_TYPE(MyType, std::shared_ptr<MyType>);
 PYBIND11_PLUGIN(_propertyList) {
     py::module mod("_propertyList", "Access to the classes from the daf_base propertyList library");
 
-    py::class_<PropertyList, std::shared_ptr<PropertyList>> cls(mod, "PropertyList", py::base<PropertySet>());
+    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet> cls(mod, "PropertyList");
 
     cls.def(py::init<>());
 
