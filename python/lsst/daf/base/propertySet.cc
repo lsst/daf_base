@@ -48,7 +48,7 @@ PYBIND11_PLUGIN(_propertySet) {
         .def(py::self == py::self)
         .def(py::self != py::self);
 
-    py::class_<PropertySet, std::shared_ptr<PropertySet>> cls(mod, "PropertySet", py::base<Persistable>());
+    py::class_<PropertySet, std::shared_ptr<PropertySet>, Persistable> cls(mod, "PropertySet");
 
     cls.def(py::init<bool>(), py::arg("flat")=false);
 
