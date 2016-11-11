@@ -260,6 +260,14 @@ _PS_typeMenu = {bool: "Bool",
                 PropertyList: "PropertySet",
                 }
 
+# Map unicode to String, but this only works on Python 2
+# so catch the error and do nothing on Python 3.
+try:
+  _PS_typeMenu[unicode] = "String"
+except:
+  pass
+
+
 def _PS_getValue(self, name, asArray=False):
     return _propertyContainerGet(self, name, asArray)
 def _PS_setValue(self, name, value):
@@ -390,5 +398,3 @@ PropertyList.toOrderedDict = _PL_toOrderedDict
 del _PL_toList
 del _PL_toOrderedDict
 %}
-
-
