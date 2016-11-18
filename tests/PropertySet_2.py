@@ -46,6 +46,8 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
         ps.setString("string", "bar")
+        ps.set("char*", u"foo")
+        ps.setString("string", u"bar")
         ps.set("int2", 2009)
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         ps.set("blank", "")
