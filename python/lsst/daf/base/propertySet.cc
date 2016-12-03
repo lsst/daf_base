@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 
+#include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/PropertySet.h"
 #include "lsst/daf/base/DateTime.h"
 
@@ -48,7 +49,7 @@ PYBIND11_PLUGIN(_propertySet) {
         .def(py::self == py::self)
         .def(py::self != py::self);
 
-    py::class_<PropertySet, std::shared_ptr<PropertySet>, Persistable> cls(mod, "PropertySet");
+    py::class_<PropertySet, std::shared_ptr<PropertySet>, Persistable, Citizen> cls(mod, "PropertySet");
 
     cls.def(py::init<bool>(), py::arg("flat")=false);
 
