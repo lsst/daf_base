@@ -24,6 +24,7 @@
 from __future__ import absolute_import
 from past.builtins import long
 
+from ._citizen import *
 from .citizen import *
 from .dateTime import *
 from ._persistable import *
