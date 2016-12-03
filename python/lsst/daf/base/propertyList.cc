@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/PropertyList.h"
 #include "lsst/daf/base/DateTime.h"
 
@@ -40,7 +41,7 @@ PYBIND11_DECLARE_HOLDER_TYPE(MyType, std::shared_ptr<MyType>);
 PYBIND11_PLUGIN(_propertyList) {
     py::module mod("_propertyList", "Access to the classes from the daf_base propertyList library");
 
-    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet> cls(mod, "PropertyList");
+    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet, Citizen> cls(mod, "PropertyList");
 
     cls.def(py::init<>());
 
