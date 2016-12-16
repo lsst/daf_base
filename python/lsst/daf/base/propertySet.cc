@@ -67,8 +67,13 @@ PYBIND11_PLUGIN(_propertySet) {
     cls.def("copy", &PropertySet::copy);
     cls.def("combine", &PropertySet::combine);
     cls.def("remove", &PropertySet::remove);
-
+    cls.def("getAsBool", &PropertySet::getAsBool);
+    cls.def("getAsInt", &PropertySet::getAsInt);
+    cls.def("getAsInt64", &PropertySet::getAsInt64);
+    cls.def("getAsDouble", &PropertySet::getAsDouble);
+    cls.def("getAsString", &PropertySet::getAsString);
     cls.def("getAsPropertySetPtr", &PropertySet::getAsPropertySetPtr);
+    cls.def("getAsPersistablePtr", &PropertySet::getAsPersistablePtr);
 
     addAccessors<bool>(cls, "Bool");
     addAccessors<short>(cls, "Short");
