@@ -12,7 +12,10 @@ PYBIND11_PLUGIN(_citizen) {
 
     py::class_<Citizen> cls(mod, "Citizen");
 
+    cls.def("repr", &Citizen::repr);
+    cls.def("markPersistent", &Citizen::markPersistent);
     cls.def_static("census", (int (*)(int, Citizen::memId)) &Citizen::census);
+    cls.def_static("census", (const std::vector<const Citizen *> * (*)()) &Citizen::census, py::return_value_policy::reference);
     /* It is strange to expose cout to Python, so instead make a new wrapper */
     cls.def_static("census", [](Citizen::memId id) { Citizen::census(std::cout, id); });
     // TODO: pybind11 can't handle an owning pointer to a container of non-owning pointers
