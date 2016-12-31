@@ -16,6 +16,7 @@ PYBIND11_PLUGIN(_citizen) {
     /* It is strange to expose cout to Python, so instead make a new wrapper */
     cls.def_static("census", [](Citizen::memId id) { Citizen::census(std::cout, id); });
     cls.def("getId", &Citizen::getId);
+    cls.def("markPersistent", &Citizen::markPersistent);
     cls.def_static("getNextMemId", &Citizen::getNextMemId);
     cls.def_static("setNewCallbackId", &Citizen::setNewCallbackId);
     cls.def_static("setDeleteCallbackId", &Citizen::setDeleteCallbackId);
