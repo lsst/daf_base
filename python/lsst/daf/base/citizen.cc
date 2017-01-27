@@ -24,7 +24,6 @@ PYBIND11_PLUGIN(_citizen) {
         py::return_value_policy::reference);
     cls.def("getId", &Citizen::getId);
     cls.def("markPersistent", &Citizen::markPersistent);
-    cls.def("repr", &Citizen::repr);
     cls.def_static("getNextMemId", &Citizen::getNextMemId);
     cls.def_static("setNewCallbackId", &Citizen::setNewCallbackId);
     cls.def_static("setDeleteCallbackId", &Citizen::setDeleteCallbackId);
