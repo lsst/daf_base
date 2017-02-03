@@ -221,6 +221,13 @@ _PL_typeMenu = {bool: "Bool",
                 PropertyList: "PropertySet",
                 }
 
+# Map unicode to String, but this only works on Python 2
+# so catch the error and do nothing on Python 3.
+try:
+    _PL_typeMenu[unicode] = "String"
+except:
+    pass
+
 def _PL_getValue(self, name, asArray=False):
     return _propertyContainerGet(self, name, asArray)
 def _PL_setValue(self, name, value, comment=None):
