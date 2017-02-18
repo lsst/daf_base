@@ -22,3 +22,9 @@ def DateTime__repr__(self):
 DateTime.__repr__ = DateTime__repr__
 del DateTime__repr__
 
+def DateTime__reduce__(self): 
+    return (DateTime, (self.nsecs(), )) 
+
+DateTime.__reduce__ = DateTime__reduce__
+del DateTime__reduce__
+
