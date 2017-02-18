@@ -46,19 +46,7 @@ PYBIND11_PLUGIN(_dateTime) {
         .def("isValid", &DateTime::isValid)
         .def_static("now", &DateTime::now)
         .def_static("initializeLeapSeconds", &DateTime::initializeLeapSeconds)
-        .def(py::self == py::self)
-        // Support pickling
-        .def("__getstate__", [](const DateTime &d) {
-            return py::make_tuple(d.nsecs());
-        })
-        .def("__setstate__", [](DateTime &d, py::tuple t) {
-            if (t.size() != 1)
-                throw std::runtime_error("Invalid state!");
-
-            /* Invoke the in-place constructor. Note that this is needed even
-               when the object just has a trivial default constructor */
-            new (&d) DateTime(t[0].cast<long long>());
-        });
+        .def(py::self == py::self);
 
     return mod.ptr();
 }
