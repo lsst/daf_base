@@ -10,7 +10,7 @@ namespace py = pybind11;
 PYBIND11_PLUGIN(_citizen) {
     py::module mod("_citizen", "Access to the classes from the daf_base citizen library");
 
-    py::class_<Citizen> cls(mod, "Citizen");
+    py::class_<Citizen, std::shared_ptr<Citizen>> cls(mod, "Citizen");
 
     cls.def("repr", &Citizen::repr);
     cls.def("markPersistent", &Citizen::markPersistent);
