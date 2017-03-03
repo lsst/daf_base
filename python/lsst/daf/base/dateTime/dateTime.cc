@@ -1,17 +1,16 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/operators.h>
+#include "pybind11/pybind11.h"
 
 #include "lsst/daf/base/DateTime.h"
 
-using namespace lsst::daf::base;
-
 namespace py = pybind11;
+using namespace pybind11::literals;
 
-// invalid_nsecs is odr used but has an in-class initializer
-constexpr long long DateTime::invalid_nsecs;
+namespace lsst {
+namespace daf {
+namespace base {
 
-PYBIND11_PLUGIN(_dateTime) {
-    py::module mod("_dateTime", "Access to the classes from the daf_base dateTime library");
+PYBIND11_PLUGIN(dateTime) {
+    py::module mod("dateTime");
 
     py::class_<DateTime> cls(mod, "DateTime");
 
@@ -30,15 +29,15 @@ PYBIND11_PLUGIN(_dateTime) {
     cls.def(py::init<>())
         .def_readonly_static("invalid_nsecs", &DateTime::invalid_nsecs)
         .def(py::init<long long, DateTime::Timescale>(),
-             py::arg("nsecs"), py::arg("scale") = DateTime::Timescale::TAI)
+             "nsecs"_a, "scale"_a = DateTime::Timescale::TAI)
         .def(py::init<double, DateTime::DateSystem, DateTime::Timescale>(),
-             py::arg("date"), py::arg("system")=DateTime::DateSystem::MJD, py::arg("scale")=DateTime::Timescale::TAI)
+             "date"_a, "system"_a=DateTime::DateSystem::MJD, "scale"_a=DateTime::Timescale::TAI)
         .def(py::init<int, int, int, int, int, int, DateTime::Timescale>())
         .def(py::init<const std::string &, DateTime::Timescale>())
-        .def("nsecs", &DateTime::nsecs, py::arg("scale") = DateTime::Timescale::TAI)
+        .def("nsecs", &DateTime::nsecs, "scale"_a = DateTime::Timescale::TAI)
         .def("get", &DateTime::get,
-            py::arg("system") = DateTime::DateSystem::MJD,
-            py::arg("scale") = DateTime::Timescale::TAI)
+            "system"_a = DateTime::DateSystem::MJD,
+            "scale"_a = DateTime::Timescale::TAI)
         .def("toString", &DateTime::toString)
         .def("gmtime", &DateTime::gmtime)
         .def("timespec", &DateTime::timespec)
@@ -46,8 +45,13 @@ PYBIND11_PLUGIN(_dateTime) {
         .def("isValid", &DateTime::isValid)
         .def_static("now", &DateTime::now)
         .def_static("initializeLeapSeconds", &DateTime::initializeLeapSeconds)
-        .def(py::self == py::self);
+        .def("__eq__", [](DateTime const & self, DateTime const & other) {
+                return self == other; }, py::is_operator());
 
     return mod.ptr();
 }
+
+}  // base
+}  // daf
+}  // lsst
 

@@ -22,16 +22,19 @@
 #
 
 from __future__ import absolute_import
-from past.builtins import long
 
-from ._citizen import *
-from .citizen import *
-from .dateTime import *
-from ._persistable import *
-from ._propertySet import *
-from ._propertyList import *
+__all__ = ["getstate", "setstate"]
+
+from past.builtins import long
+import numbers
+
+from lsst.utils import continueClass
+
+from .propertySet import *
+from .propertyList import *
 
 import lsst.pex.exceptions
+from ..dateTime import DateTime
 
 def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
@@ -63,7 +66,6 @@ def _propertyContainerGet(container, name, asArray=False):
         pass
     raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
 
-import numbers
 def _guessIntegerType(container, name, value):
     """Given an existing container and name, determine the type
     that should be used for the supplied value. The supplied value
@@ -148,58 +150,6 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
     raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
-
-# Mapping of type to method names
-_PS_typeMenu = {bool: "Bool",
-                long: "LongLong",
-                int: "Int", # overwrites long on Python 3.x
-                float: "Double",
-                str: "String",
-                DateTime: "DateTime",
-                PropertySet: "PropertySet",
-                PropertyList: "PropertySet",
-                }
-
-# Map unicode to String, but this only works on Python 2
-# so catch the error and do nothing on Python 3.
-try:
-    _PS_typeMenu[unicode] = "String"
-except:
-    pass
-
-def _PS_getValue(self, name, asArray=False):
-    return _propertyContainerGet(self, name, asArray)
-def _PS_setValue(self, name, value):
-    return _propertyContainerSet(self, name, value, _PS_typeMenu)
-def _PS_addValue(self, name, value):
-    return _propertyContainerAdd(self, name, value, _PS_typeMenu)
-
-def _PS_toDict(self):
-    """Returns a (possibly nested) dictionary with all properties.
-    """
-
-    d = {}
-    for name in self.names():
-        v = self.get(name)
-
-        if isinstance(v, PropertySet):
-            d[name] = PropertySet.toDict(v)
-        else:
-            d[name] = v
-    return d
-
-PropertySet.get = _PS_getValue
-PropertySet.set = _PS_setValue
-PropertySet.add = _PS_addValue
-PropertySet.toDict = _PS_toDict
-del _PS_getValue
-del _PS_setValue
-del _PS_addValue
-del _PS_toDict
-
-def _PL__len__(self):
-    return self.size()
-
 def getstate(self):
     return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
         self.getComment(name)) for name in self.getOrderedNames()]
@@ -207,72 +157,109 @@ def getstate(self):
 def setstate(self, state):
     for name, elemType, value, comment in state:
         getattr(self, "set" + elemType)(name, value, comment)
-PropertyList.__len__ = _PL__len__
-del _PL__len__
 
-# Mapping of type to method names
-_PL_typeMenu = {bool: "Bool",
-                long: "LongLong",
-                int: "Int", # overwrites long on Python 3.x
-                float: "Double",
-                str: "String",
-                DateTime: "DateTime",
-                PropertySet: "PropertySet",
-                PropertyList: "PropertySet",
-                }
+@continueClass
+class PropertySet:
+    # Mapping of type to method names
+    _typeMenu = {bool: "Bool",
+                 long: "LongLong",
+                 int: "Int", # overwrites long on Python 3.x
+                 float: "Double",
+                 str: "String",
+                 DateTime: "DateTime",
+                 PropertySet: "PropertySet",
+                 PropertyList: "PropertySet",
+                 }
+    
+    # Map unicode to String, but this only works on Python 2
+    # so catch the error and do nothing on Python 3.
+    try:
+        _typeMenu[unicode] = "String"
+    except:
+        pass
+    
+    def get(self, name, asArray=False):
+        return _propertyContainerGet(self, name, asArray)
 
-# Map unicode to String, but this only works on Python 2
-# so catch the error and do nothing on Python 3.
-try:
-    _PL_typeMenu[unicode] = "String"
-except:
-    pass
+    def set(self, name, value):
+        return _propertyContainerSet(self, name, value, self._typeMenu)
 
-def _PL_getValue(self, name, asArray=False):
-    return _propertyContainerGet(self, name, asArray)
-def _PL_setValue(self, name, value, comment=None):
-    args = []
-    if comment is not None:
-        args.append(comment)
-    return _propertyContainerSet(self, name, value, _PL_typeMenu, *args)
-def _PL_addValue(self, name, value, comment=None):
-    args = []
-    if comment is not None:
-        args.append(comment)
-    return _propertyContainerAdd(self, name, value, _PL_typeMenu, *args)
+    def add(self, name, value):
+        return _propertyContainerAdd(self, name, value, self._typeMenu)
+    
+    def toDict(self):
+        """Returns a (possibly nested) dictionary with all properties.
+        """
+    
+        d = {}
+        for name in self.names():
+            v = self.get(name)
+    
+            if isinstance(v, PropertySet):
+                d[name] = PropertySet.toDict(v)
+            else:
+                d[name] = v
+        return d
 
-PropertyList.get = _PL_getValue
-PropertyList.set = _PL_setValue
-PropertyList.add = _PL_addValue
-del _PL_getValue
-del _PL_setValue
-del _PL_addValue
 
-def _PL_toList(self):
-    orderedNames = self.getOrderedNames()
-    ret = []
-    for name in orderedNames:
-        if self.isArray(name):
-            values = self.get(name)
-            for v in values:
-                ret.append((name, v, self.getComment(name)))
-        else:
-            ret.append((name, self.get(name), self.getComment(name)))
-    return ret
+@continueClass
+class PropertyList:
+    # Mapping of type to method names
+    _typeMenu = {bool: "Bool",
+                 long: "LongLong",
+                 int: "Int", # overwrites long on Python 3.x
+                 float: "Double",
+                 str: "String",
+                 DateTime: "DateTime",
+                 PropertySet: "PropertySet",
+                 PropertyList: "PropertySet",
+                 }
+    
+    # Map unicode to String, but this only works on Python 2
+    # so catch the error and do nothing on Python 3.
+    try:
+        _typeMenu[unicode] = "String"
+    except:
+        pass
+    
+    def __len__(self):
+        return self.size()
+    
+    def get(self, name, asArray=False):
+        return _propertyContainerGet(self, name, asArray)
 
-def _PL_toOrderedDict(self):
-    """Return an ordered dictionary with all properties in the order that
-    they were inserted.
-    """
-    from collections import OrderedDict
+    def set(self, name, value, comment=None):
+        args = []
+        if comment is not None:
+            args.append(comment)
+        return _propertyContainerSet(self, name, value, self._typeMenu, *args)
 
-    d = OrderedDict()
-    for name in self.getOrderedNames():
-        d[name] = self.get(name)
-    return d
-
-PropertyList.toList = _PL_toList
-PropertyList.toOrderedDict = _PL_toOrderedDict
-del _PL_toList
-del _PL_toOrderedDict
+    def add(self, name, value, comment=None):
+        args = []
+        if comment is not None:
+            args.append(comment)
+        return _propertyContainerAdd(self, name, value, self._typeMenu, *args)
+    
+    def toList(self):
+        orderedNames = self.getOrderedNames()
+        ret = []
+        for name in orderedNames:
+            if self.isArray(name):
+                values = self.get(name)
+                for v in values:
+                    ret.append((name, v, self.getComment(name)))
+            else:
+                ret.append((name, self.get(name), self.getComment(name)))
+        return ret
+    
+    def toOrderedDict(self):
+        """Return an ordered dictionary with all properties in the order that
+        they were inserted.
+        """
+        from collections import OrderedDict
+    
+        d = OrderedDict()
+        for name in self.getOrderedNames():
+            d[name] = self.get(name)
+        return d
 

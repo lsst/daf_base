@@ -25,14 +25,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import re
+__all__ = ["setCallbacks", "mortal"]
 
 from builtins import range
+import re
 
-from ._citizen import Citizen
-
-__all__ = ["setCallbacks", "mortal", "Citizen_census", "Citizen_getNextMemId"]
-
+from .citizen import Citizen
 
 def setCallbacks(new=None, delete=None, both=False):
     """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
@@ -115,5 +113,3 @@ def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
             for i in range(nleakPrintMax - 1, -1, -1):
                 print(census[i])
 
-Citizen_census = Citizen.census
-Citizen_getNextMemId = Citizen.getNextMemId

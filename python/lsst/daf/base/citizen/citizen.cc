@@ -1,14 +1,16 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
 #include "lsst/daf/base/Citizen.h"
 
-using namespace lsst::daf::base;
-
 namespace py = pybind11;
 
-PYBIND11_PLUGIN(_citizen) {
-    py::module mod("_citizen", "Access to the classes from the daf_base citizen library");
+namespace lsst {
+namespace daf {
+namespace base {
+
+PYBIND11_PLUGIN(citizen) {
+    py::module mod("citizen");
 
     py::class_<Citizen, std::shared_ptr<Citizen>> cls(mod, "Citizen");
 
@@ -30,4 +32,8 @@ PYBIND11_PLUGIN(_citizen) {
 
     return mod.ptr();
 }
+
+}  // base
+}  // daf
+}  // lsst
 
