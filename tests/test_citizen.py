@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function
 import unittest
 
 import lsst.utils.tests
-from lsst.daf.base import Citizen_getNextMemId, Citizen_census, PropertyList
+from lsst.daf.base import Citizen, PropertyList
 
 
 class CitizenTestCase(lsst.utils.tests.TestCase):
@@ -34,28 +34,28 @@ class CitizenTestCase(lsst.utils.tests.TestCase):
         self.assertEqual(b.getId(), a.getId() + 1)
 
     def testNextMemIdAndCensus(self):
-        memId0 = Citizen_getNextMemId()
-        self.assertEqual(Citizen_census(0, memId0), 0)
+        memId0 = Citizen.getNextMemId()
+        self.assertEqual(Citizen.census(0, memId0), 0)
 
         a = PropertyList()
-        self.assertEqual(Citizen_census(0, memId0), 1)
+        self.assertEqual(Citizen.census(0, memId0), 1)
         self.assertEqual(a.census(0, memId0), 1)
 
         memId1 = a.getNextMemId()
         b = PropertyList()
-        self.assertEqual(Citizen_census(0, memId0), 2)
+        self.assertEqual(Citizen.census(0, memId0), 2)
         self.assertEqual(a.census(0, memId0), 2)
-        self.assertEqual(Citizen_census(0, memId1), 1)
+        self.assertEqual(Citizen.census(0, memId1), 1)
         self.assertEqual(a.census(0, memId1), 1)
 
         del b
-        self.assertEqual(Citizen_census(0, memId0), 1)
+        self.assertEqual(Citizen.census(0, memId0), 1)
         self.assertEqual(a.census(0, memId0), 1)
-        self.assertEqual(Citizen_census(0, memId1), 0)
+        self.assertEqual(Citizen.census(0, memId1), 0)
         self.assertEqual(a.census(0, memId1), 0)
 
         del a
-        self.assertEqual(Citizen_census(0, memId0), 0)
+        self.assertEqual(Citizen.census(0, memId0), 0)
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

@@ -1,7 +1,8 @@
 #
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
 #
+# Copyright 2008-2016  AURA/LSST.
+# 
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -24,6 +25,7 @@ import unittest
 import numpy
 
 from past.builtins import long
+from past.builtins import basestring
 import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
@@ -78,10 +80,6 @@ class PropertySetTestCase(unittest.TestCase):
 
     def testNumPyScalars(self):
         """Test that we can also pass NumPy array scalars to PropertySet setters.
-
-        The custom Swig typemaps that enable this behavior are implemented in
-        utils, but we want a test outside utils to verify that the approach
-        works in downstream packages.
         """
         ps = dafBase.PropertySet()
         ps.setShort("short", numpy.int16(42))
@@ -116,14 +114,14 @@ class PropertySetTestCase(unittest.TestCase):
 
     def testGetVector(self):
         ps = dafBase.PropertySet()
-        v = (42, 2008, 1)
+        v = [42, 2008, 1]
         ps.setInt("ints", v)
-        ps.setInt("ints2", (10, 9, 8))
+        ps.setInt("ints2", [10, 9, 8])
         w = ps.getArrayInt("ints")
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
         self.assertEqual(ps.getInt("ints2"), 8)
-        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(ps.getArrayInt("ints2"), [10, 9, 8])
         w = ps.get("ints", asArray=True)
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
@@ -132,7 +130,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = ps.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, (999,))
+        self.assertEqual(x, [999,])
 
     def testGetVector2(self):
         ps = dafBase.PropertySet()
@@ -145,7 +143,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(v[1], w[1])
         self.assertEqual(v[2], w[2])
         self.assertEqual(ps.getInt("ints2"), 8)
-        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(ps.getArrayInt("ints2"), [10, 9, 8])
 
     def testAddScalar(self):
         ps = dafBase.PropertySet()
@@ -236,14 +234,6 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("autobool"), dafBase.PropertySet.TYPE_Bool)
         self.assertIs(ps.get("autobool"), True)
 
-    def testIntOverflow(self):
-        ps = dafBase.PropertySet()
-        ps.add("foo", 123)
-        self.assertRaises(OverflowError, ps.add, "foo", 2147483649)
-        self.assertRaises(OverflowError, ps.add, "foo", 2147483649123456789123456789)
-        ps.addLongLong("fooL", 123)
-        self.assertRaises(OverflowError, ps.add, "fooL", 2147483649123456789123456789)
-
     def testGetDefault(self):
         ps = dafBase.PropertySet(flat=True)
         ps.setInt("int", 42)
@@ -259,14 +249,14 @@ class FlatTestCase(unittest.TestCase):
 
     def testGetVector(self):
         ps = dafBase.PropertySet(flat=True)
-        v = (42, 2008, 1)
+        v = [42, 2008, 1]
         ps.setInt("ints", v)
-        ps.setInt("ints2", (10, 9, 8))
+        ps.setInt("ints2", [10, 9, 8])
         w = ps.getArrayInt("ints")
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
         self.assertEqual(ps.getInt("ints2"), 8)
-        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(ps.getArrayInt("ints2"), [10, 9, 8])
         w = ps.get("ints", asArray=True)
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
@@ -275,7 +265,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = ps.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, (999,))
+        self.assertEqual(x, [999,])
 
     def testGetVector2(self):
         ps = dafBase.PropertySet(flat=True)
@@ -288,7 +278,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(v[1], w[1])
         self.assertEqual(v[2], w[2])
         self.assertEqual(ps.getInt("ints2"), 8)
-        self.assertEqual(ps.getArrayInt("ints2"), (10, 9, 8))
+        self.assertEqual(ps.getArrayInt("ints2"), [10, 9, 8])
 
     def testAddScalar(self):
         ps = dafBase.PropertySet(flat=True)
@@ -327,7 +317,7 @@ class FlatTestCase(unittest.TestCase):
         ps1.set("foo", "bar")
         ps.setPropertySet("b", ps1)
         self.assertEqual(ps.exists("b.a"), True)
-        self.assertEqual(ps.get("b.a"), (1, 2))
+        self.assertEqual(ps.get("b.a"), [1, 2])
         self.assertEqual(ps.exists("b"), False)
         self.assertEqual(ps.exists("b.foo"), True)
         self.assertEqual(ps.get("b.foo"), "bar")
@@ -343,7 +333,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         ps.setLongLong("int64_t", long(0xfeeddeadbeef))
-        ps.setInt("ints", (10, 9, 8))
+        ps.setInt("ints", [10, 9, 8])
 
         ps2 = dafBase.PropertySet()
         ps2.set("ps", ps)
@@ -361,9 +351,9 @@ class FlatTestCase(unittest.TestCase):
         self.assertIsInstance(d["double"], float)
         self.assertEqual(d["double"], 2.718281828459045)
 
-        self.assertIsInstance(d["char*"], str)
+        self.assertIsInstance(d["char*"], basestring)
         self.assertEqual(d["char*"], "foo")
-        self.assertIsInstance(d["string"], str)
+        self.assertIsInstance(d["string"], basestring)
         self.assertEqual(d["string"], "bar")
         self.assertIsInstance(d["dt"], dafBase.DateTime)
         self.assertEqual(d["dt"].nsecs(), long(1238657233314159265))
@@ -373,15 +363,15 @@ class FlatTestCase(unittest.TestCase):
 
         self.assertIsInstance(d2["bool"], bool)
         self.assertEqual(d2["bool"], True)
-        self.assertIsInstance(d2["short"], int)
+        self.assertIsInstance(d2["short"], (int, long))
         self.assertEqual(d2["short"], 42)
-        self.assertIsInstance(d2["int"], int)
+        self.assertIsInstance(d2["int"], (int, long))
         self.assertEqual(d2["int"], 2008)
-        self.assertIsInstance(d2["int64_t"], int)
+        self.assertIsInstance(d2["int64_t"], (int, long))
         self.assertEqual(d2["int64_t"], long(0xfeeddeadbeef))
-        self.assertIsInstance(d2["ints"], tuple)
-        self.assertIsInstance(d2["ints"][0], int)
-        self.assertEqual(d2["ints"], (10, 9, 8))
+        self.assertIsInstance(d2["ints"], list)
+        self.assertIsInstance(d2["ints"][0], (int, long))
+        self.assertEqual(d2["ints"], [10, 9, 8])
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

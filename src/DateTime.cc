@@ -47,6 +47,9 @@
 namespace dafBase = lsst::daf::base;
 namespace pexEx   = lsst::pex::exceptions;
 
+// invalid_nsecs is odr used but has an in-class initializer
+constexpr long long dafBase::DateTime::invalid_nsecs;
+
 // Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
 static double const MJD_TO_JD = 2400000.5;
 static double const EPOCH_IN_MJD = 40587.0;
