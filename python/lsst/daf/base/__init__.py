@@ -2,7 +2,7 @@
 # LSST Data Management System
 #
 # Copyright 2008-2016  AURA/LSST.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -26,4 +26,3 @@ from .version import *
 from .citizen import *
 from .dateTime import *
 from .propertyContainer import *
-

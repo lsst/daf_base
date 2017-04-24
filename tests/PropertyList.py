@@ -2,7 +2,7 @@
 # LSST Data Management System
 #
 # Copyright 2008-2016  AURA/LSST.
-# 
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -48,7 +48,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertIsNotNone(apl)
 
     def checkPickle(self, original):
-        new = pickle.loads(pickle.dumps(original,2))
+        new = pickle.loads(pickle.dumps(original, 2))
         self.assertEqual(original.nameCount(), new.nameCount())
         self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
         for name in original.getOrderedNames():
@@ -125,7 +125,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = apl.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, [999,])
+        self.assertEqual(x, [999, ])
 
         self.checkPickle(apl)
 
@@ -195,7 +195,7 @@ class PropertyListTestCase(unittest.TestCase):
         subclass = [FloatSubClass(1.23), FloatSubClass(4.56), FloatSubClass(7.89)]
         apl.add("subclass", subclass)
         self.assertEqual(apl.getArrayInt("ints"),
-                [42, 2008, 1, -42, -2008, -1])
+                         [42, 2008, 1, -42, -2008, -1])
         self.assertEqual(apl.get("subclass"), subclass)
 
     def testComment(self):
@@ -319,6 +319,7 @@ class TestMemory(lsst.utils.tests.MemoryTestCase):
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()

@@ -32,6 +32,7 @@ import re
 
 from .citizen import Citizen
 
+
 def setCallbacks(new=None, delete=None, both=False):
     """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
 
@@ -112,4 +113,3 @@ def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
             print("...")
             for i in range(nleakPrintMax - 1, -1, -1):
                 print(census[i])
-
