@@ -230,9 +230,6 @@ class PropertyList:
     except:
         pass
 
-    def __len__(self):
-        return self.size()
-
     def get(self, name, asArray=False):
         return _propertyContainerGet(self, name, asArray)
 
