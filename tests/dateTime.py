@@ -23,7 +23,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 import unittest
 from builtins import int
 from builtins import range
