@@ -1,7 +1,7 @@
 #
 # LSST Data Management System
 #
-# Copyright 2008-2016  AURA/LSST.
+# Copyright 2008-2017  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -18,12 +18,10 @@
 #
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
-# see <https://www.lsstcorp.org/LegalNotices/>.
+# see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 __all__ = ["setCallbacks", "mortal"]
 
@@ -31,6 +29,7 @@ from builtins import range
 import re
 
 from .citizen import Citizen
+
 
 def setCallbacks(new=None, delete=None, both=False):
     """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
@@ -112,4 +111,3 @@ def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
             print("...")
             for i in range(nleakPrintMax - 1, -1, -1):
                 print(census[i])
-

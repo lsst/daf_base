@@ -21,6 +21,11 @@ void declareAccessors(C& cls, std::string const& name) {
     cls.def(getName.c_str(), (T (PropertyList::*)(std::string const&, T const&) const) & PropertyList::get<T>,
             "name"_a, "defaultValue"_a);
 
+    // Warning: __len__ is ambiguous so do not attempt to define it. It could return
+    // the number of unique names or the number of entries (e.g. as returned by toList,
+    // a pure Python method). C++ begin and end iterate over unique names, but users often
+    // view PropertyList as a representation of a FITS header. When in doubt, refuse to guess.
+
     const std::string getArrayName = "getArray" + name;
     cls.def(getArrayName.c_str(),
             (std::vector<T> (PropertyList::*)(std::string const&) const) & PropertyList::getArray<T>,

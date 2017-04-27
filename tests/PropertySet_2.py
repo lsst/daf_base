@@ -1,8 +1,8 @@
 #
 # LSST Data Management System
 #
-# Copyright 2008-2016  AURA/LSST.
-# 
+# Copyright 2008-2017  AURA/LSST.
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -20,6 +20,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
+from __future__ import absolute_import, division, print_function
 
 import unittest
 import numpy
@@ -130,7 +131,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = ps.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, [999,])
+        self.assertEqual(x, [999, ])
 
     def testGetVector2(self):
         ps = dafBase.PropertySet()
@@ -265,7 +266,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         x = ps.get("int", asArray=True)
         self.assertEqual(len(x), 1)
-        self.assertEqual(x, [999,])
+        self.assertEqual(x, [999, ])
 
     def testGetVector2(self):
         ps = dafBase.PropertySet(flat=True)
@@ -380,6 +381,7 @@ class TestMemory(lsst.utils.tests.MemoryTestCase):
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()

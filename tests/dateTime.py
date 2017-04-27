@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 #
 # LSST Data Management System
 #
-# Copyright 2008-2016  AURA/LSST.
-# 
+# Copyright 2008-2017  AURA/LSST.
+#
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
 #
@@ -23,7 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 import unittest
 from builtins import int
 from builtins import range
@@ -41,6 +39,7 @@ except ImportError:
 
 class DateTimeTestCase(unittest.TestCase):
     """A test case for DateTime."""
+
     def setUp(self):
         self.timeScales = (DateTime.TAI, DateTime.TT, DateTime.UTC)
         self.dateSystems = (DateTime.JD, DateTime.MJD, DateTime.EPOCH)
@@ -349,6 +348,7 @@ class DateTimeTestCase(unittest.TestCase):
         ts = DateTime(int(1192755473000000000), DateTime.UTC)
         nts = pickle.loads(pickle.dumps(ts))
         self.assertEqual(nts.nsecs(DateTime.UTC), int(1192755473000000000))
+
 
 class TimeZoneBaseTestCase(DateTimeTestCase):
     timezone = ""

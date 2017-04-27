@@ -1,6 +1,7 @@
 #
 # LSST Data Management System
-# Copyright 2008, 2009, 2010 LSST Corporation.
+#
+# Copyright 2008-2017  AURA/LSST.
 #
 # This product includes software developed by the
 # LSST Project (http://www.lsst.org/).
@@ -19,6 +20,7 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
+
 from __future__ import absolute_import, division, print_function
 import unittest
 
@@ -64,6 +66,7 @@ class TestMemory(lsst.utils.tests.MemoryTestCase):
 
 def setup_module(module):
     lsst.utils.tests.init()
+
 
 if __name__ == "__main__":
     lsst.utils.tests.init()
