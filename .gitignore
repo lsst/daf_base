@@ -16,8 +16,8 @@ doc/*.inc
 tests/.tests
 tests/.cache
 version.py
-tests/PropertyList
-tests/PropertySet_1
-tests/citizen
-tests/dateTime_1
+tests/test_PropertyList
+tests/test_PropertySet_1
+tests/test_citizen
+tests/test_dateTime_1
 examples/citizen
