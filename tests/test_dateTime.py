@@ -224,7 +224,7 @@ class DateTimeTestCase(unittest.TestCase):
         This will fail on old versions of unix, and indicates that DateTime is not safe
         """
         dateStr = "2040-01-01T00:00:00.000000000"
-        self.assertEquals(str(DateTime(dateStr, DateTime.TAI)), "DateTime(\"{}\", TAI)".format(dateStr))
+        self.assertEqual(str(DateTime(dateStr, DateTime.TAI)), "DateTime(\"{}\", TAI)".format(dateStr))
 
     def testDM7622(self):
         """Test DM-7622: date with unix time = -1 seconds must be usable
