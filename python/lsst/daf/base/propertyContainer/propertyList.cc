@@ -112,7 +112,7 @@ PYBIND11_PLUGIN(propertyList) {
             if (!func.ptr()) {
                 throw py::error_already_set();
             } else {
-                auto pySelf = py::cast(self);
+                auto pySelf = py::cast(self, py::return_value_policy::reference);
                 auto result = py::reinterpret_steal<py::object>(
                         PyObject_CallFunctionObjArgs(func.ptr(), pySelf.ptr(), state.ptr(), NULL));
             }
