@@ -58,13 +58,13 @@ def _propertyContainerGet(container, name, asArray=False):
 
     try:
         return container.getAsPropertyListPtr(name)
-    except:
+    except Exception:
         pass
     if container.typeOf(name) == container.TYPE_PropertySet:
         return container.getAsPropertySetPtr(name)
     try:
         return container.getAsPersistablePtr(name)
-    except:
+    except Exception:
         pass
     raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
 
@@ -183,7 +183,7 @@ class PropertySet:
     # so catch the error and do nothing on Python 3.
     try:
         _typeMenu[unicode] = "String"  # noqa F821
-    except:
+    except Exception:
         pass
 
     def get(self, name, asArray=False):
@@ -227,7 +227,7 @@ class PropertyList:
     # so catch the error and do nothing on Python 3.
     try:
         _typeMenu[unicode] = "String"  # noqa F821
-    except:
+    except Exception:
         pass
 
     def get(self, name, asArray=False):
