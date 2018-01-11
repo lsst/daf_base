@@ -387,12 +387,14 @@ public:
      * @param[in] dest Destination property name.
      * @param[in] source PropertySet::Ptr for the source PropertySet.
      * @param[in] name Property name to extract.
+     * @param[in] asScalar If true copy the item as a scalar by ignoring all but the last value
+     *                     (which is the value returned by get<T>(name))
      * @throws TypeError Type does not match existing values.
      * @throws InvalidParameterError Name does not exist in source.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void copy(std::string const& dest, ConstPtr source,
-                      std::string const& name);
+    virtual void copy(std::string const& dest, ConstPtr source, std::string const& name,
+                      bool asScalar = false);
 
     /**
      * Append all value vectors from the \a source to their corresponding

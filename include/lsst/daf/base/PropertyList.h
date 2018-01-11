@@ -298,7 +298,7 @@ public:
 
     /// @copydoc PropertySet::copy
     virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
-                      std::string const& name);
+                      std::string const& name, bool asScalar = false);
 
     /// @copydoc PropertySet::combine
     virtual void combine(PropertySet::ConstPtr source);

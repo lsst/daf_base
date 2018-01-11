@@ -202,6 +202,10 @@ class PropertySetTestCase(unittest.TestCase):
         dest.copy("destItem2", source, "srcItem2")
         self.assertEqual(dest.get("destItem2"), value2)
 
+        # asScalar copies only the last value
+        dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
+        self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+
 
 class FlatTestCase(unittest.TestCase):
     """A test case for flattened PropertySets."""

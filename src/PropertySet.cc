@@ -517,7 +517,8 @@ void dafBase::PropertySet::add(std::string const& name, char const* value) {
 }
 
 void dafBase::PropertySet::copy(std::string const& dest,
-                                ConstPtr source, std::string const& name) {
+                                ConstPtr source, std::string const& name,
+                                bool asScalar) {
     if (source.get() == 0) {
         throw LSST_EXCEPT(pexExcept::InvalidParameterError,
                           "Missing source");
@@ -528,9 +529,14 @@ void dafBase::PropertySet::copy(std::string const& dest,
                           name + " not in source");
     }
     remove(dest);
-    std::shared_ptr< vector<boost::any> > vp(
-        new vector<boost::any>(*(sj->second)));
-    _set(dest, vp);
+    if (asScalar) {
+        auto vp = std::make_shared<vector<boost::any>>();
+        vp->push_back(sj->second->back());
+        _set(dest, vp);
+    } else {
+        auto vp = std::make_shared<vector<boost::any>>(*(sj->second));
+        _set(dest, vp);
+    }
 }
 
 void dafBase::PropertySet::combine(ConstPtr source) {

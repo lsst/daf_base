@@ -227,8 +227,8 @@ void PropertyList::add(
 
 void PropertyList::copy(
     std::string const& dest, PropertySet::ConstPtr source,
-    std::string const& name) {
-    PropertySet::copy(dest, source, name);
+    std::string const& name, bool asScalar) {
+    PropertySet::copy(dest, source, name, asScalar);
     ConstPtr pl =
         std::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
