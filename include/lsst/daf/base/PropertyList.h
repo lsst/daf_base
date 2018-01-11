@@ -25,15 +25,6 @@
 #ifndef LSST_DAF_BASE_PROPERTYLIST
 #define LSST_DAF_BASE_PROPERTYLIST
 
-/** @file
-  * @ingroup daf_base
-  *
-  * @brief Interface for PropertyList class
-  *
-  * @version $Revision$
-  * @date $Date$
-  */
-
 /** @class lsst::daf::base::PropertyList
   * @brief Class for storing ordered metadata with comments.
   *
@@ -85,104 +76,234 @@ public:
     typedef std::shared_ptr<PropertyList> Ptr;
     typedef std::shared_ptr<PropertyList const> ConstPtr;
 
-// Constructors
+    /// Construct an empty PropertyList
     PropertyList(void);
+    /// Destructor
     virtual ~PropertyList(void);
 
 // Accessors
-    virtual PropertySet::Ptr deepCopy(void) const;
-    // Returns a PropertySet::Ptr pointing to a new deep copy of the
-    // PropertyList.
 
+    /** 
+     * Make a deep copy of the PropertyList and all of its contents.
+     *
+     * @return PropertyList::Ptr pointing to the new copy.
+     */
+    virtual PropertySet::Ptr deepCopy(void) const;
+
+    // I can't make copydoc work for this so...
+    /**
+     * Get the last value for a property name (possibly hierarchical).
+     *
+     * Note that the type must be explicitly specified for this template:
+     * @code int i = propertySet.get<int>("foo") @endcode
+     *
+     * @param[in] name Property name to examine, possibly hierarchical.
+     * @return Last value set or added.
+     * @throws NotFoundError Property does not exist.
+     * @throws TypeError Value does not match desired type.
+     */
     template <typename T> T get(std::string const& name) const;
-        // Note that the type must be explicitly specified for this template:
-        // int i = propertyList.get<int>("foo");
+
+    // I can't make copydoc work for this so...
+    /**
+     * Get the last value for a property name (possibly hierarchical);
+     * return the provided @a defaultValue if the property does not exist.
+     *
+     * Note that the type must be explicitly specified for this template:
+     * @code int i = propertySet.get<int>("foo", 42) @endcode
+     *
+     * @param[in] name Property name to examine, possibly hierarchical.
+     * @param[in] defaultValue Default value to return if property does not exist.
+     * @return Last value set or added.
+     * @throws TypeError Value does not match desired type.
+     */
     template <typename T>
         T get(std::string const& name, T const& defaultValue) const;
-        // Returns the provided default value if the name does not exist.
+
+    /// @copydoc PropertySet::getArray()
     template <typename T>
         std::vector<T> getArray(std::string const& name) const;
 
+    /**
+     * Get the comment for a string property name (possibly hierarchical).
+     *
+     * @param[in] name Property name to examine, possibly hierarchical.
+     * @return Comment string.
+     * @throws NotFoundError Property does not exist.
+     */
     std::string const& getComment(std::string const& name) const;
+
+    /// Get the list of property names, in the order they were added
     std::vector<std::string> getOrderedNames(void) const;
 
+    /// Begin iterator over the list of property names, in the order they were added
     std::list<std::string>::const_iterator begin(void) const;
+
+    /// End iterator over the list of property names, in the order they were added
     std::list<std::string>::const_iterator end(void) const;
     
-    // Use this for debugging, not for serialization/persistence.
+    /// @copydoc PropertySet::toString()
     virtual std::string toString(bool topLevelOnly = false,
                     std::string const& indent = "") const;
 
 // Modifiers
+
+    /// @copydoc PropertySet::set(std::string const &, T const &)
     template <typename T> void set(
         std::string const& name, T const& value);
+
+    /**
+     * Replace all values for a property name (possibly hierarchical) with a new
+     * PropertySet.
+     *
+     * @param[in] name Property name to set, possibly hierarchical.
+     * @param[in] value Value to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     void set(
         std::string const& name, PropertySet::Ptr const& value);
+
+    /// @copydoc PropertySet::set(std::string const&, std::vector<T> const&)
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value);
+
+    /// @copydoc PropertySet::set(std::string const &, char const*)
     void set(
         std::string const& name, char const* value);
+
+    /// @copydoc PropertySet::add(std::string const&, T const&)
     template <typename T> void add(
         std::string const& name, T const& value);
+
+    /// @copydoc PropertySet::add(std::string const&, std::vector<T> const&)
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value);
+
+    /// @copydoc PropertySet::add(std::string const&, char const*)
     void add(
         std::string const& name, char const* value);
 
+    /**
+     * Version of set scalar value that accepts a comment.
+     *
+     * @param[in] name Property name to set, possibly hierarchical.
+     * @param[in] value Value to set.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     template <typename T> void set(
         std::string const& name, T const& value,
         std::string const& comment);
+
+    /**
+     * Version of set vector value that accepts a comment.
+     *
+     * @param[in] name Property name to set, possibly hierarchical.
+     * @param[in] value Vector value to set.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
         std::string const& comment);
+
+    /**
+     * Version of set char* value that accepts a comment.
+     *
+     * @param[in] name Property name to set, possibly hierarchical.
+     * @param[in] value Character string value to set.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     void set(
         std::string const& name, char const* value,
         std::string const& comment);
+
+    /**
+     * Version of add scalar value that accepts a comment.
+     *
+     * @param[in] name Property name to append to, possibly hierarchical.
+     * @param[in] value Value to add.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     template <typename T> void add(
         std::string const& name, T const& value,
         std::string const& comment);
+
+    /**
+     * Version of add vector value that accepts a comment.
+     *
+     * @param[in] name Property name to append to, possibly hierarchical.
+     * @param[in] value Character string value to add.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
         std::string const& comment);
+
+    /**
+     * Version of add char* value that accepts a comment.
+     *
+     * @param[in] name Property name to append to, possibly hierarchical.
+     * @param[in] value Character string value to add.
+     * @param[in] comment Comment to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
     void add(
         std::string const& name, char const* value,
         std::string const& comment);
 
+    /// @copydoc PropertyList::set(std::string const&, T const&, std::string const&)
     template <typename T> void set(
         std::string const& name, T const& value,
         char const* comment) {
         set(name, value, std::string(comment));
     }
+
+    /// @copydoc PropertyList::set(std::string const&, std::vector<T> const&, std::string const&)
     template <typename T> void set(
         std::string const& name, std::vector<T> const& value,
         char const* comment) {
         set(name, value, std::string(comment));
     }
+
+    /// @copydoc PropertyList::set(std::string const&, char const*, std::string const&)
     void set(
         std::string const& name, char const* value,
         char const* comment) {
         set(name, value, std::string(comment));
     }
+
+    /// @copydoc PropertyList::add(std::string const&, T const&, std::string const&)
     template <typename T> void add(
         std::string const& name, T const& value,
         char const* comment) {
         add(name, value, std::string(comment));
     }
+    /// @copydoc PropertyList::add(std::string const&, std::vector<T> const&, std::string const&)
     template <typename T> void add(
         std::string const& name, std::vector<T> const& value,
         char const* comment) {
         add(name, value, std::string(comment));
     }
+
+    /// @copydoc PropertyList::add(std::string const&, char const*, std::string const&)
     void add(
         std::string const& name, char const* value,
         char const* comment) {
         add(name, value, std::string(comment));
     }
 
+    /// @copydoc PropertySet::copy
     virtual void copy(std::string const& dest, PropertySet::ConstPtr source,
                       std::string const& name);
+
+    /// @copydoc PropertySet::combine
     virtual void combine(PropertySet::ConstPtr source);
 
+    /// @copydoc PropertySet::remove
     virtual void remove(std::string const& name);
 
 private:

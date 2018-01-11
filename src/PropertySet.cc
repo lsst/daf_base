@@ -23,17 +23,6 @@
  */
  
 
-/** @file
-  * @ingroup daf_base
-  *
-  * @brief Implementation for PropertySet class
-  *
-  * @version $Revision$
-  * @date $Date$
-  *
-  * Contact: Kian-Tat Lim (ktl@slac.stanford.edu)
-  */
-
 #include "lsst/daf/base/PropertySet.h"
 
 #include <algorithm>
@@ -49,14 +38,9 @@ namespace pexExcept = lsst::pex::exceptions;
 
 using namespace std;
 
-/** Constructor.
-  @param[in] flat false (default) = flatten hierarchy by ignoring dots in names
-  */
 dafBase::PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {
 }
 
-/** Destructor.
-  */
 dafBase::PropertySet::~PropertySet(void) {
 }
 
@@ -64,9 +48,6 @@ dafBase::PropertySet::~PropertySet(void) {
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-/** Copy the PropertySet and all of its contents.
-  * @return PropertySet::Ptr pointing to the new copy.
-  */
 dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
     Ptr n(new PropertySet(_flat));
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
@@ -89,11 +70,6 @@ dafBase::PropertySet::Ptr dafBase::PropertySet::deepCopy(void) const {
     return n;
 }
 
-/** Get the number of names in the PropertySet, optionally including those in
-  * subproperties.  The name of the subproperty is counted in that case.
-  * @param[in] topLevelOnly true (default) = don't include subproperties.
-  * @return Number of names.
-  */
 size_t dafBase::PropertySet::nameCount(bool topLevelOnly) const {
     int n = 0;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
@@ -108,12 +84,6 @@ size_t dafBase::PropertySet::nameCount(bool topLevelOnly) const {
     return n;
 }
 
-/** Get the names in the PropertySet, optionally including those in
-  * subproperties.  The name of the subproperty is included in that case.
-  * Hierarchical subproperty names are separated by a period.
-  * @param[in] topLevelOnly true (default) = don't include subproperties.
-  * @return Vector of names.
-  */
 vector<string> dafBase::PropertySet::names(bool topLevelOnly) const {
     vector<string> v;
     for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
@@ -132,12 +102,6 @@ vector<string> dafBase::PropertySet::names(bool topLevelOnly) const {
     return v;
 }
 
-/** Get the names of parameters (non-subproperties) in the PropertySet,
-  * optionally including those in subproperties.  Hierarchical subproperty
-  * names are separated by a period.
-  * @param[in] topLevelOnly true (default) = don't include subproperties.
-  * @return Vector of parameter names.
-  */
 vector<string>
 dafBase::PropertySet::paramNames(bool topLevelOnly) const {
     vector<string> v;
@@ -158,12 +122,6 @@ dafBase::PropertySet::paramNames(bool topLevelOnly) const {
     return v;
 }
 
-/** Get the names of subproperties in the PropertySet, optionally including
-  * those in subproperties.  Hierarchical subproperty names are separated by a
-  * period.
-  * @param[in] topLevelOnly true (default) = don't include subproperties.
-  * @return Vector of subproperty names.
-  */
 vector<string>
 dafBase::PropertySet::propertySetNames(bool topLevelOnly) const {
     vector<string> v;
@@ -183,47 +141,26 @@ dafBase::PropertySet::propertySetNames(bool topLevelOnly) const {
     return v;
 }
 
-/** Determine if a name (possibly hierarchical) exists.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return true if property exists.
-  */
 bool dafBase::PropertySet::exists(std::string const& name) const {
     return _find(name) != _map.end();
 }
 
-/** Determine if a name (possibly hierarchical) has multiple values.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return true if property exists and has more than one value.
-  */
 bool dafBase::PropertySet::isArray(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     return i != _map.end() && i->second->size() > 1U;
 }
 
-/** Determine if a name (possibly hierarchical) is a subproperty.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return true if property exists and its values are PropertySet::Ptrs.
-  */
 bool dafBase::PropertySet::isPropertySetPtr(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     return i != _map.end() && i->second->back().type() == typeid(Ptr);
 }
 
-/** Get number of values for a property name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Number of values for that property.  0 if it doesn't exist.
-  */
 size_t dafBase::PropertySet::valueCount(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) return 0;
     return i->second->size();
 }
 
-/** Get the type of values for a property name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Type of values for that property.
-  * @throws NotFoundError Property does not exist.
-  */
 type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
@@ -234,14 +171,6 @@ type_info const& dafBase::PropertySet::typeOf(std::string const& name) const {
 
 // The following throw an exception if the type does not match exactly.
 
-/** Get the last value for a property name (possibly hierarchical).
-  * Note that the type must be explicitly specified for this template:
-  * @code int i = propertySet.get<int>("foo") @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Last value set or added.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     AnyMap::const_iterator i = _find(name);
@@ -258,15 +187,6 @@ T dafBase::PropertySet::get(string const& name) const { /* parasoft-suppress Lss
     return boost::any_cast<T>(i->second->back());
 }
 
-/** Get the last value for a property name (possibly hierarchical).
-  * Returns the provided @a defaultValue if the property does not exist.
-  * Note that the type must be explicitly specified for this template:
-  * @code int i = propertySet.get<int>("foo", 42) @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @param[in] defaultValue Default value to return if property does not exist.
-  * @return Last value set or added.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     AnyMap::const_iterator i = _find(name);
@@ -283,14 +203,6 @@ T dafBase::PropertySet::get(string const& name, T const& defaultValue) const { /
     return boost::any_cast<T>(i->second->back());
 }
 
-/** Get the vector of values for a property name (possibly hierarchical).
-  * Note that the type must be explicitly specified for this template:
-  * @code vector<int> v = propertySet.getArray<int>("foo") @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Vector of values.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 vector<T> dafBase::PropertySet::getArray(string const& name) const {
     AnyMap::const_iterator i = _find(name);
@@ -312,24 +224,10 @@ vector<T> dafBase::PropertySet::getArray(string const& name) const {
 
 // The following throw an exception if the conversion is inappropriate.
 
-/** Get the last value for a bool property name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Value as a bool.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value is not a bool.
-  */
 bool dafBase::PropertySet::getAsBool(std::string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "for symmetry with other types" */
     return get<bool>(name);
 }
 
-/** Get the last value for a bool/char/short/int property name (possibly
-  * hierarchical).  Unsigned int properties are not acceptable, but unsigned
-  * versions of smaller types are.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Value as an int.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value cannot be converted to int.
-  */
 int dafBase::PropertySet::getAsInt(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
@@ -360,15 +258,6 @@ int dafBase::PropertySet::getAsInt(std::string const& name) const {
     return boost::any_cast<int>(v);
 }
 
-/** Get the last value for a bool/char/short/int/int64_t property name
-  * (possibly hierarchical).  Unsigned int64_t properties are not acceptable,
-  * but unsigned versions of smaller types are, except possibly unsigned long,
-  * depending on compiler.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Value as an int64_t.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value cannot be converted to int64_t.
-  */
 int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
@@ -396,13 +285,6 @@ int64_t dafBase::PropertySet::getAsInt64(std::string const& name) const {
     return boost::any_cast<int64_t>(v);
 }
 
-/** Get the last value for any arithmetic property name (possibly
-  * hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Value as a double.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value cannot be converted to double.
-  */
 double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     AnyMap::const_iterator i = _find(name);
     if (i == _map.end()) {
@@ -433,46 +315,20 @@ double dafBase::PropertySet::getAsDouble(std::string const& name) const {
     return boost::any_cast<double>(v);
 }
 
-/** Get the last value for a string property name (possibly hierarchical).
-  * Note that properties set with <tt>char const*</tt> can be retrieved as
-  * strings using this method.
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return String value.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value is not a string.
-  */
 std::string dafBase::PropertySet::getAsString(std::string const& name) const {
     return get<string>(name);
 }
 
-/** Get the last value for a subproperty name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return PropertySet::Ptr value.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value is not a PropertySet::Ptr.
-  */
 dafBase::PropertySet::Ptr
 dafBase::PropertySet::getAsPropertySetPtr(std::string const& name) const {
     return get<Ptr>(name);
 }
 
-/** Get the last value for a Persistable name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Persistable::Ptr value.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value is not a Persistable::Ptr.
-  */
 dafBase::Persistable::Ptr
 dafBase::PropertySet::getAsPersistablePtr(std::string const& name) const {
     return get<Persistable::Ptr>(name);
 }
 
-/** Generate a string representation of the PropertySet.
-  * Use this for debugging, not for serialization/persistence.
-  * @param[in] topLevelOnly false (default) = do include subproperties.
-  * @param[in] indent String to indent lines by (default none).
-  * @return String representation of the PropertySet.
-  */
 std::string dafBase::PropertySet::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     ostringstream s;
@@ -571,12 +427,6 @@ std::string dafBase::PropertySet::_format(std::string const& name) const {
 // Modifiers
 ///////////////////////////////////////////////////////////////////////////////
 
-/** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Value to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name, T const& value) {
     std::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
@@ -584,12 +434,6 @@ void dafBase::PropertySet::set(std::string const& name, T const& value) {
     _set(name, vp);
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Vector of values to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void dafBase::PropertySet::set(std::string const& name,
                                vector<T> const& value) {
@@ -599,22 +443,10 @@ void dafBase::PropertySet::set(std::string const& name,
     _set(name, vp);
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Character string (converted to \c std::string ).
-  */
 void dafBase::PropertySet::set(std::string const& name, char const* value) {
     set(name, string(value));
 }
 
-/** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Value to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void dafBase::PropertySet::add(std::string const& name, T const& value) {
     AnyMap::iterator i = _find(name);
@@ -647,15 +479,6 @@ template <> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
     }
 }
 
-/** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Vector of values to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  * @note
-  * May only partially add the vector if an exception occurs.
-  */
 template <typename T>
 void dafBase::PropertySet::add(std::string const& name,
                                vector<T> const& value) {
@@ -689,27 +512,10 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
     }
 }
 
-/** Appends a <tt>char const*</tt> value to the vector of values for a
-  * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Character string value to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void dafBase::PropertySet::add(std::string const& name, char const* value) {
     add(name, string(value));
 }
 
-/** Replaces a single value vector in the destination with one from the
-  * \a source.
-  * @param[in] dest Destination property name.
-  * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @param[in] name Property name to extract.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Name does not exist in source.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void dafBase::PropertySet::copy(std::string const& dest,
                                 ConstPtr source, std::string const& name) {
     if (source.get() == 0) {
@@ -727,14 +533,6 @@ void dafBase::PropertySet::copy(std::string const& dest,
     _set(dest, vp);
 }
 
-/** Appends all value vectors from the \a source to their corresponding
-  * properties.  Sets values if a property does not exist.
-  * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  * @note
-  * May only partially combine the PropertySets if an exception occurs.
-  */
 void dafBase::PropertySet::combine(ConstPtr source) {
     if (source.get() == 0) {
         return;
@@ -747,10 +545,6 @@ void dafBase::PropertySet::combine(ConstPtr source) {
     }
 }
 
-/** Removes all values for a property name (possibly hierarchical).  Does
-  * nothing if the property does not exist.
-  * @param[in] name Property name to remove, possibly hierarchical.
-  */
 void dafBase::PropertySet::remove(std::string const& name) {
     string::size_type i = name.find('.');
     if (_flat || i == name.npos) {
@@ -773,10 +567,6 @@ void dafBase::PropertySet::remove(std::string const& name) {
 // Private member functions
 ///////////////////////////////////////////////////////////////////////////////
 
-/** Finds the property name (possibly hierarchical).
-  * @param[in] name Property name to find, possibly hierarchical.
-  * @return unordered_map::iterator to the property or end() if nonexistent.
-  */
 dafBase::PropertySet::AnyMap::iterator
 dafBase::PropertySet::_find(std::string const& name) {
     string::size_type i = name.find('.');
@@ -800,10 +590,6 @@ dafBase::PropertySet::_find(std::string const& name) {
     return x;
 }
 
-/** Finds the property name (possibly hierarchical).  Const version.
-  * @param[in] name Property name to find, possibly hierarchical.
-  * @return unordered_map::const_iterator to the property or end().
-  */
 dafBase::PropertySet::AnyMap::const_iterator
 dafBase::PropertySet::_find(std::string const& name) const {
     string::size_type i = name.find('.');
@@ -827,24 +613,11 @@ dafBase::PropertySet::_find(std::string const& name) const {
     return x;
 }
 
-/** Finds the property name (possibly hierarchical) and sets or replaces its
-  * value with the given vector of values.  Hook for subclass overrides of
-  * top-level setting.
-  * @param[in] name Property name to find, possibly hierarchical.
-  * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void dafBase::PropertySet::_set(
     std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
     _findOrInsert(name, vp);
 }
 
-/** Finds the property name (possibly hierarchical) and appends or sets its
-  * value with the given vector of values.
-  * @param[in] name Property name to find, possibly hierarchical.
-  * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void dafBase::PropertySet::_add(
     std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
 
@@ -865,12 +638,6 @@ void dafBase::PropertySet::_add(
     }
 }
 
-/** Finds the property name (possibly hierarchical) and sets or replaces its
-  * value with the given vector of values.
-  * @param[in] name Property name to find, possibly hierarchical.
-  * @param[in] vp shared_ptr to vector of values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void dafBase::PropertySet::_findOrInsert(
     std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
     if (vp->back().type() == typeid(Ptr)) {
