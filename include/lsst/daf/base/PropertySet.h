@@ -86,7 +86,6 @@ public:
     /// Destructor
     virtual ~PropertySet(void);
 
-#ifndef SWIG
     // No copying
     PropertySet (const PropertySet&) = delete;
     PropertySet& operator=(const PropertySet&) = delete;
@@ -94,7 +93,6 @@ public:
     // No moving
     PropertySet (PropertySet&&) = delete;
     PropertySet& operator=(PropertySet&&) = delete;
-#endif
 
 // Accessors
 
