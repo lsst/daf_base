@@ -117,7 +117,6 @@ namespace base {
         friend class PersistentCitizenScope;
     };
 
-#ifndef SWIG
     /**
      * A PersistentCitizenScope object causes all Citizen objects created during its lifetime
      * to be marked as persistent. This is useful when constructing static objects that contain
@@ -139,7 +138,6 @@ namespace base {
         PersistentCitizenScope (PersistentCitizenScope&&) = delete;
         PersistentCitizenScope& operator=(PersistentCitizenScope&&) = delete;
     };
-#endif
 
 }}} // namespace lsst::daf::base
 

@@ -187,6 +187,25 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("b.a"), 2)
         self.assertEqual(ps.get("b").get("a"), 2)
 
+    def testCopy(self):
+        dest = dafBase.PropertySet()
+        source = dafBase.PropertySet()
+        value1 = [1.5, 3.2]
+        source.set("srcItem1", value1)
+        dest.copy("destItem1", source, "srcItem1")
+        self.assertEqual(dest.get("destItem1"), value1)
+
+        # items are replaced, regardless of type
+        dest.set("destItem2", "string value")
+        value2 = [5, -4, 3]
+        source.set("srcItem2", value2)
+        dest.copy("destItem2", source, "srcItem2")
+        self.assertEqual(dest.get("destItem2"), value2)
+
+        # asScalar copies only the last value
+        dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
+        self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+
 
 class FlatTestCase(unittest.TestCase):
     """A test case for flattened PropertySets."""

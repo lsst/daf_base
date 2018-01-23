@@ -73,7 +73,7 @@ PYBIND11_PLUGIN(propertySet) {
     cls.def("valueCount", &PropertySet::valueCount);
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
     cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
-    cls.def("copy", &PropertySet::copy);
+    cls.def("copy", &PropertySet::copy, "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
     cls.def("combine", &PropertySet::combine);
     cls.def("remove", &PropertySet::remove);
     cls.def("getAsBool", &PropertySet::getAsBool);

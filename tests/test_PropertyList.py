@@ -312,6 +312,25 @@ class PropertyListTestCase(unittest.TestCase):
         pl2 = pl1.deepCopy()  # should not segfault
         self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
 
+    def testCopy(self):
+        dest = dafBase.PropertyList()
+        source = dafBase.PropertyList()
+        value1 = [1.5, 3.2]
+        source.set("srcItem1", value1)
+        dest.copy("destItem1", source, "srcItem1")
+        self.assertEqual(dest.get("destItem1"), value1)
+
+        # items are replaced, regardless of type
+        dest.set("destItem2", "string value")
+        value2 = [5, -4, 3]
+        source.set("srcItem2", value2)
+        dest.copy("destItem2", source, "srcItem2")
+        self.assertEqual(dest.get("destItem2"), value2)
+
+        # asScalar copies only the last value
+        dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
+        self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):
     pass

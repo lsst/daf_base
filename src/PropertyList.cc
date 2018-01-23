@@ -22,18 +22,6 @@
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
 
-
-/** @file
-  * @ingroup daf_base
-  *
-  * @brief Implementation for PropertyList class
-  *
-  * @version $Revision$
-  * @date $Date$
-  *
-  * Contact: Kian-Tat Lim (ktl@slac.stanford.edu)
-  */
-
 #include "lsst/daf/base/PropertyList.h"
 
 #include <algorithm>
@@ -66,9 +54,6 @@ PropertyList::~PropertyList(void) {
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-/** Copy the PropertyList and all of its contents.
-  * @return PropertySet::Ptr pointing to the new copy.
-  */
 PropertySet::Ptr PropertyList::deepCopy(void) const {
     Ptr n(new PropertyList);
     n->PropertySet::combine(this->PropertySet::deepCopy());
@@ -79,52 +64,21 @@ PropertySet::Ptr PropertyList::deepCopy(void) const {
 
 // The following throw an exception if the type does not match exactly.
 
-/** Get the last value for a property name (possibly hierarchical).
-  * Note that the type must be explicitly specified for this template:
-  * @code int i = propertyList.get<int>("foo") @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Last value set or added.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 T PropertyList::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name);
 }
 
-/** Get the last value for a property name (possibly hierarchical).
-  * Returns the provided @a defaultValue if the property does not exist.
-  * Note that the type must be explicitly specified for this template:
-  * @code int i = propertyList.get<int>("foo", 42) @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @param[in] defaultValue Default value to return if property does not exist.
-  * @return Last value set or added.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 T PropertyList::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name, defaultValue);
 }
 
-/** Get the vector of values for a property name (possibly hierarchical).
-  * Note that the type must be explicitly specified for this template:
-  * @code vector<int> v = propertyList.getArray<int>("foo") @endcode
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Vector of values.
-  * @throws NotFoundError Property does not exist.
-  * @throws TypeError Value does not match desired type.
-  */
 template <typename T>
 vector<T> PropertyList::getArray(string const& name) const {
     return PropertySet::getArray<T>(name);
 }
 
-
-/** Get the comment for a string property name (possibly hierarchical).
-  * @param[in] name Property name to examine, possibly hierarchical.
-  * @return Comment string.
-  * @throws NotFoundError Property does not exist.
-  */
 std::string const& PropertyList::getComment(
     std::string const& name) const {
     return _comments.find(name)->second;
@@ -149,12 +103,6 @@ PropertyList::end(void) const {
     return _order.end();
 }
 
-/** Generate a string representation of the PropertyList.
-  * Use this for debugging, not for serialization/persistence.
-  * @param[in] topLevelOnly false (default) = do include subproperties.
-  * @param[in] indent String to indent lines by (default none).
-  * @return String representation of the PropertyList.
-  */
 std::string PropertyList::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     ostringstream s;
@@ -177,12 +125,6 @@ std::string PropertyList::toString(bool topLevelOnly,
 ///////////////////////////////////////////////////////////////////////////////
 // Normal versions of set/add with placement control
 
-/** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Value to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::set(
     std::string const& name, T const& value) {
@@ -204,64 +146,28 @@ void PropertyList::set(
     }
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Character string (converted to \c std::string ).
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void PropertyList::set(
     std::string const& name, char const* value) {
     set(name, string(value));
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Vector of values to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::set(
     std::string const& name, vector<T> const& value) {
     PropertySet::set(name, value);
 }
 
-/** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Value to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::add(
     std::string const& name, T const& value) {
     PropertySet::add(name, value);
 }
 
-/** Appends a <tt>char const*</tt> value to the vector of values for a
-  * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Value to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void PropertyList::add(
     std::string const& name, char const* value) {
     add(name, string(value));
 }
 
-/** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Vector of values to append.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  * @note
-  * May only partially add the vector if an exception occurs.
-  */
 template <typename T>
 void PropertyList::add(
     std::string const& name, vector<T> const& value) {
@@ -272,13 +178,6 @@ void PropertyList::add(
 ///////////////////////////////////////////////////////////////////////////////
 // Commented versions of set/add
 
-/** Replace all values for a property name (possibly hierarchical) with a new
-  * value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Value to set.
-  * @param[in] comment Comment to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::set(
     std::string const& name, T const& value,
@@ -287,26 +186,12 @@ void PropertyList::set(
     _commentOrderFix(name, comment);
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * string value.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Character string value to set.
-  * @param[in] comment Comment to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void PropertyList::set(
     std::string const& name, char const* value,
     std::string const& comment) {
     set(name, string(value), comment);
 }
 
-/** Replace all values for a property name (possibly hierarchical) with a
-  * vector of new values.
-  * @param[in] name Property name to set, possibly hierarchical.
-  * @param[in] value Vector of values to set.
-  * @param[in] comment Comment to set.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::set(
     std::string const& name, vector<T> const& value,
@@ -314,15 +199,6 @@ void PropertyList::set(
     PropertySet::set(name, value);
     _commentOrderFix(name, comment);
 }
-
-/** Appends a single value to the vector of values for a property name
-  * (possibly hierarchical).  Sets the value if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Value to append.
-  * @param[in] comment Comment to set.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 template <typename T>
 void PropertyList::add(
     std::string const& name, T const& value,
@@ -331,32 +207,12 @@ void PropertyList::add(
     _commentOrderFix(name, comment);
 }
 
-/** Appends a <tt>char const*</tt> value to the vector of values for a
-  * property name (possibly hierarchical).  Sets the value if the property
-  * does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value String value to append.
-  * @param[in] comment Comment to set.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
-
 void PropertyList::add(
     std::string const& name, char const* value,
     std::string const& comment) {
     add(name, string(value), comment);
 }
 
-/** Appends a vector of values to the vector of values for a property name
-  * (possibly hierarchical).  Sets the values if the property does not exist.
-  * @param[in] name Property name to append to, possibly hierarchical.
-  * @param[in] value Vector of values to append.
-  * @param[in] comment Comment to set.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  * @note
-  * May only partially add the vector if an exception occurs.
-  */
 template <typename T>
 void PropertyList::add(
     std::string const& name, vector<T> const& value,
@@ -369,19 +225,10 @@ void PropertyList::add(
 ///////////////////////////////////////////////////////////////////////////////
 // Other modifiers
 
-/** Replaces a single value vector in the destination with one from the
-  * \a source.
-  * @param[in] dest Destination property name.
-  * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @param[in] name Property name to extract.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Name does not exist in source.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  */
 void PropertyList::copy(
     std::string const& dest, PropertySet::ConstPtr source,
-    std::string const& name) {
-    PropertySet::copy(dest, source, name);
+    std::string const& name, bool asScalar) {
+    PropertySet::copy(dest, source, name, asScalar);
     ConstPtr pl =
         std::dynamic_pointer_cast<PropertyList const, PropertySet const>(
             source);
@@ -390,14 +237,6 @@ void PropertyList::copy(
     }
 }
 
-/** Appends all value vectors from the \a source to their corresponding
-  * properties.  Sets values if a property does not exist.
-  * @param[in] source PropertySet::Ptr for the source PropertySet.
-  * @throws TypeError Type does not match existing values.
-  * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
-  * @note
-  * May only partially combine the PropertySets if an exception occurs.
-  */
 void PropertyList::combine(PropertySet::ConstPtr source) {
     ConstPtr pl =
         std::dynamic_pointer_cast<PropertyList const, PropertySet const>(
@@ -423,10 +262,6 @@ void PropertyList::combine(PropertySet::ConstPtr source) {
     }
 }
 
-/** Removes all values for a property name (possibly hierarchical).  Does
-  * nothing if the property does not exist.
-  * @param[in] name Property name to remove, possibly hierarchical.
-  */
 void PropertyList::remove(std::string const& name) {
     PropertySet::remove(name);
     _comments.erase(name);
