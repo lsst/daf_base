@@ -26,7 +26,6 @@
 
 #include <boost/format.hpp>
 
-#include "lsst/pex/exceptions.h"
 #include "lsst/daf/base/Citizen.h"
 
 //
@@ -122,8 +121,8 @@ int main() {
     try {
         std::cerr << "Checking corruption\n";
         (void)Citizen::hasBeenCorrupted();
-    } catch(lsst::pex::exceptions::MemoryError& e) {
-        std::cerr << "Memory check: " << e <<
+    } catch(std::bad_alloc& e) {
+        std::cerr << "Memory check: " << e.what() <<
             "Proceeding with trepidation\n";
         ((int *)y.get())[0] = 0xdeadbeef; // uncorrupt the block
     }

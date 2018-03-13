@@ -34,7 +34,6 @@
 #include <boost/format.hpp>
 
 #include "lsst/daf/base/Citizen.h"
-#include "lsst/pex/exceptions.h"
 #include "lsst/utils/Demangle.h"
 
 namespace dafBase = lsst::daf::base;
@@ -47,8 +46,7 @@ public:
     ThreadPrivate(T const& t) : _init(t) {
         int ret = pthread_key_create(&_key, del);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                              "Could not create key");
+            throw std::bad_alloc();
         }
     };
     T& getRef(void) {
@@ -78,29 +76,25 @@ public:
     RwLock(void) {
         int ret = pthread_rwlock_init(&_lock, 0);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                              "Could not create Citizen lock");
+            throw std::bad_alloc();
         }
     };
     void lock(void) {
         int ret = pthread_rwlock_wrlock(&_lock);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                              "Could not acquire Citizen write lock");
+            throw std::bad_alloc();
         }
     };
     bool rdlock(void) {
         int ret = pthread_rwlock_rdlock(&_lock);
         if (ret == 0) return true;
         if (ret == EDEADLK) return false;
-        throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                          "Could not acquire Citizen read lock");
+        throw std::bad_alloc();
     };
     void unlock(void) {
         int ret = pthread_rwlock_unlock(&_lock);
         if (ret != 0) {
-            throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                              "Could not release Citizen lock");
+            throw std::bad_alloc();
         }
     };
 
@@ -465,8 +459,7 @@ dafBase::Citizen::memId defaultDeleteCallback(dafBase::Citizen const* ptr //!< A
 //! Default CorruptionCallback
 dafBase::Citizen::memId defaultCorruptionCallback(dafBase::Citizen const* ptr //!< About-to-be deleted Citizen
                               ) {
-    throw LSST_EXCEPT(lsst::pex::exceptions::MemoryError,
-                      str(boost::format("Citizen \"%s\" is corrupted") % ptr->repr()));
+    throw std::bad_alloc();
 
     return ptr->getId();                // NOTREACHED
 }

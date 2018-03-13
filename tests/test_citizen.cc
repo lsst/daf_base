@@ -26,7 +26,6 @@
 
 #include <boost/format.hpp>
 
-#include "lsst/pex/exceptions.h"
 #include "lsst/daf/base/Citizen.h"
 
 class Shoe : public lsst::daf::base::Citizen {
@@ -96,7 +95,7 @@ BOOST_AUTO_TEST_CASE(all) {
 
 #if 0                                   // can crash the program.  Drat.
     ((int *)y.get())[0] = 0;            // deliberately corrupt the block
-    BOOST_CHECK_THROW((void)Citizen::checkCorruption(), lsst::pex::exceptions::MemoryError);
+    BOOST_CHECK_THROW((void)Citizen::checkCorruption(), std::bad_alloc);
     ((int *)y.get())[0] = 0xdeadbeef;   // uncorrupt the block
 #endif
 
