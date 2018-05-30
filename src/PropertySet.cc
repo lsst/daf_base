@@ -756,6 +756,13 @@ void dafBase::PropertySet::_cycleCheckPtr(Ptr const& v,
     template void dafBase::PropertySet::add<t>(string const& name, t const& value); \
     template void dafBase::PropertySet::add<t>(string const& name, vector<t> const& value);
 
+#define INSTANTIATE_PROPERTY_SET(t) \
+    template t dafBase::PropertySet::get<t>(string const& name) const; \
+    template t dafBase::PropertySet::get<t>(string const& name, t const& defaultValue) const; \
+    template vector<t> dafBase::PropertySet::getArray<t>(string const& name) const; \
+    template void dafBase::PropertySet::set<t>(string const& name, t const& value); \
+    template void dafBase::PropertySet::set<t>(string const& name, vector<t> const& value);
+
 INSTANTIATE(bool)
 INSTANTIATE(char)
 INSTANTIATE(signed char)
@@ -771,7 +778,7 @@ INSTANTIATE(unsigned long long)
 INSTANTIATE(float)
 INSTANTIATE(double)
 INSTANTIATE(string)
-INSTANTIATE(dafBase::PropertySet::Ptr)
+INSTANTIATE_PROPERTY_SET(dafBase::PropertySet::Ptr)
 INSTANTIATE(dafBase::Persistable::Ptr)
 INSTANTIATE(dafBase::DateTime)
 
