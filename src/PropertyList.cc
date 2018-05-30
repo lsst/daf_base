@@ -29,12 +29,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "lsst/pex/exceptions/Runtime.h"
 #include "lsst/daf/base/DateTime.h"
-
-namespace pexExcept = lsst::pex::exceptions;
-
-using namespace std;
 
 namespace lsst {
 namespace daf {
@@ -65,17 +60,17 @@ PropertySet::Ptr PropertyList::deepCopy(void) const {
 // The following throw an exception if the type does not match exactly.
 
 template <typename T>
-T PropertyList::get(string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
+T PropertyList::get(std::string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name);
 }
 
 template <typename T>
-T PropertyList::get(string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
+T PropertyList::get(std::string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
     return PropertySet::get<T>(name, defaultValue);
 }
 
 template <typename T>
-vector<T> PropertyList::getArray(string const& name) const {
+std::vector<T> PropertyList::getArray(std::string const& name) const {
     return PropertySet::getArray<T>(name);
 }
 
@@ -105,7 +100,7 @@ PropertyList::end(void) const {
 
 std::string PropertyList::toString(bool topLevelOnly,
                                            std::string const& indent) const {
-    ostringstream s;
+    std::ostringstream s;
     for (std::list<std::string>::const_iterator i = _order.begin();
          i != _order.end(); ++i) {
         s << _format(*i);
@@ -137,8 +132,8 @@ void PropertyList::set(
     PropertySet::set(name, value);
     _comments.erase(name);
     _order.remove(name);
-    vector<string> names = value->paramNames(false);
-    for (vector<string>::const_iterator i = names.begin();
+    std::vector<std::string> names = value->paramNames(false);
+    for (std::vector<std::string>::const_iterator i = names.begin();
          i != names.end(); ++i) {
         if (pl) {
             _commentOrderFix(name + "." + *i, pl->getComment(*i));
@@ -148,12 +143,12 @@ void PropertyList::set(
 
 void PropertyList::set(
     std::string const& name, char const* value) {
-    set(name, string(value));
+    set(name, std::string(value));
 }
 
 template <typename T>
 void PropertyList::set(
-    std::string const& name, vector<T> const& value) {
+    std::string const& name, std::vector<T> const& value) {
     PropertySet::set(name, value);
 }
 
@@ -165,12 +160,12 @@ void PropertyList::add(
 
 void PropertyList::add(
     std::string const& name, char const* value) {
-    add(name, string(value));
+    add(name, std::string(value));
 }
 
 template <typename T>
 void PropertyList::add(
-    std::string const& name, vector<T> const& value) {
+    std::string const& name, std::vector<T> const& value) {
     PropertySet::add(name, value);
 }
 
@@ -189,12 +184,12 @@ void PropertyList::set(
 void PropertyList::set(
     std::string const& name, char const* value,
     std::string const& comment) {
-    set(name, string(value), comment);
+    set(name, std::string(value), comment);
 }
 
 template <typename T>
 void PropertyList::set(
-    std::string const& name, vector<T> const& value,
+    std::string const& name, std::vector<T> const& value,
     std::string const& comment) {
     PropertySet::set(name, value);
     _commentOrderFix(name, comment);
@@ -210,12 +205,12 @@ void PropertyList::add(
 void PropertyList::add(
     std::string const& name, char const* value,
     std::string const& comment) {
-    add(name, string(value), comment);
+    add(name, std::string(value), comment);
 }
 
 template <typename T>
 void PropertyList::add(
-    std::string const& name, vector<T> const& value,
+    std::string const& name, std::vector<T> const& value,
     std::string const& comment) {
     PropertySet::add(name, value);
     _commentOrderFix(name, comment);
@@ -299,21 +294,21 @@ void PropertyList::_commentOrderFix(
 // Explicit template instantiations are not well understood by doxygen.
 
 #define INSTANTIATE(t) \
-    template t PropertyList::get<t>(string const& name) const; \
-    template t PropertyList::get<t>(string const& name, t const& defaultValue) const; \
-    template vector<t> PropertyList::getArray<t>(string const& name) const; \
-    template void PropertyList::set<t>(string const& name, t const& value); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value); \
-    template void PropertyList::add<t>(string const& name, t const& value); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value); \
-    template void PropertyList::set<t>(string const& name, t const& value, string const& comment); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value, string const& comment); \
-    template void PropertyList::add<t>(string const& name, t const& value, string const& comment); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value, string const& comment); \
-    template void PropertyList::set<t>(string const& name, t const& value, char const* comment); \
-    template void PropertyList::set<t>(string const& name, vector<t> const& value, char const* comment); \
-    template void PropertyList::add<t>(string const& name, t const& value, char const* comment); \
-    template void PropertyList::add<t>(string const& name, vector<t> const& value, char const* comment);
+    template t PropertyList::get<t>(std::string const& name) const; \
+    template t PropertyList::get<t>(std::string const& name, t const& defaultValue) const; \
+    template std::vector<t> PropertyList::getArray<t>(std::string const& name) const; \
+    template void PropertyList::set<t>(std::string const& name, t const& value); \
+    template void PropertyList::set<t>(std::string const& name, std::vector<t> const& value); \
+    template void PropertyList::add<t>(std::string const& name, t const& value); \
+    template void PropertyList::add<t>(std::string const& name, std::vector<t> const& value); \
+    template void PropertyList::set<t>(std::string const& name, t const& value, std::string const& comment); \
+    template void PropertyList::set<t>(std::string const& name, std::vector<t> const& value, std::string const& comment); \
+    template void PropertyList::add<t>(std::string const& name, t const& value, std::string const& comment); \
+    template void PropertyList::add<t>(std::string const& name, std::vector<t> const& value, std::string const& comment); \
+    template void PropertyList::set<t>(std::string const& name, t const& value, char const* comment); \
+    template void PropertyList::set<t>(std::string const& name, std::vector<t> const& value, char const* comment); \
+    template void PropertyList::add<t>(std::string const& name, t const& value, char const* comment); \
+    template void PropertyList::add<t>(std::string const& name, std::vector<t> const& value, char const* comment);
 
 INSTANTIATE(bool)
 INSTANTIATE(char)
@@ -329,7 +324,7 @@ INSTANTIATE(long long)
 INSTANTIATE(unsigned long long)
 INSTANTIATE(float)
 INSTANTIATE(double)
-INSTANTIATE(string)
+INSTANTIATE(std::string)
 INSTANTIATE(Persistable::Ptr)
 INSTANTIATE(DateTime)
 
