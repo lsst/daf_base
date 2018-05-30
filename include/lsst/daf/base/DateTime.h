@@ -26,20 +26,20 @@
 #define LSST_DAF_BASE_DATETIME_H
 
 /** @file
-  * @ingroup daf_base
-  *
-  * @brief Interface for DateTime class
-  *
-  * @author Kian-Tat Lim (ktl@slac.stanford.edu)
-  * @version $Revision$
-  * @date $Date$
-  */
+ * @ingroup daf_base
+ *
+ * @brief Interface for DateTime class
+ *
+ * @author Kian-Tat Lim (ktl@slac.stanford.edu)
+ * @version $Revision$
+ * @date $Date$
+ */
 
 /** @class lsst::daf::base::DateTime
-  * @brief Class for handling dates/times, including MJD, UTC, and TAI.
-  *
-  * @ingroup daf_base
-  */
+ * @brief Class for handling dates/times, including MJD, UTC, and TAI.
+ *
+ * @ingroup daf_base
+ */
 
 #include <cstdint>
 #include <ctime>
@@ -52,8 +52,9 @@
 // Forward declaration of the boost::serialization::access class.
 namespace boost {
 namespace serialization {
-    class access;
-}} // namespace boost::serialization
+class access;
+}
+}  // namespace boost
 
 namespace lsst {
 namespace daf {
@@ -61,9 +62,13 @@ namespace base {
 
 class DateTime {
 public:
-    enum DateSystem { JD=0, MJD, EPOCH };
-    enum Timescale { TAI=5, UTC, TT };  // use values that do not overlap DateSystem
-                                        // to avoid confusing one for the other in Python
+    enum DateSystem { JD = 0, MJD, EPOCH };
+    enum Timescale {
+        TAI = 5,
+        UTC,
+        TT
+    };  // use values that do not overlap DateSystem
+        // to avoid confusing one for the other in Python
     // an invalid DateTime has _nsec == invalid_nsecs
     constexpr static long long invalid_nsecs = std::numeric_limits<std::int64_t>::min();
 
@@ -81,7 +86,7 @@ public:
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
-    explicit DateTime(long long nsecs, Timescale scale=TAI);
+    explicit DateTime(long long nsecs, Timescale scale = TAI);
 
     /**
      * Construct a DateTime from a double in the specified system and scale
@@ -91,7 +96,7 @@ public:
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
-    explicit DateTime(double date, DateSystem system=MJD, Timescale scale=TAI);
+    explicit DateTime(double date, DateSystem system = MJD, Timescale scale = TAI);
 
     /**
      * Construct a DateTime from year, month, day, etc. (tm struct fields)
@@ -106,7 +111,7 @@ public:
      * @throw lsst.pex.exceptions.DomainError if `year` is < 1902 or > 2261,
      * or if `scale` is UTC and the date is before 1961-01-01 (the start of the leap second table)
      */
-    DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale=TAI);
+    DateTime(int year, int month, int day, int hr, int min, int sec, Timescale scale = TAI);
 
     /**
      * Construct a DateTime from an ISO8601 string
@@ -136,7 +141,7 @@ public:
      * @return the date as nanoseconds since the unix epoch in the specified time scale
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */
-    long long nsecs(Timescale scale=TAI) const;
+    long long nsecs(Timescale scale = TAI) const;
 
     /**
      * Get date as a double in a specified representation, such as MJD
@@ -147,7 +152,7 @@ public:
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
      */
-    double get(DateSystem system=MJD, Timescale scale=TAI) const;
+    double get(DateSystem system = MJD, Timescale scale = TAI) const;
 
     /** Get date as an ISO8601-formatted string.
      *
@@ -285,12 +290,14 @@ private:
      * @param[in,out] ar   archive to access
      * @param[in] version  version of class serializer
      */
-    template <class Archive> void serialize(Archive ar, int const version) {
-        ar & _nsecs;
+    template <class Archive>
+    void serialize(Archive ar, int const version) {
+        ar& _nsecs;
     }
-
 };
 
-}}} // namespace lsst::daf::base
+}  // namespace base
+}  // namespace daf
+}  // namespace lsst
 
 #endif

@@ -1,9 +1,9 @@
 // -*- lsst-c++ -*-
 
-/* 
+/*
  * LSST Data Management System
  * Copyright 2008, 2009, 2010 LSST Corporation.
- * 
+ *
  * This product includes software developed by the
  * LSST Project (http://www.lsst.org/).
  *
@@ -11,37 +11,37 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the LSST License Statement and 
- * the GNU General Public License along with this program.  If not, 
+ *
+ * You should have received a copy of the LSST License Statement and
+ * the GNU General Public License along with this program.  If not,
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
- 
+
 #ifndef LSST_DAF_BASE_PROPERTYSET
 #define LSST_DAF_BASE_PROPERTYSET
 
 /** @class lsst::daf::base::PropertySet
-  * @brief Class for storing generic metadata.
-  *
-  * This class stores key/value pairs, like a Python dictionary but in C++.
-  * Keys are always C++ strings.  Values can be C++ primitive data types,
-  * strings, lsst::daf::base::DateTime objects, and lsst::daf::base::Persistable
-  * subclasses (although the latter is currently discouraged).  Values can also
-  * be vectors of these items.
-  *
-  * PropertySets are hierarchical; values within a PropertySet that is contained
-  * within another PropertySet can be addressed using dotted paths ("a.b.c").
-  * If "flat=true" is specified to the constructor, the PropertySet still takes
-  * dotted paths but is not actually hierarchical in structure.  This is used to
-  * support PropertyList.
-  *
-  * @ingroup daf_base
-  */
+ * @brief Class for storing generic metadata.
+ *
+ * This class stores key/value pairs, like a Python dictionary but in C++.
+ * Keys are always C++ strings.  Values can be C++ primitive data types,
+ * strings, lsst::daf::base::DateTime objects, and lsst::daf::base::Persistable
+ * subclasses (although the latter is currently discouraged).  Values can also
+ * be vectors of these items.
+ *
+ * PropertySets are hierarchical; values within a PropertySet that is contained
+ * within another PropertySet can be addressed using dotted paths ("a.b.c").
+ * If "flat=true" is specified to the constructor, the PropertySet still takes
+ * dotted paths but is not actually hierarchical in structure.  This is used to
+ * support PropertyList.
+ *
+ * @ingroup daf_base
+ */
 
 #include <memory>
 #include <string>
@@ -59,20 +59,19 @@ namespace lsst {
 namespace daf {
 
 namespace persistence {
-    class PropertySetFormatter;
-} // namespace lsst::daf::persistence
-
+class PropertySetFormatter;
+}  // namespace persistence
 
 namespace base {
 
 #if defined(__ICC)
-#pragma warning (push)
-#pragma warning (disable: 444)
+#pragma warning(push)
+#pragma warning(disable : 444)
 #endif
 
 class PropertySet : public Persistable, public Citizen {
 public:
-// Typedefs
+    // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;
     typedef std::shared_ptr<PropertySet const> ConstPtr;
 
@@ -81,22 +80,22 @@ public:
      *
      * @param[in] flat false (default) = flatten hierarchy by ignoring dots in names
      */
-    explicit PropertySet(bool flat=false);
+    explicit PropertySet(bool flat = false);
 
     /// Destructor
     virtual ~PropertySet(void);
 
     // No copying
-    PropertySet (const PropertySet&) = delete;
+    PropertySet(const PropertySet&) = delete;
     PropertySet& operator=(const PropertySet&) = delete;
 
     // No moving
-    PropertySet (PropertySet&&) = delete;
+    PropertySet(PropertySet&&) = delete;
     PropertySet& operator=(PropertySet&&) = delete;
 
-// Accessors
+    // Accessors
 
-    /** 
+    /**
      * Make a deep copy of the PropertySet and all of its contents.
      *
      * @return PropertySet::Ptr pointing to the new copy.
@@ -112,7 +111,7 @@ public:
     size_t nameCount(bool topLevelOnly = true) const;
 
     /**
-     * Get the names in the PropertySet, optionally including those in subproperties. 
+     * Get the names in the PropertySet, optionally including those in subproperties.
      *
      * @param[in] topLevelOnly  If true (default) omit names from subproperties and names of subproperties.
      *                          If false subproperty names are separated by a dot, e.g. "subname.subitem1"
@@ -186,7 +185,8 @@ public:
      * @throws NotFoundError Property does not exist.
      * @throws TypeError Value does not match desired type.
      */
-    template <typename T> T get(std::string const& name) const;
+    template <typename T>
+    T get(std::string const& name) const;
 
     /**
      * Get the last value for a property name (possibly hierarchical);
@@ -201,7 +201,7 @@ public:
      * @throws TypeError Value does not match desired type.
      */
     template <typename T>
-        T get(std::string const& name, T const& defaultValue) const;
+    T get(std::string const& name, T const& defaultValue) const;
 
     /**
      * Get the vector of values for a property name (possibly hierarchical).
@@ -215,7 +215,7 @@ public:
      * @throws TypeError Value does not match desired type.
      */
     template <typename T>
-        std::vector<T> getArray(std::string const& name) const;
+    std::vector<T> getArray(std::string const& name) const;
 
     // The following throw an exception if the conversion is inappropriate.
 
@@ -308,10 +308,9 @@ public:
      * @param[in] indent String to indent lines by (default none).
      * @return String representation of the PropertySet.
      */
-    virtual std::string toString(bool topLevelOnly = false,
-                    std::string const& indent = "") const;
+    virtual std::string toString(bool topLevelOnly = false, std::string const& indent = "") const;
 
-// Modifiers
+    // Modifiers
 
     /**
      * Replace all values for a property name (possibly hierarchical) with a new
@@ -321,7 +320,8 @@ public:
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    template <typename T> void set(std::string const& name, T const& value);
+    template <typename T>
+    void set(std::string const& name, T const& value);
 
     /**
      * Replace all values for a property name (possibly hierarchical) with a
@@ -331,8 +331,8 @@ public:
      * @param[in] value Vector of values to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    template <typename T> void set(std::string const& name,
-                                   std::vector<T> const& value);
+    template <typename T>
+    void set(std::string const& name, std::vector<T> const& value);
 
     /**
      * Replace all values for a property name (possibly hierarchical) with a
@@ -352,7 +352,8 @@ public:
      * @throws TypeError Type does not match existing values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    template <typename T> void add(std::string const& name, T const& value);
+    template <typename T>
+    void add(std::string const& name, T const& value);
 
     /**
      * Append a vector of values to the vector of values for a property name
@@ -365,8 +366,8 @@ public:
      * @note
      * May only partially add the vector if an exception occurs.
      */
-    template <typename T> void add(std::string const& name,
-                                   std::vector<T> const& value);
+    template <typename T>
+    void add(std::string const& name, std::vector<T> const& value);
 
     /**
      * Append a <tt>char const*</tt> value to the vector of values for a
@@ -429,8 +430,7 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _set(std::string const& name,
-                      std::shared_ptr< std::vector<boost::any> > vp);
+    virtual void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
 
     /*
      * Find the property name (possibly hierarchical) and append or set its
@@ -440,8 +440,7 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _add(std::string const& name,
-                      std::shared_ptr< std::vector<boost::any> > vp);
+    virtual void _add(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
 
     // Format a value in human-readable form; called by toString
     virtual std::string _format(std::string const& name) const;
@@ -449,8 +448,7 @@ protected:
 private:
     LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
-    typedef std::unordered_map<std::string,
-            std::shared_ptr< std::vector<boost::any> > > AnyMap;
+    typedef std::unordered_map<std::string, std::shared_ptr<std::vector<boost::any> > > AnyMap;
 
     /*
      * Find the property name (possibly hierarchical).
@@ -476,11 +474,9 @@ private:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _findOrInsert(std::string const& name,
-                      std::shared_ptr< std::vector<boost::any> > vp);
+    virtual void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
     void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
-    void _cycleCheckAnyVec(std::vector<boost::any> const& v,
-                          std::string const& name);
+    void _cycleCheckAnyVec(std::vector<boost::any> const& v, std::string const& name);
     void _cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
@@ -488,14 +484,15 @@ private:
 };
 
 #if defined(__ICC)
-#pragma warning (pop)
-#endif    
+#pragma warning(pop)
+#endif
 
-template<> void PropertySet::add<PropertySet::Ptr>(
-    std::string const& name, Ptr const& value);
-template<> void PropertySet::add<PropertySet::Ptr>(
-    std::string const& name, std::vector<Ptr> const& value);
-
-}}} // namespace lsst::daf::base
+template <>
+void PropertySet::add<PropertySet::Ptr>(std::string const& name, Ptr const& value);
+template <>
+void PropertySet::add<PropertySet::Ptr>(std::string const& name, std::vector<Ptr> const& value);
+}
+}  // namespace daf
+}  // namespace lsst
 
 #endif

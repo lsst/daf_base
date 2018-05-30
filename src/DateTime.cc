@@ -45,7 +45,7 @@
 #include "lsst/pex/exceptions.h"
 
 namespace dafBase = lsst::daf::base;
-namespace pexEx   = lsst::pex::exceptions;
+namespace pexEx = lsst::pex::exceptions;
 
 // invalid_nsecs is odr used but has an in-class initializer
 constexpr long long dafBase::DateTime::invalid_nsecs;
@@ -69,11 +69,10 @@ static long long const LL_NSEC_PER_SEC = 1000000000LL;
 // -- latest date representable   = apr 12, 2262 00:00:00
 static double const MAX_DAYS = 106751.99;
 
-
 #ifdef CAL_TO_JD
 static double const HOURS_PER_DAY = 24.0;
-static double const MIN_PER_DAY   = 1440.0;
-static double const SEC_PER_DAY   = 86400.0;
+static double const MIN_PER_DAY = 1440.0;
+static double const SEC_PER_DAY = 86400.0;
 #endif
 
 // Difference between Terrestrial Time and TAI.
@@ -84,7 +83,7 @@ static long long const TT_MINUS_TAI_NSECS = 32184000000LL;
  * Source: http://maia.usno.navy.mil/ser7/tai-utc.dat
  */
 static std::string leapString =
-"\
+        "\
 1961 JAN  1 =JD 2437300.5  TAI-UTC=   1.4228180 S + (MJD - 37300.) X 0.001296 S\n\
 1961 AUG  1 =JD 2437512.5  TAI-UTC=   1.3728180 S + (MJD - 37300.) X 0.001296 S\n\
 1962 JAN  1 =JD 2437665.5  TAI-UTC=   1.8458580 S + (MJD - 37665.) X 0.0011232S\n\
@@ -134,11 +133,11 @@ namespace {
 
 /// Leap second descriptor.
 struct Leap {
-    long long whenUtc; ///< UTC nanosecs of change
-    long long whenTai; ///< TAI nanosecs of change
-    double offset; ///< TAI - UTC
-    double mjdRef; ///< Intercept for MJD interpolation
-    double drift; ///< Slope of MJD interpolation
+    long long whenUtc;  ///< UTC nanosecs of change
+    long long whenTai;  ///< TAI nanosecs of change
+    double offset;      ///< TAI - UTC
+    double mjdRef;      ///< Intercept for MJD interpolation
+    double drift;       ///< Slope of MJD interpolation
 };
 
 class LeapTable : public std::vector<Leap> {
@@ -148,9 +147,7 @@ public:
 
 LeapTable leapSecTable;
 
-LeapTable::LeapTable(void) {
-    dafBase::DateTime::initializeLeapSeconds(leapString);
-}
+LeapTable::LeapTable(void) { dafBase::DateTime::initializeLeapSeconds(leapString); }
 
 /**
  * Convert UTC time to TAI time
@@ -158,7 +155,7 @@ LeapTable::LeapTable(void) {
  * @param[in] nsecs Number of nanoseconds since the epoch in UTC
  * @return Number of nanoseconds since the epoch in TAI
  */
-template<typename NsType>
+template <typename NsType>
 NsType utcToTai(NsType nsecs) {
     size_t i;
     for (i = 0; i < leapSecTable.size(); ++i) {
@@ -166,10 +163,8 @@ NsType utcToTai(NsType nsecs) {
     }
     if (i == 0) {
         throw LSST_EXCEPT(
-            lsst::pex::exceptions::DomainError,
-            (boost::format(
-                    "DateTime value too early for UTC-TAI conversion: %1%"
-                    ) % nsecs).str());
+                lsst::pex::exceptions::DomainError,
+                (boost::format("DateTime value too early for UTC-TAI conversion: %1%") % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
     double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
@@ -184,7 +179,7 @@ NsType utcToTai(NsType nsecs) {
  * @param[in] nsecs Number of nanoseconds since the epoch in TAI
  * @return Number of nanoseconds since the epoch in UTC
  */
-template<typename NsType>
+template <typename NsType>
 NsType taiToUtc(NsType nsecs) {
     size_t i;
     for (i = 0; i < leapSecTable.size(); ++i) {
@@ -192,10 +187,8 @@ NsType taiToUtc(NsType nsecs) {
     }
     if (i == 0) {
         throw LSST_EXCEPT(
-            lsst::pex::exceptions::DomainError,
-            (boost::format(
-                    "DateTime value too early for TAI-UTC conversion: %1%"
-                    ) % nsecs).str());
+                lsst::pex::exceptions::DomainError,
+                (boost::format("DateTime value too early for TAI-UTC conversion: %1%") % nsecs).str());
     }
     Leap const& l(leapSecTable[i - 1]);
     double mjd = static_cast<double>(nsecs) / NSEC_PER_DAY + EPOCH_IN_MJD;
@@ -214,7 +207,7 @@ NsType taiToUtc(NsType nsecs) {
  * @return Number of nanoseconds since the epoch in TAI
  */
 long long nsecAnyToTai(long long nsecs, dafBase::DateTime::Timescale scale) {
-    switch(scale) {
+    switch (scale) {
         case dafBase::DateTime::TAI:
             return nsecs;
         case dafBase::DateTime::TT:
@@ -235,7 +228,7 @@ long long nsecAnyToTai(long long nsecs, dafBase::DateTime::Timescale scale) {
  * @return Number of nanoseconds since the epoch in TAI
  */
 long long nsecTaiToAny(long long nsecs, dafBase::DateTime::Timescale scale) {
-    switch(scale) {
+    switch (scale) {
         case dafBase::DateTime::TAI:
             return nsecs;
         case dafBase::DateTime::TT:
@@ -247,7 +240,6 @@ long long nsecTaiToAny(long long nsecs, dafBase::DateTime::Timescale scale) {
     os << "Unsupported scale " << scale;
     throw LSST_EXCEPT(lsst::pex::exceptions::InvalidParameterError, os.str());
 }
-
 
 #ifdef CAL_TO_JD
 /**
@@ -262,51 +254,45 @@ long long nsecTaiToAny(long long nsecs, dafBase::DateTime::Timescale scale) {
  * @return Julian Days
  */
 double calendarToJd(int year, int month, int day, int hour, int min, double sec) {
-    if ( month <= 2 ) {
-    	year -= 1;
-    	month += 12;
+    if (month <= 2) {
+        year -= 1;
+        month += 12;
     }
-    int a = int(year/100);
-    int b =  2 - a + int(a/4);
+    int a = int(year / 100);
+    int b = 2 - a + int(a / 4);
 
-    int yy = 1582, mm = 10; //, d = 4;
+    int yy = 1582, mm = 10;  //, d = 4;
     if (year < yy || (year == yy && month < mm) || (year == yy && month == mm && day <= 4)) {
         b = 0;
     }
 
-    double jd = static_cast<int>(365.25*(year + 4716)) +
-        static_cast<int>(30.6001*(month + 1)) + day + b - 1524.5;
-    jd += hour/HOURS_PER_DAY + min/MIN_PER_DAY + sec/SEC_PER_DAY;
+    double jd = static_cast<int>(365.25 * (year + 4716)) + static_cast<int>(30.6001 * (month + 1)) + day + b -
+                1524.5;
+    jd += hour / HOURS_PER_DAY + min / MIN_PER_DAY + sec / SEC_PER_DAY;
 
     return jd;
 }
 
-#endif // CAL_TO_JD
-} // end anonymous namespace
-
+#endif  // CAL_TO_JD
+}  // end anonymous namespace
 
 namespace lsst {
 namespace daf {
 namespace base {
 
 void DateTime::setNsecsFromMjd(double mjd, Timescale scale) {
-
     if (mjd > EPOCH_IN_MJD + MAX_DAYS) {
-        throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainError,
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainError,
                           (boost::format("MJD too far in the future: %1%") % mjd).str());
     }
     if (mjd < EPOCH_IN_MJD - MAX_DAYS) {
-        throw LSST_EXCEPT(
-                          lsst::pex::exceptions::DomainError,
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainError,
                           (boost::format("MJD too far in the past: %1%") % mjd).str());
     }
     _nsecs = nsecAnyToTai(static_cast<long long>((mjd - EPOCH_IN_MJD) * NSEC_PER_DAY), scale);
 }
 
-void DateTime::setNsecsFromJd(double jd, Timescale scale) {
-    setNsecsFromMjd(jd - MJD_TO_JD, scale);
-}
+void DateTime::setNsecsFromJd(double jd, Timescale scale) { setNsecsFromMjd(jd - MJD_TO_JD, scale); }
 
 /**
  * @brief a function to convert epoch to internal nsecs
@@ -314,31 +300,27 @@ void DateTime::setNsecsFromJd(double jd, Timescale scale) {
  * @param[in] scale The time scale (TAI, TT or UTC)
  */
 void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
-    setNsecsFromMjd(365.25*(epoch - 2000.0) + JD2000 - MJD_TO_JD, scale);
+    setNsecsFromMjd(365.25 * (epoch - 2000.0) + JD2000 - MJD_TO_JD, scale);
 }
 
-DateTime::DateTime() :
-    _nsecs(DateTime::invalid_nsecs)
-{ }
+DateTime::DateTime() : _nsecs(DateTime::invalid_nsecs) {}
 
-DateTime::DateTime(long long nsecs, Timescale scale) :
-    _nsecs(nsecAnyToTai(nsecs, scale))
-{ }
+DateTime::DateTime(long long nsecs, Timescale scale) : _nsecs(nsecAnyToTai(nsecs, scale)) {}
 
 DateTime::DateTime(double date, DateSystem system, Timescale scale) {
     switch (system) {
-      case MJD:
-        setNsecsFromMjd(date, scale);
-        break;
-      case JD:
-        setNsecsFromJd(date, scale);
-        break;
-      case EPOCH:
-        setNsecsFromEpoch(date, scale);
-        break;
-      default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
-        break;
+        case MJD:
+            setNsecsFromMjd(date, scale);
+            break;
+        case JD:
+            setNsecsFromJd(date, scale);
+            break;
+        case EPOCH:
+            setNsecsFromEpoch(date, scale);
+            break;
+        default:
+            throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
+            break;
     }
 }
 
@@ -347,8 +329,8 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
     int const maxYear = 2261;
     if ((year < minYear) || (year > maxYear)) {
         throw LSST_EXCEPT(
-            lsst::pex::exceptions::DomainError,
-            (boost::format("Year = %d out of range [%04d, %04d]") % year % minYear % maxYear).str());
+                lsst::pex::exceptions::DomainError,
+                (boost::format("Year = %d out of range [%04d, %04d]") % year % minYear % maxYear).str());
     }
 
     struct tm tm;
@@ -390,10 +372,10 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
             }
         }
         if (isBad) {
-            throw LSST_EXCEPT(
-                lsst::pex::exceptions::DomainError,
-                (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d")
-                 % year % month % day % hr % min % sec).str());
+            throw LSST_EXCEPT(lsst::pex::exceptions::DomainError,
+                              (boost::format("Unconvertible date: %04d-%02d-%02dT%02d:%02d:%02d") % year %
+                               month % day % hr % min % sec)
+                                      .str());
         }
     }
 
@@ -404,30 +386,35 @@ DateTime::DateTime(std::string const& iso8601, Timescale scale) {
     boost::regex re;
     if (scale == UTC) {
         // time zone "Z" required
-        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?" "Z");
+        re = boost::regex(
+                "(\\d{4})-?(\\d{2})-?(\\d{2})"
+                "T"
+                "(\\d{2}):?(\\d{2}):?(\\d{2})"
+                "([.,](\\d*))?"
+                "Z");
     } else {
         // no time zone character accepted
-        re = boost::regex("(\\d{4})-?(\\d{2})-?(\\d{2})" "T"
-                          "(\\d{2}):?(\\d{2}):?(\\d{2})" "([.,](\\d*))?");
+        re = boost::regex(
+                "(\\d{4})-?(\\d{2})-?(\\d{2})"
+                "T"
+                "(\\d{2}):?(\\d{2}):?(\\d{2})"
+                "([.,](\\d*))?");
     }
     boost::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::DomainError,
-                          "Not in acceptable ISO8601 format: " + iso8601);
+        throw LSST_EXCEPT(lsst::pex::exceptions::DomainError, "Not in acceptable ISO8601 format: " + iso8601);
     }
     // determine TAI nsec truncated to integer seconds
     // by constructing a DateTime from year, month, day...
-    DateTime dt(atoi(matches.str(1).c_str()), atoi(matches.str(2).c_str()),
-                atoi(matches.str(3).c_str()), atoi(matches.str(4).c_str()),
-                atoi(matches.str(5).c_str()), atoi(matches.str(6).c_str()),
+    DateTime dt(atoi(matches.str(1).c_str()), atoi(matches.str(2).c_str()), atoi(matches.str(3).c_str()),
+                atoi(matches.str(4).c_str()), atoi(matches.str(5).c_str()), atoi(matches.str(6).c_str()),
                 scale);
     _nsecs = dt._nsecs;
     // add fractional seconds, if any
     if (matches[7].matched) {
         std::string frac = matches.str(8);
         int places = frac.size();
-        if (places > 9) { // truncate fractional nanosec
+        if (places > 9) {  // truncate fractional nanosec
             frac.erase(9);
         }
         int value = atoi(frac.c_str());
@@ -442,18 +429,18 @@ DateTime::DateTime(std::string const& iso8601, Timescale scale) {
 double DateTime::get(DateSystem system, Timescale scale) const {
     _assertValid();
     switch (system) {
-      case MJD:
-        return _getMjd(scale);
-        break;
-      case JD:
-        return _getJd(scale);
-        break;
-      case EPOCH:
-        return _getEpoch(scale);
-        break;
-      default:
-        throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
-        break;
+        case MJD:
+            return _getMjd(scale);
+            break;
+        case JD:
+            return _getJd(scale);
+            break;
+        case EPOCH:
+            return _getEpoch(scale);
+            break;
+        default:
+            throw LSST_EXCEPT(pexEx::InvalidParameterError, "DateSystem must be MJD, JD, or EPOCH");
+            break;
     }
 }
 
@@ -471,13 +458,9 @@ double DateTime::_getMjd(Timescale scale) const {
     return nsecs / NSEC_PER_DAY + EPOCH_IN_MJD;
 }
 
-double DateTime::_getJd(Timescale scale) const {
-    return _getMjd(scale) + MJD_TO_JD;
-}
+double DateTime::_getJd(Timescale scale) const { return _getMjd(scale) + MJD_TO_JD; }
 
-double DateTime::_getEpoch(Timescale scale) const {
-    return 2000.0 + (_getJd(scale) - JD2000)/365.25;
-}
+double DateTime::_getEpoch(Timescale scale) const { return 2000.0 + (_getJd(scale) - JD2000) / 365.25; }
 
 struct tm DateTime::gmtime(Timescale scale) const {
     _assertValid();
@@ -487,8 +470,7 @@ struct tm DateTime::gmtime(Timescale scale) const {
     long long frac = nsecs % LL_NSEC_PER_SEC;
     if (nsecs < 0 && frac < 0) {
         nsecs -= LL_NSEC_PER_SEC + frac;
-    }
-    else {
+    } else {
         nsecs -= frac;
     }
     time_t secs = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
@@ -522,23 +504,19 @@ std::string DateTime::toString(Timescale scale) const {
     if (fracnsecs < 0) {
         fracnsecs += LL_NSEC_PER_SEC;
     }
-    auto fmtStr = scale == UTC ? "%04d-%02d-%02dT%02d:%02d:%02d.%09dZ"
-                               : "%04d-%02d-%02dT%02d:%02d:%02d.%09d";
-    return (boost::format(fmtStr) %
-            (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday %
-            gmt.tm_hour % gmt.tm_min % gmt.tm_sec % fracnsecs).str();
+    auto fmtStr = scale == UTC ? "%04d-%02d-%02dT%02d:%02d:%02d.%09dZ" : "%04d-%02d-%02dT%02d:%02d:%02d.%09d";
+    return (boost::format(fmtStr) % (gmt.tm_year + 1900) % (gmt.tm_mon + 1) % gmt.tm_mday % gmt.tm_hour %
+            gmt.tm_min % gmt.tm_sec % fracnsecs)
+            .str();
 }
 
-bool DateTime::operator==(DateTime const& rhs) const {
-    return _nsecs == rhs._nsecs;
-}
+bool DateTime::operator==(DateTime const& rhs) const { return _nsecs == rhs._nsecs; }
 
 DateTime DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);
     if (ret != 0) {
-        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError,
-                          "Unable to get current time");
+        throw LSST_EXCEPT(lsst::pex::exceptions::RuntimeError, "Unable to get current time");
     }
     long long nsecs = tv.tv_sec * LL_NSEC_PER_SEC + tv.tv_usec * 1000LL;
     return DateTime(nsecs, DateTime::UTC);
@@ -547,20 +525,21 @@ DateTime DateTime::now(void) {
 void DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;
     leapSecTable.clear();
-    boost::regex re("^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
-                    " \\+ \\(MJD - ([\\d.]+)\\) X ([\\d.]+)\\s*S$");
+    boost::regex re(
+            "^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
+            " \\+ \\(MJD - ([\\d.]+)\\) X ([\\d.]+)\\s*S$");
     for (boost::cregex_iterator i = make_regex_iterator(leapString.c_str(), re);
          i != boost::cregex_iterator(); ++i) {
         double mjdUtc = strtod((*i)[1].first, 0) - MJD_TO_JD;
         l.offset = strtod((*i)[2].first, 0);
         l.mjdRef = strtod((*i)[3].first, 0);
         l.drift = strtod((*i)[4].first, 0);
-        l.whenUtc = static_cast<long long>(
-            (mjdUtc - EPOCH_IN_MJD) * NSEC_PER_DAY);
-        l.whenTai = l.whenUtc + static_cast<long long>(
-            1.0e9 * (l.offset + (mjdUtc - l.mjdRef) * l.drift));
+        l.whenUtc = static_cast<long long>((mjdUtc - EPOCH_IN_MJD) * NSEC_PER_DAY);
+        l.whenTai = l.whenUtc + static_cast<long long>(1.0e9 * (l.offset + (mjdUtc - l.mjdRef) * l.drift));
         leapSecTable.push_back(l);
     }
 }
 
-}}} // namespace lsst::daf::base
+}  // namespace base
+}  // namespace daf
+}  // namespace lsst

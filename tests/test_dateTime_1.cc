@@ -1,7 +1,7 @@
-/* 
+/*
  * LSST Data Management System
  * Copyright 2008, 2009, 2010 LSST Corporation.
- * 
+ *
  * This product includes software developed by the
  * LSST Project (http://www.lsst.org/).
  *
@@ -9,17 +9,17 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the LSST License Statement and 
- * the GNU General Public License along with this program.  If not, 
+ *
+ * You should have received a copy of the LSST License Statement and
+ * the GNU General Public License along with this program.  If not,
  * see <http://www.lsstcorp.org/LegalNotices/>.
  */
- 
+
 #include "lsst/daf/base/DateTime.h"
 
 #define BOOST_TEST_MODULE DateTime_1
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(Timeval) {
 }
 
 BOOST_AUTO_TEST_CASE(Throw) {
-    // 
+//
 #if 0
     // Date too far in the future
     BOOST_CHECK_THROW(DateTime(40587.0 + 106752.0),
@@ -75,23 +75,18 @@ BOOST_AUTO_TEST_CASE(Throw) {
                       lsst::pex::exceptions::DomainError);
 #endif
     // Date before UTC->TAI conversion is valid
-    BOOST_CHECK_THROW(DateTime(-500000000 * 1000000000LL, DateTime::UTC),
-                      lsst::pex::exceptions::DomainError);
+    BOOST_CHECK_THROW(DateTime(-500000000 * 1000000000LL, DateTime::UTC), lsst::pex::exceptions::DomainError);
     // Date before UTC->TAI conversion is valid and too far in the past for
     // 32-bit Unix mktime()
-    BOOST_CHECK_THROW(DateTime("1901-01-01T12:34:56Z", DateTime::UTC),
-                      lsst::pex::exceptions::DomainError);
+    BOOST_CHECK_THROW(DateTime("1901-01-01T12:34:56Z", DateTime::UTC), lsst::pex::exceptions::DomainError);
     if (sizeof(time_t) == 4) {
         // Date too far in the past for Unix mktime()
-        BOOST_CHECK_THROW(DateTime(1901, 1, 1, 12, 34, 56),
-                          lsst::pex::exceptions::DomainError);
+        BOOST_CHECK_THROW(DateTime(1901, 1, 1, 12, 34, 56), lsst::pex::exceptions::DomainError);
         // Date too far in the future for Unix mktime()
-        BOOST_CHECK_THROW(DateTime(2039, 1, 1, 12, 34, 56),
-                          lsst::pex::exceptions::DomainError);
+        BOOST_CHECK_THROW(DateTime(2039, 1, 1, 12, 34, 56), lsst::pex::exceptions::DomainError);
         BOOST_CHECK_THROW(DateTime("2039-01-01T12:34:56Z", DateTime::UTC),
                           lsst::pex::exceptions::DomainError);
     }
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()
