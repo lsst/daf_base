@@ -38,6 +38,24 @@ namespace pexExcept = lsst::pex::exceptions;
 
 using namespace std;
 
+namespace {
+
+/**
+ * Append the contents of a vector<T> to a vector<boost::any>
+ *
+ * This method exists because vector<boost::any>.insert mis-behaves for vector of bool,
+ * resulting in a vector with elements that are a strange type.
+ */
+template <typename T>
+void _append(std::vector<boost::any>& dest, std::vector<T> const& src) {
+    dest.reserve(dest.size() + src.size());
+    for (const T& val : src) {
+        dest.push_back(static_cast<T>(val));
+    }
+}
+
+}  // namespace
+
 dafBase::PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {
 }
 
@@ -439,7 +457,7 @@ void dafBase::PropertySet::set(std::string const& name,
                                vector<T> const& value) {
     if (value.empty()) return;
     std::shared_ptr< vector<boost::any> > vp(new vector<boost::any>);
-    vp->insert(vp->end(), value.begin(), value.end());
+    _append(*vp, value);
     _set(name, vp);
 }
 
@@ -491,7 +509,7 @@ void dafBase::PropertySet::add(std::string const& name,
             throw LSST_EXCEPT(pexExcept::TypeError,
                               name + " has mismatched type");
         }
-        i->second->insert(i->second->end(), value.begin(), value.end());
+        _append(*(i->second), value);
     }
 }
 
@@ -508,7 +526,7 @@ template<> void dafBase::PropertySet::add<dafBase::PropertySet::Ptr>(
                               name + " has mismatched type");
         }
         _cycleCheckPtrVec(value, name);
-        i->second->insert(i->second->end(), value.begin(), value.end());
+        _append(*(i->second), value);
     }
 }
 
@@ -640,7 +658,7 @@ void dafBase::PropertySet::_add(
         if (vp->back().type() == typeid(Ptr)) {
             _cycleCheckAnyVec(*vp, name);
         }
-        dp->second->insert(dp->second->end(), vp->begin(), vp->end());
+        _append(*(dp->second), *vp);
     }
 }
 
