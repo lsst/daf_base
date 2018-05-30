@@ -67,21 +67,20 @@ PropertySet::~PropertySet(void) {
 
 PropertySet::Ptr PropertySet::deepCopy(void) const {
     Ptr n(new PropertySet(_flat));
-    for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
-            for (std::vector<boost::any>::const_iterator j =
-                 i->second->begin(); j != i->second->end(); ++j) {
-                Ptr p = boost::any_cast<Ptr>(*j);
+    for (auto const & elt: _map) {
+        if (elt.second->back().type() == typeid(Ptr)) {
+            for (auto const & j: *elt.second) {
+                Ptr p = boost::any_cast<Ptr>(j);
                 if (p.get() == 0) {
-                    n->add(i->first, Ptr());
+                    n->add(elt.first, Ptr());
                 } else {
-                    n->add(i->first, p->deepCopy());
+                    n->add(elt.first, p->deepCopy());
                 }
             }
         } else {
             std::shared_ptr<std::vector<boost::any>> vp(
-                new std::vector<boost::any>(*(i->second)));
-            n->_map[i->first] = vp;
+                new std::vector<boost::any>(*(elt.second)));
+            n->_map[elt.first] = vp;
         }
     }
     return n;
@@ -89,10 +88,10 @@ PropertySet::Ptr PropertySet::deepCopy(void) const {
 
 size_t PropertySet::nameCount(bool topLevelOnly) const {
     int n = 0;
-    for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
+    for (auto const & elt: _map) {
         ++n;
-        if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
+        if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
+            Ptr p = boost::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0) {
                 n += p->nameCount(false);
             }
@@ -103,15 +102,14 @@ size_t PropertySet::nameCount(bool topLevelOnly) const {
 
 std::vector<std::string> PropertySet::names(bool topLevelOnly) const {
     std::vector<std::string> v;
-    for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        v.push_back(i->first);
-        if (!topLevelOnly && i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
+    for (auto const & elt: _map) {
+        v.push_back(elt.first);
+        if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
+            Ptr p = boost::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0) {
                 std::vector<std::string> w = p->names(false);
-                for (std::vector<std::string>::const_iterator k = w.begin();
-                     k != w.end(); ++k) {
-                    v.push_back(i->first + "." + *k);
+                for (auto const & k: w) {
+                    v.push_back(elt.first + "." + k);
                 }
             }
         }
@@ -122,18 +120,17 @@ std::vector<std::string> PropertySet::names(bool topLevelOnly) const {
 std::vector<std::string>
 PropertySet::paramNames(bool topLevelOnly) const {
     std::vector<std::string> v;
-    for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
+    for (auto const & elt: _map) {
+        if (elt.second->back().type() == typeid(Ptr)) {
+            Ptr p = boost::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->paramNames(false);
-                for (std::vector<std::string>::const_iterator k = w.begin();
-                     k != w.end(); ++k) {
-                    v.push_back(i->first + "." + *k);
+                for (auto const & k: w) {
+                    v.push_back(elt.first + "." + k);
                 }
             }
         } else {
-            v.push_back(i->first);
+            v.push_back(elt.first);
         }
     }
     return v;
@@ -142,15 +139,14 @@ PropertySet::paramNames(bool topLevelOnly) const {
 std::vector<std::string>
 PropertySet::propertySetNames(bool topLevelOnly) const {
     std::vector<std::string> v;
-    for (AnyMap::const_iterator i = _map.begin(); i != _map.end(); ++i) {
-        if (i->second->back().type() == typeid(Ptr)) {
-            v.push_back(i->first);
-            Ptr p = boost::any_cast<Ptr>(i->second->back());
+    for (auto const & elt: _map) {
+        if (elt.second->back().type() == typeid(Ptr)) {
+            v.push_back(elt.first);
+            Ptr p = boost::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->propertySetNames(false);
-                for (std::vector<std::string>::const_iterator k = w.begin();
-                     k != w.end(); ++k) {
-                    v.push_back(i->first + "." + *k);
+                for (auto const & k: w) {
+                    v.push_back(elt.first + "." + k);
                 }
             }
         }
@@ -163,23 +159,23 @@ bool PropertySet::exists(std::string const& name) const {
 }
 
 bool PropertySet::isArray(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     return i != _map.end() && i->second->size() > 1U;
 }
 
 bool PropertySet::isPropertySetPtr(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     return i != _map.end() && i->second->back().type() == typeid(Ptr);
 }
 
 size_t PropertySet::valueCount(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) return 0;
     return i->second->size();
 }
 
 std::type_info const& PropertySet::typeOf(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
@@ -190,7 +186,7 @@ std::type_info const& PropertySet::typeOf(std::string const& name) const {
 
 template <typename T>
 T PropertySet::get(std::string const& name) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
@@ -206,7 +202,7 @@ T PropertySet::get(std::string const& name) const { /* parasoft-suppress LsstDm-
 
 template <typename T>
 T PropertySet::get(std::string const& name, T const& defaultValue) const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         return defaultValue;
     }
@@ -222,15 +218,14 @@ T PropertySet::get(std::string const& name, T const& defaultValue) const { /* pa
 
 template <typename T>
 std::vector<T> PropertySet::getArray(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
     std::vector<T> v;
-    for (std::vector<boost::any>::const_iterator j = i->second->begin();
-         j != i->second->end(); ++j) {
+    for (auto const & j: *(i->second)) {
         try {
-            v.push_back(boost::any_cast<T>(*j));
+            v.push_back(boost::any_cast<T>(j));
         }
         catch (boost::bad_any_cast) {
             throw LSST_EXCEPT(pex::exceptions::TypeError, name);
@@ -246,7 +241,7 @@ bool PropertySet::getAsBool(std::string const& name) const { /* parasoft-suppres
 }
 
 int PropertySet::getAsInt(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
@@ -276,7 +271,7 @@ int PropertySet::getAsInt(std::string const& name) const {
 }
 
 int64_t PropertySet::getAsInt64(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
@@ -303,7 +298,7 @@ int64_t PropertySet::getAsInt64(std::string const& name) const {
 }
 
 double PropertySet::getAsDouble(std::string const& name) const {
-    AnyMap::const_iterator i = _find(name);
+    auto const i = _find(name);
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
@@ -351,11 +346,11 @@ std::string PropertySet::toString(bool topLevelOnly,
     std::ostringstream s;
     std::vector<std::string> nv = names();
     sort(nv.begin(), nv.end());
-    for (std::vector<std::string>::const_iterator i = nv.begin(); i != nv.end(); ++i) {
-        std::shared_ptr< std::vector<boost::any> > vp = _map.find(*i)->second;
+    for (auto const & i: nv) {
+        std::shared_ptr< std::vector<boost::any> > vp = _map.find(i)->second;
         std::type_info const& t = vp->back().type();
         if (t == typeid(Ptr)) {
-            s << indent << *i << " = ";
+            s << indent << i << " = ";
             if (topLevelOnly) {
                 s << "{ ... }";
             } else {
@@ -371,7 +366,7 @@ std::string PropertySet::toString(bool topLevelOnly,
             s << std::endl;
         }
         else {
-            s << indent << _format(*i);
+            s << indent << _format(i);
         }
     }
     return s.str();
@@ -380,19 +375,21 @@ std::string PropertySet::toString(bool topLevelOnly,
 std::string PropertySet::_format(std::string const& name) const {
     std::ostringstream s;
     s << std::showpoint; // Always show a decimal point for floats
-    AnyMap::const_iterator j = _map.find(name);
+    auto const j = _map.find(name);
     s << j->first << " = ";
     std::shared_ptr< std::vector<boost::any> > vp = j->second;
     if (vp->size() > 1) {
         s << "[ ";
     }
     std::type_info const& t = vp->back().type();
-    for (std::vector<boost::any>::const_iterator k = vp->begin();
-         k != vp->end(); ++k) {
-        if (k != vp->begin()) {
+    bool isFirst = true;
+    for (auto const & k: *vp) {
+        if (isFirst) {
+            isFirst = false;
+        } else {
             s << ", ";
         }
-        boost::any const& v(*k);
+        boost::any const& v(k);
         if (t == typeid(bool)) {
             s << boost::any_cast<bool>(v);
         } else if (t == typeid(char)) {
@@ -540,7 +537,7 @@ void PropertySet::copy(std::string const& dest,
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
                           "Missing source");
     }
-    AnyMap::const_iterator sj = source->_find(name);
+    auto const sj = source->_find(name);
     if (sj == source->_map.end()) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
                           name + " not in source");
@@ -561,10 +558,9 @@ void PropertySet::combine(ConstPtr source) {
         return;
     }
     std::vector<std::string> names = source->paramNames(false);
-    for (std::vector<std::string>::const_iterator i = names.begin();
-         i != names.end(); ++i) {
-        AnyMap::const_iterator sp = source->_find(*i);
-        _add(*i, sp->second);
+    for (auto const & name: names) {
+        auto const sp = source->_find(name);
+        _add(name, sp->second);
     }
 }
 
@@ -620,7 +616,7 @@ PropertySet::_find(std::string const& name) const {
         return _map.find(name);
     }
     std::string prefix(name, 0, i);
-    AnyMap::const_iterator j = _map.find(prefix);
+    auto const j = _map.find(prefix);
     if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
         return _map.end();
     }
@@ -629,7 +625,7 @@ PropertySet::_find(std::string const& name) const {
         return _map.end();
     }
     std::string suffix(name, i + 1);
-    AnyMap::const_iterator x = p->_find(suffix);
+    auto const x = p->_find(suffix);
     if (x == p->_map.end()) {
         return _map.end();
     }
@@ -644,7 +640,7 @@ void PropertySet::_set(
 void PropertySet::_add(
     std::string const& name, std::shared_ptr< std::vector<boost::any> > vp) {
 
-    AnyMap::const_iterator dp = _find(name);
+    auto const dp = _find(name);
     if (dp == _map.end()) {
         _set(name, vp);
     }
@@ -667,10 +663,9 @@ void PropertySet::_findOrInsert(
         if (_flat) {
             Ptr source = boost::any_cast<Ptr>(vp->back());
             std::vector<std::string> names = source->paramNames(false);
-            for (std::vector<std::string>::const_iterator i = names.begin();
-                 i != names.end(); ++i) {
-                AnyMap::const_iterator sp = source->_find(*i);
-                _add(name + "." + *i, sp->second);
+            for (auto const & i: names) {
+                auto const sp = source->_find(i);
+                _add(name + "." + i, sp->second);
             }
             return;
         }
@@ -711,15 +706,15 @@ void PropertySet::_findOrInsert(
 
 void PropertySet::_cycleCheckPtrVec(std::vector<Ptr> const& v,
                                          std::string const& name) {
-    for (std::vector<Ptr>::const_iterator i = v.begin(); i != v.end(); ++i) {
-        _cycleCheckPtr(*i, name);
+    for (auto const & i: v) {
+        _cycleCheckPtr(i, name);
     }
 }
 
 void PropertySet::_cycleCheckAnyVec(std::vector<boost::any> const& v,
                                          std::string const& name) {
-    for (std::vector<boost::any>::const_iterator i = v.begin(); i != v.end(); ++i) {
-        _cycleCheckPtr(boost::any_cast<Ptr>(*i), name);
+    for (auto const & i: v) {
+        _cycleCheckPtr(boost::any_cast<Ptr>(i), name);
     }
 }
 
@@ -730,9 +725,8 @@ void PropertySet::_cycleCheckPtr(Ptr const& v,
                           name + " would cause a cycle");
     }
     std::vector<std::string> sets = v->propertySetNames(false);
-    for (std::vector<std::string>::const_iterator i = sets.begin();
-         i != sets.end(); ++i) {
-        if (v->getAsPropertySetPtr(*i).get() == this) {
+    for (auto const & i: sets) {
+        if (v->getAsPropertySetPtr(i).get() == this) {
             throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
                               name + " would cause a cycle");
         }

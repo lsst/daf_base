@@ -81,9 +81,8 @@ std::string const& PropertyList::getComment(
 
 std::vector<std::string> PropertyList::getOrderedNames(void) const {
     std::vector<std::string> v;
-    for (std::list<std::string>::const_iterator i = _order.begin();
-         i != _order.end(); ++i) {
-        v.push_back(*i);
+    for (auto const & name : _order) {
+        v.push_back(name);
     }
     return v;
 }
@@ -101,10 +100,9 @@ PropertyList::end(void) const {
 std::string PropertyList::toString(bool topLevelOnly,
                                            std::string const& indent) const {
     std::ostringstream s;
-    for (std::list<std::string>::const_iterator i = _order.begin();
-         i != _order.end(); ++i) {
-        s << _format(*i);
-        std::string const& comment = _comments.find(*i)->second;
+    for (auto const & name: _order) {
+        s << _format(name);
+        std::string const& comment = _comments.find(name)->second;
         if (comment.size()) {
             s << "// " << comment << std::endl;
         }
@@ -132,11 +130,10 @@ void PropertyList::set(
     PropertySet::set(name, value);
     _comments.erase(name);
     _order.remove(name);
-    std::vector<std::string> names = value->paramNames(false);
-    for (std::vector<std::string>::const_iterator i = names.begin();
-         i != names.end(); ++i) {
-        if (pl) {
-            _commentOrderFix(name + "." + *i, pl->getComment(*i));
+    std::vector<std::string> paramNames = value->paramNames(false);
+    if (pl) {
+        for (auto const & paramName: paramNames) {
+            _commentOrderFix(name + "." + paramName, pl->getComment(paramName));
         }
     }
 }
@@ -239,20 +236,18 @@ void PropertyList::combine(PropertySet::ConstPtr source) {
     std::list<std::string> newOrder;
     if (pl) {
         newOrder = _order;
-        for (std::list<std::string>::const_iterator i = pl->begin();
-             i != pl->end(); ++i) {
-            bool present = _comments.find(*i) != _comments.end();
+        for (auto const & name : *pl) {
+            bool present = _comments.find(name) != _comments.end();
             if (!present) {
-                newOrder.push_back(*i);
+                newOrder.push_back(name);
             }
         }
     }
     PropertySet::combine(source);
     if (pl) {
         _order = newOrder;
-        for (std::list<std::string>::const_iterator i = pl->begin();
-             i != pl->end(); ++i) {
-            _comments[*i] = pl->_comments.find(*i)->second;
+        for (auto const & name : *pl) {
+            _comments[name] = pl->_comments.find(name)->second;
         }
     }
 }
