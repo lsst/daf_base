@@ -162,6 +162,30 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(w[4], 13)
         self.assertEqual(ps.getString("other"), "foo")
 
+    def testSetAddVector(self):
+        ps = dafBase.PropertySet()
+        boolArr = [True, False]
+        intArr = [1, -1, 2]
+        floatArr = [1.2, 99.5, -35.1]
+        strArr = ["this", "is", "some strings"]
+        ps.set("bools", boolArr)
+        ps.set("ints", intArr)
+        ps.set("floats", floatArr)
+        ps.set("strs", strArr)
+        self.assertEqual(ps.get("bools"), boolArr)
+        self.assertEqual(ps.get("ints"), intArr)
+        self.assertEqual(ps.get("floats"), floatArr)
+        self.assertEqual(ps.get("strs"), strArr)
+
+        ps.add("bools", list(reversed(boolArr)))
+        ps.add("ints", list(reversed(intArr)))
+        ps.add("floats", list(reversed(floatArr)))
+        ps.add("strs", list(reversed(strArr)))
+        self.assertEqual(ps.get("bools"), boolArr + list(reversed(boolArr)))
+        self.assertEqual(ps.get("ints"), intArr + list(reversed(intArr)))
+        self.assertEqual(ps.get("floats"), floatArr + list(reversed(floatArr)))
+        self.assertEqual(ps.get("strs"), strArr + list(reversed(strArr)))
+
     def testDateTimeToString(self):
         ps = dafBase.PropertySet()
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
