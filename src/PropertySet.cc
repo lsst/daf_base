@@ -15,7 +15,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more detailTypeErrors.
+ * GNU General Public License for more errors.
  *
  * You should have received a copy of the LSST License Statement and
  * the GNU General Public License along with this program.  If not,
