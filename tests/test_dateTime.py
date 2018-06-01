@@ -157,6 +157,24 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.000000000Z")
         self.assertTrue(ts.isValid())
 
+    def testIsoLeapSec(self):
+        ts = DateTime("1991-01-01T00:00:00.12345Z", DateTime.UTC)
+        previous = DateTime(long(ts.nsecs(DateTime.TAI) - 1E9), DateTime.TAI)
+        before = DateTime(long(ts.nsecs(DateTime.TAI) - 2E9), DateTime.TAI)
+
+        self.assertNotEqual(ts.nsecs(DateTime.TAI), previous.nsecs(DateTime.TAI))
+        self.assertNotEqual(ts.nsecs(DateTime.TAI), before.nsecs(DateTime.TAI))
+
+        self.assertNotEqual(ts.toString(ts.UTC), previous.toString(ts.UTC))
+        self.assertNotEqual(ts.toString(ts.UTC), before.toString(ts.UTC))
+
+        self.assertNotEqual(ts.toString(ts.TAI), previous.toString(ts.TAI))
+        self.assertNotEqual(ts.toString(ts.TAI), before.toString(ts.TAI))
+
+        self.assertEqual(ts.toString(ts.UTC), "1991-01-01T00:00:00.123450000Z")
+        self.assertEqual(previous.toString(ts.UTC), "1990-12-31T23:59:60.123449984Z")
+        self.assertEqual(before.toString(ts.UTC), "1990-12-31T23:59:59.123449984Z")
+
     def testIsoThrow(self):
         with self.assertRaises(pexExcept.DomainError):
             DateTime("2009-04-01T23:36:05", DateTime.UTC)  # Z time zone required for UTC

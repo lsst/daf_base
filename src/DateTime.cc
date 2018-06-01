@@ -493,6 +493,16 @@ struct tm DateTime::gmtime(Timescale scale) const {
     }
     time_t secs = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
     gmtime_r(&secs, &gmt);
+    if (scale == UTC) {
+        for (size_t i = 0; i < leapSecTable.size(); ++i) {
+            if (_nsecs / LL_NSEC_PER_SEC == leapSecTable[i].whenTai / LL_NSEC_PER_SEC - 1) {
+                secs -= 1;
+                gmtime_r(&secs, &gmt);
+                gmt.tm_sec = 60;
+                break;
+            }
+        }
+    }
     return gmt;
 }
 
