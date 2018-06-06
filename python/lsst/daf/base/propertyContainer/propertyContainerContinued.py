@@ -45,7 +45,11 @@ def _propertyContainerElementTypeName(container, name):
 
 
 def _propertyContainerGet(container, name, asArray=False):
-    """Extract a single Python value of unknown type"""
+    """Get a value of unknown type as a scalar or array
+
+    Return an array if there is more than one value or `asArray` is true,
+    else return a scalar.
+    """
     if not container.exists(name):
         raise lsst.pex.exceptions.NotFoundError(name + " not found")
 
