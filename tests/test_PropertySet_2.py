@@ -20,13 +20,10 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
-from __future__ import absolute_import, division, print_function
 
 import unittest
 import numpy
 
-from past.builtins import long
-from past.builtins import basestring
 import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
@@ -44,7 +41,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        ps.setLongLong("int64_t", long(0xfeeddeadbeef))
+        ps.setLongLong("int64_t", 0xfeeddeadbeef)
         ps.setFloat("float", 3.14159)
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
@@ -63,7 +60,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int"), 2008)
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
-        self.assertEqual(ps.getLongLong("int64_t"), long(0xfeeddeadbeef))
+        self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -76,7 +73,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int2"), 2009)
         self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
-        self.assertEqual(ps.getDateTime("dt").nsecs(), long(1238657233314159265))
+        self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.getString("blank"), "")
 
     def testNumPyScalars(self):
@@ -85,7 +82,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps = dafBase.PropertySet()
         ps.setShort("short", numpy.int16(42))
         ps.setInt("int", numpy.int32(2008))
-        ps.setLongLong("int64_t", numpy.int64(long(0xfeeddeadbeef)))
+        ps.setLongLong("int64_t", numpy.int64(0xfeeddeadbeef))
         ps.setFloat("float", numpy.float32(3.14159))
         ps.setDouble("double", numpy.float64(2.718281828459045))
         self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
@@ -94,7 +91,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int"), 2008)
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
-        self.assertEqual(ps.getLongLong("int64_t"), long(0xfeeddeadbeef))
+        self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -243,7 +240,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        ps.setLongLong("int64_t", long(0xfeeddeadbeef))
+        ps.setLongLong("int64_t", 0xfeeddeadbeef)
         ps.setFloat("float", 3.14159)
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
@@ -261,7 +258,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int"), 2008)
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
-        self.assertEqual(ps.getLongLong("int64_t"), long(0xfeeddeadbeef))
+        self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -274,7 +271,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int2"), 2009)
         self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
-        self.assertEqual(ps.getDateTime("dt").nsecs(), long(1238657233314159265))
+        self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.typeOf("autobool"), dafBase.PropertySet.TYPE_Bool)
         self.assertIs(ps.get("autobool"), True)
 
@@ -376,7 +373,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        ps.setLongLong("int64_t", long(0xfeeddeadbeef))
+        ps.setLongLong("int64_t", 0xfeeddeadbeef)
         ps.setInt("ints", [10, 9, 8])
 
         ps2 = dafBase.PropertySet()
@@ -395,26 +392,26 @@ class FlatTestCase(unittest.TestCase):
         self.assertIsInstance(d["double"], float)
         self.assertEqual(d["double"], 2.718281828459045)
 
-        self.assertIsInstance(d["char*"], basestring)
+        self.assertIsInstance(d["char*"], str)
         self.assertEqual(d["char*"], "foo")
-        self.assertIsInstance(d["string"], basestring)
+        self.assertIsInstance(d["string"], str)
         self.assertEqual(d["string"], "bar")
         self.assertIsInstance(d["dt"], dafBase.DateTime)
-        self.assertEqual(d["dt"].nsecs(), long(1238657233314159265))
+        self.assertEqual(d["dt"].nsecs(), 1238657233314159265)
 
         d2 = d["ps"]
         self.assertIsInstance(d2, dict)
 
         self.assertIsInstance(d2["bool"], bool)
         self.assertEqual(d2["bool"], True)
-        self.assertIsInstance(d2["short"], (int, long))
+        self.assertIsInstance(d2["short"], (int, int))
         self.assertEqual(d2["short"], 42)
-        self.assertIsInstance(d2["int"], (int, long))
+        self.assertIsInstance(d2["int"], (int, int))
         self.assertEqual(d2["int"], 2008)
-        self.assertIsInstance(d2["int64_t"], (int, long))
-        self.assertEqual(d2["int64_t"], long(0xfeeddeadbeef))
+        self.assertIsInstance(d2["int64_t"], (int, int))
+        self.assertEqual(d2["int64_t"], 0xfeeddeadbeef)
         self.assertIsInstance(d2["ints"], list)
-        self.assertIsInstance(d2["ints"][0], (int, long))
+        self.assertIsInstance(d2["ints"][0], (int, int))
         self.assertEqual(d2["ints"], [10, 9, 8])
 
 

@@ -21,11 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
 import unittest
-from builtins import int
-from builtins import range
-from past.builtins import long
 
 from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
@@ -46,8 +42,8 @@ class DateTimeTestCase(unittest.TestCase):
 
     def testMJD(self):
         ts = DateTime(45205.125, DateTime.MJD, DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(399006000000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(399006021000000000))
+        self.assertEqual(ts.nsecs(DateTime.UTC), 399006000000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 399006021000000000)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 45205.125)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.TAI), 45205.125 + 21.0/86400.0)
         self.assertTrue(ts.isValid())
@@ -66,42 +62,42 @@ class DateTimeTestCase(unittest.TestCase):
             self.assertEqual(delta/1E9, diff)
 
     def testNsecs(self):
-        ts = DateTime(long(1192755473000000000), DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
-        self.assertEqual(ts.nsecs(), long(1192755506000000000))
+        ts = DateTime(1192755473000000000, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000)
+        self.assertEqual(ts.nsecs(), 1192755506000000000)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
         ts2 = ts
         self.assertEqual(ts, ts2)
-        ts2 = DateTime(long(1192755473000000000), DateTime.UTC)
+        ts2 = DateTime(1192755473000000000, DateTime.UTC)
         self.assertEqual(ts, ts2)
-        ts2 = DateTime(long(1234567890000000000), DateTime.UTC)
+        ts2 = DateTime(1234567890000000000, DateTime.UTC)
         self.assertNotEqual(ts, ts2)
 
     def testBoundaryMJD(self):
         ts = DateTime(47892.0, DateTime.MJD, DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(631152000000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(631152025000000000))
+        self.assertEqual(ts.nsecs(DateTime.UTC), 631152000000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 631152025000000000)
         self.assertEqual(ts.get(DateTime.MJD, DateTime.UTC), 47892.0)
 
     def testCrossBoundaryNsecs(self):
-        ts = DateTime(long(631151998000000000), DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(631151998000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(631152022000000000))
+        ts = DateTime(631151998000000000, DateTime.UTC)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 631151998000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 631152022000000000)
 
     def testNsecsTAI(self):
-        ts = DateTime(long(1192755506000000000), DateTime.TAI)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
-        self.assertEqual(ts.nsecs(), long(1192755506000000000))
+        ts = DateTime(1192755506000000000, DateTime.TAI)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000)
+        self.assertEqual(ts.nsecs(), 1192755506000000000)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
         self.assertTrue(ts.isValid())
 
     def testNsecsDefault(self):
-        ts = DateTime(long(1192755506000000000))
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
-        self.assertEqual(ts.nsecs(), long(1192755506000000000))
+        ts = DateTime(1192755506000000000)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000)
+        self.assertEqual(ts.nsecs(), 1192755506000000000)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
         self.assertTrue(ts.isValid())
 
@@ -117,7 +113,7 @@ class DateTimeTestCase(unittest.TestCase):
 
     def testIsoEpoch(self):
         ts = DateTime("19700101T000000Z", DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(0))
+        self.assertEqual(ts.nsecs(DateTime.UTC), 0)
         self.assertEqual(ts.toString(ts.UTC), "1970-01-01T00:00:00.000000000Z")
 
     def testIsoUTCBasic(self):
@@ -127,9 +123,9 @@ class DateTimeTestCase(unittest.TestCase):
                 for decPt in (".", ","):  # "." or "," may be used as decimal point
                     dateStr = "2009{0}04{0}02T07{1}26{1}39{2}314159265Z".format(dateSep, timeSep, decPt)
                     ts = DateTime(dateStr, DateTime.UTC)
-                    self.assertEqual(ts.nsecs(DateTime.TT), long(1238657265498159265))
-                    self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
-                    self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
+                    self.assertEqual(ts.nsecs(DateTime.TT), 1238657265498159265)
+                    self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233314159265)
+                    self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199314159265)
                     self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
 
     def testIsoNonUTCBasics(self):
@@ -145,15 +141,15 @@ class DateTimeTestCase(unittest.TestCase):
 
     def testIsoExpanded(self):
         ts = DateTime("2009-04-02T07:26:39.314159265Z", DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233314159265))
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199314159265))
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233314159265)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199314159265)
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
         self.assertTrue(ts.isValid())
 
     def testIsoNoNSecs(self):
         ts = DateTime("2009-04-02T07:26:39Z", DateTime.UTC)
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1238657233000000000))
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1238657199000000000))
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1238657233000000000)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199000000000)
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.000000000Z")
         self.assertTrue(ts.isValid())
 
@@ -256,10 +252,10 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(repr(dt2), "DateTime(\"{}\", TAI)".format(timeStr2))
 
     def testNsecsTT(self):
-        ts = DateTime(long(1192755538184000000), DateTime.TT)
-        self.assertEqual(ts.nsecs(DateTime.UTC), long(1192755473000000000))
-        self.assertEqual(ts.nsecs(DateTime.TAI), long(1192755506000000000))
-        self.assertEqual(ts.nsecs(), long(1192755506000000000))
+        ts = DateTime(1192755538184000000, DateTime.TT)
+        self.assertEqual(ts.nsecs(DateTime.UTC), 1192755473000000000)
+        self.assertEqual(ts.nsecs(DateTime.TAI), 1192755506000000000)
+        self.assertEqual(ts.nsecs(), 1192755506000000000)
         self.assertAlmostEqual(ts.get(DateTime.MJD, DateTime.UTC), 54392.040196759262)
         self.assertTrue(ts.isValid())
 
@@ -312,18 +308,18 @@ class DateTimeTestCase(unittest.TestCase):
         ts = DateTime("1969-03-01T12:39:45.123456Z", DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-03-01T12:39:45.123455996Z')
 
-        ts = DateTime(long(-1), DateTime.TAI)
+        ts = DateTime(-1, DateTime.TAI)
         self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918239Z')
-        ts = DateTime(long(0), DateTime.TAI)
+        ts = DateTime(0, DateTime.TAI)
         self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918240Z')
-        ts = DateTime(long(1), DateTime.TAI)
+        ts = DateTime(1, DateTime.TAI)
         self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:51.999918241Z')
 
-        ts = DateTime(long(-1), DateTime.UTC)
+        ts = DateTime(-1, DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1969-12-31T23:59:59.999999999Z')
-        ts = DateTime(long(0), DateTime.UTC)
+        ts = DateTime(0, DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1970-01-01T00:00:00.000000000Z')
-        ts = DateTime(long(1), DateTime.UTC)
+        ts = DateTime(1, DateTime.UTC)
         self.assertEqual(ts.toString(ts.UTC), '1970-01-01T00:00:00.000000001Z')
 
     def testConvert(self):

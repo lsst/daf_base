@@ -21,11 +21,9 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
 
 __all__ = ["getstate", "setstate"]
 
-from past.builtins import long
 import numbers
 
 from lsst.utils import continueClass
@@ -170,8 +168,7 @@ def setstate(self, state):
 class PropertySet:
     # Mapping of type to method names
     _typeMenu = {bool: "Bool",
-                 long: "LongLong",
-                 int: "Int",  # overwrites long on Python 3.x
+                 int: "Int",
                  float: "Double",
                  str: "String",
                  DateTime: "DateTime",
@@ -214,8 +211,7 @@ class PropertySet:
 class PropertyList:
     # Mapping of type to method names
     _typeMenu = {bool: "Bool",
-                 long: "LongLong",
-                 int: "Int",  # overwrites long on Python 3.x
+                 int: "Int",
                  float: "Double",
                  str: "String",
                  DateTime: "DateTime",
