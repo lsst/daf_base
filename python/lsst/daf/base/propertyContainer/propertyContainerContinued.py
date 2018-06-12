@@ -221,8 +221,8 @@ class PropertySet:
     except Exception:
         pass
 
-    def get(self, name, asArray=False):
-        return _propertyContainerGet(self, name, asArray)
+    def get(self, name):
+        return _propertyContainerGet(self, name)
 
     def getArray(self, name):
         return _propertyContainerGetArray(self, name)
@@ -270,8 +270,8 @@ class PropertyList:
     except Exception:
         pass
 
-    def get(self, name, asArray=False):
-        return _propertyContainerGet(self, name, asArray)
+    def get(self, name):
+        return _propertyContainerGet(self, name)
 
     def getArray(self, name):
         return _propertyContainerGetArray(self, name)
