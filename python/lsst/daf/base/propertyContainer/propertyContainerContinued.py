@@ -166,9 +166,9 @@ def setstate(self, state):
 
 @continueClass
 class PropertySet:
-    # Mapping of type to method names
+    # Mapping of type to method names;
+    # int types are omitted due to use of _guessIntegerType
     _typeMenu = {bool: "Bool",
-                 int: "Int",
                  float: "Double",
                  str: "String",
                  DateTime: "DateTime",
