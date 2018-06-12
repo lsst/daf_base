@@ -220,16 +220,14 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setPropertySet("b", ps1)
         with self.assertRaises(TypeError):
             ps.getArray("b")
-        with self.assertRaises(TypeError):
-            ps.getScalar("b")
+        self.assertEqual(ps.getScalar("b"), ps1)
         self.assertEqual(ps.get("b.a"), 1)
         self.assertEqual(ps.getArray("b.a"), [1])
         self.assertEqual(ps.getScalar("b.a"), 1)
         ps.set("c", ps1)
         with self.assertRaises(TypeError):
             ps.getArray("c")
-        with self.assertRaises(TypeError):
-            ps.getScalar("c")
+        self.assertEqual(ps.getScalar("c"), ps1)
         self.assertEqual(ps.get("c.a"), 1)
         self.assertEqual(ps.getArray("c.a"), [1])
         self.assertEqual(ps.getScalar("c.a"), 1)

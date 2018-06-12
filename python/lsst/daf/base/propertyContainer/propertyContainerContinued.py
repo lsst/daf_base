@@ -24,6 +24,7 @@
 
 __all__ = ["getstate", "setstate"]
 
+import enum
 import numbers
 
 from lsst.utils import continueClass
@@ -35,6 +36,12 @@ import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
+class ReturnStyle(enum.Enum):
+    ARRAY = enum.auto()
+    SCALAR = enum.auto()
+    AUTO = enum.auto()
+
+
 def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
     t = container.typeOf(name)
@@ -44,19 +51,53 @@ def _propertyContainerElementTypeName(container, name):
     return None
 
 
-def _propertyContainerGet(container, name, asArray=False):
+def _propertyContainerGet(container, name, returnStyle):
     """Get a value of unknown type as a scalar or array
 
-    Return an array if there is more than one value or `asArray` is true,
-    else return a scalar.
+    Parameters
+    ----------
+    container : ``lsst.daf.base.PropertySet`` or ``lsst.daf.base.PropertyList``
+        Container from which to get the value
+    name : ``str``
+        Name of item
+    returnStyle : ``ReturnStyle``
+        Control whether data is returned as an array or scalar:
+        - ReturnStyle.ARRAY: return numeric or string data types
+            as an array of values. Raise TypeError for
+            PropertyList, PropertySet or PersistablePtr.
+        - ReturnStyle.SCALAR: return numeric or string data types
+            as a single value; if the item has multiple values then
+            return the last value. Return PropertyList, PropertySet
+            or PersistablePtr as a single item.
+        - ReturnStyle.AUTO: (deprecated) return numeric or string data
+            as a scalar if there is just one item, or as an array
+            otherwise. Return PropertyList, PropertySet
+            or PersistablePtr as a single item.
+
+    Raises
+    ------
+    ValueError
+        If `returnStyle`=``ReturnStyle.ARRAY`` and the item is of type
+        ``PropertyList``, ``PropertySet`` or ``PersistablePtr``
+
+    Notes
+    -----
+    `returnStyle` is handled as follows:
     """
     if not container.exists(name):
         raise lsst.pex.exceptions.NotFoundError(name + " not found")
+    if returnStyle not in ReturnStyle:
+        raise ValueError("returnStyle {} must be a ReturnStyle".format(returnStyle))
 
     elemType = _propertyContainerElementTypeName(container, name)
     if elemType:
         value = getattr(container, "getArray" + elemType)(name)
-        return value[0] if len(value) == 1 and not asArray else value
+        if returnStyle == ReturnStyle.ARRAY or (returnStyle == ReturnStyle.AUTO and len(value) > 1):
+            return value
+        return value[-1]
+
+    if returnStyle == ReturnStyle.ARRAY:
+        raise TypeError("Item {} is not numeric or string".format(name))
 
     try:
         return container.getAsPropertyListPtr(name)
@@ -69,40 +110,6 @@ def _propertyContainerGet(container, name, asArray=False):
     except Exception:
         pass
     raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
-
-
-def _propertyContainerGetArray(container, name):
-    """Get a value of unknown type as an array
-
-    Throw TypeError if the item type is not numeric or string
-    (e.g. is PropertyList, PropertySet or PersistablePtr).
-    """
-    if not container.exists(name):
-        raise lsst.pex.exceptions.NotFoundError(name + " not found")
-
-    elemType = _propertyContainerElementTypeName(container, name)
-    if elemType:
-        return getattr(container, "getArray" + elemType)(name)
-
-    raise TypeError("Item {} is not numeric or string".format(name))
-
-
-def _propertyContainerGetScalar(container, name):
-    """Get a value of unknown type as a scalar
-
-    If there are multiple values, return the last value
-
-    Throw TypeError if the item type is not numeric or string
-    (e.g. is PropertyList, PropertySet or PersistablePtr).
-    """
-    if not container.exists(name):
-        raise lsst.pex.exceptions.NotFoundError(name + " not found")
-
-    elemType = _propertyContainerElementTypeName(container, name)
-    if elemType:
-        return getattr(container, "getArray" + elemType)(name)[-1]
-
-    raise TypeError("Item {} is not numeric or string".format(name))
 
 
 def _guessIntegerType(container, name, value):
@@ -193,7 +200,8 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
 
 
 def getstate(self):
-    return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
+    return [(name, _propertyContainerElementTypeName(self, name),
+             _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
              self.getComment(name)) for name in self.getOrderedNames()]
 
 
@@ -222,13 +230,13 @@ class PropertySet:
         pass
 
     def get(self, name):
-        return _propertyContainerGet(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
-        return _propertyContainerGetArray(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
-        return _propertyContainerGetScalar(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value):
         return _propertyContainerSet(self, name, value, self._typeMenu)
@@ -242,7 +250,7 @@ class PropertySet:
 
         d = {}
         for name in self.names():
-            v = self.get(name)
+            v = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
             if isinstance(v, PropertySet):
                 d[name] = PropertySet.toDict(v)
@@ -271,13 +279,13 @@ class PropertyList:
         pass
 
     def get(self, name):
-        return _propertyContainerGet(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
-        return _propertyContainerGetArray(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
-        return _propertyContainerGetScalar(self, name)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value, comment=None):
         args = []
@@ -296,11 +304,12 @@ class PropertyList:
         ret = []
         for name in orderedNames:
             if self.isArray(name):
-                values = self.get(name)
+                values = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
                 for v in values:
                     ret.append((name, v, self.getComment(name)))
             else:
-                ret.append((name, self.get(name), self.getComment(name)))
+                ret.append((name, _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
+                            self.getComment(name)))
         return ret
 
     def toOrderedDict(self):
@@ -311,5 +320,5 @@ class PropertyList:
 
         d = OrderedDict()
         for name in self.getOrderedNames():
-            d[name] = self.get(name)
+            d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
