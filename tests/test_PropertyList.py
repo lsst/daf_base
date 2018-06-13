@@ -50,6 +50,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
         for name in original.getOrderedNames():
             self.assertEqual(original.get(name), new.get(name))
+            self.assertEqual(original.getArray(name), new.getArray(name))
+            self.assertEqual(original.getScalar(name), new.getScalar(name))
             self.assertEqual(original.typeOf(name), new.typeOf(name))
 
     def testScalar(self):
@@ -86,6 +88,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.typeOf("int2"), dafBase.PropertyList.TYPE_Int)
         self.assertEqual(apl.getInt("int2"), 2009)
         self.assertEqual(apl.get("int2"), 2009)
+        self.assertEqual(apl.getArray("int2"), [2009])
+        self.assertEqual(apl.getScalar("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
         self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(apl.getDouble("subclass"), 1.23456789)
@@ -117,9 +121,13 @@ class PropertyListTestCase(unittest.TestCase):
         w = apl.get("ints", asArray=True)
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
+        self.assertEqual(apl.getArray("ints"), v)
+        self.assertEqual(apl.getScalar("ints"), v[-1])
         apl.setInt("int", 999)
         x = apl.get("int")
         self.assertEqual(x, 999)
+        self.assertEqual(apl.getArray("int"), [999])
+        self.assertEqual(apl.getScalar("int"), 999)
         x = apl.get("int", asArray=True)
         self.assertEqual(len(x), 1)
         self.assertEqual(x, [999, ])
@@ -158,6 +166,8 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(w[4], 13)
         self.assertEqual(apl.getString("other"), "foo")
         self.assertEqual(apl.get("subclass"), 1.23456789)
+        self.assertEqual(apl.getArray("subclass"), [1.23456789])
+        self.assertEqual(apl.getScalar("subclass"), 1.23456789)
 
     def testDateTimeToString(self):
         apl = dafBase.PropertyList()
@@ -203,14 +213,20 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getArrayInt("ints"),
                          [42, 2008, 1, -42, -2008, -1])
         self.assertEqual(apl.get("subclass"), subclass)
+        self.assertEqual(apl.getArray("subclass"), subclass)
+        self.assertEqual(apl.getScalar("subclass"), subclass[-1])
 
     def testComment(self):
         apl = dafBase.PropertyList()
         apl.set("NAXIS", 2, "two-dimensional")
         self.assertEqual(apl.get("NAXIS"), 2)
+        self.assertEqual(apl.getArray("NAXIS"), [2])
+        self.assertEqual(apl.getScalar("NAXIS"), 2)
         self.assertEqual(apl.getComment("NAXIS"), "two-dimensional")
         apl.set("NAXIS", 3, "three-dimensional")
         self.assertEqual(apl.get("NAXIS"), 3)
+        self.assertEqual(apl.getArray("NAXIS"), [3])
+        self.assertEqual(apl.getScalar("NAXIS"), 3)
         self.assertEqual(apl.getComment("NAXIS"), "three-dimensional")
 
     def testOrder(self):
@@ -293,15 +309,25 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("CURRENT.foo", -32)
         apl.set("CURRENT.bar", 2)
         self.assertEqual(apl.get("CURRENT"), 49.5)
+        self.assertEqual(apl.getArray("CURRENT"), [49.5])
+        self.assertEqual(apl.getScalar("CURRENT"), 49.5)
         self.assertEqual(apl.get("CURRENT.foo"), -32)
+        self.assertEqual(apl.getArray("CURRENT.foo"), [-32])
+        self.assertEqual(apl.getScalar("CURRENT.foo"), -32)
         self.assertEqual(apl.get("CURRENT.bar"), 2)
+        self.assertEqual(apl.getArray("CURRENT.bar"), [2])
+        self.assertEqual(apl.getScalar("CURRENT.bar"), 2)
 
         aps = dafBase.PropertySet()
         aps.set("bottom", "x")
         aps.set("sibling", 42)
         apl.set("top", aps)
         self.assertEqual(apl.get("top.bottom"), "x")
+        self.assertEqual(apl.getArray("top.bottom"), ["x"])
+        self.assertEqual(apl.getScalar("top.bottom"), "x")
         self.assertEqual(apl.get("top.sibling"), 42)
+        self.assertEqual(apl.getArray("top.sibling"), [42])
+        self.assertEqual(apl.getScalar("top.sibling"), 42)
         with self.assertRaises(pexExcept.NotFoundError):
             apl.get("top")
         self.assertEqual(apl.toString(),
@@ -318,6 +344,8 @@ class PropertyListTestCase(unittest.TestCase):
         pl1.set("a.b", 1)
         pl2 = pl1.deepCopy()  # should not segfault
         self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
+        self.assertEqual(pl1.getArray("a.b"), pl2.getArray("a.b"))
+        self.assertEqual(pl1.getScalar("a.b"), pl2.getScalar("a.b"))
 
     def testCopy(self):
         dest = dafBase.PropertyList()
@@ -326,6 +354,8 @@ class PropertyListTestCase(unittest.TestCase):
         source.set("srcItem1", value1)
         dest.copy("destItem1", source, "srcItem1")
         self.assertEqual(dest.get("destItem1"), value1)
+        self.assertEqual(dest.getArray("destItem1"), value1)
+        self.assertEqual(dest.getScalar("destItem1"), value1[-1])
 
         # items are replaced, regardless of type
         dest.set("destItem2", "string value")
@@ -333,10 +363,14 @@ class PropertyListTestCase(unittest.TestCase):
         source.set("srcItem2", value2)
         dest.copy("destItem2", source, "srcItem2")
         self.assertEqual(dest.get("destItem2"), value2)
+        self.assertEqual(dest.getArray("destItem2"), value2)
+        self.assertEqual(dest.getScalar("destItem2"), value2[-1])
 
         # asScalar copies only the last value
         dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
         self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+        self.assertEqual(dest.getArray("destItem2Scalar"), [value2[-1]])
+        self.assertEqual(dest.getScalar("destItem2Scalar"), value2[-1])
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

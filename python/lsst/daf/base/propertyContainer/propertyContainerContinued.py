@@ -71,6 +71,40 @@ def _propertyContainerGet(container, name, asArray=False):
     raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
 
 
+def _propertyContainerGetArray(container, name):
+    """Get a value of unknown type as an array
+
+    Throw TypeError if the item type is not numeric or string
+    (e.g. is PropertyList, PropertySet or PersistablePtr).
+    """
+    if not container.exists(name):
+        raise lsst.pex.exceptions.NotFoundError(name + " not found")
+
+    elemType = _propertyContainerElementTypeName(container, name)
+    if elemType:
+        return getattr(container, "getArray" + elemType)(name)
+
+    raise TypeError("Item {} is not numeric or string".format(name))
+
+
+def _propertyContainerGetScalar(container, name):
+    """Get a value of unknown type as a scalar
+
+    If there are multiple values, return the last value
+
+    Throw TypeError if the item type is not numeric or string
+    (e.g. is PropertyList, PropertySet or PersistablePtr).
+    """
+    if not container.exists(name):
+        raise lsst.pex.exceptions.NotFoundError(name + " not found")
+
+    elemType = _propertyContainerElementTypeName(container, name)
+    if elemType:
+        return getattr(container, "getArray" + elemType)(name)[-1]
+
+    raise TypeError("Item {} is not numeric or string".format(name))
+
+
 def _guessIntegerType(container, name, value):
     """Given an existing container and name, determine the type
     that should be used for the supplied value. The supplied value
@@ -190,6 +224,12 @@ class PropertySet:
     def get(self, name, asArray=False):
         return _propertyContainerGet(self, name, asArray)
 
+    def getArray(self, name):
+        return _propertyContainerGetArray(self, name)
+
+    def getScalar(self, name):
+        return _propertyContainerGetScalar(self, name)
+
     def set(self, name, value):
         return _propertyContainerSet(self, name, value, self._typeMenu)
 
@@ -232,6 +272,12 @@ class PropertyList:
 
     def get(self, name, asArray=False):
         return _propertyContainerGet(self, name, asArray)
+
+    def getArray(self, name):
+        return _propertyContainerGetArray(self, name)
+
+    def getScalar(self, name):
+        return _propertyContainerGetScalar(self, name)
 
     def set(self, name, value, comment=None):
         args = []
