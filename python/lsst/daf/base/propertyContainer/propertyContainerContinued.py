@@ -231,19 +231,105 @@ class PropertySet:
         pass
 
     def get(self, name):
+        """Return an item as a scalar or array
+
+        Return an array if the item is of numeric or string type and has
+        more than one value, otherwise return a scalar.
+
+        .. deprecated:: 20180-06
+                  `get` is superseded by `getArray` or `getScalar`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
+        """Return an item as an array; the item type must be numeric or string
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        TypeError
+            If item type is ``lsst.daf.base.PropertyList``,
+            ``lsst.daf.base.PropertySet``
+            or ``lsst.daf.base.PersistablePtr``.
+        """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
+        """Return an item as a scalar
+
+        If the item has more than one value then the last value is returned
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value):
+        """Set the value of an item
+
+        If the item already exists it is silently replaced; the types
+        need not match.
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+        """
         return _propertyContainerSet(self, name, value, self._typeMenu)
 
     def add(self, name, value):
+        """Append one or more values to a given item, which need not exist
+
+        If the item exists then the new value(s) are appended;
+        otherwise it is like calling `set`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+
+        Notes
+        -----
+        If `value` is an ``lsst.daf.base.PropertySet`` or
+        ``lsst.daf.base.PropertyList`` then `value` replaces
+        the existing value. Also the item is added as a live
+        reference, so updating `value` will update this container
+        and vice-versa.
+
+        Raises
+        ------
+        lsst::pex::exceptions::TypeError
+            If the type of `value` is incompatible with the existing value
+            of the item.
+        """
         return _propertyContainerAdd(self, name, value, self._typeMenu)
 
     def toDict(self):
@@ -281,22 +367,105 @@ class PropertyList:
         pass
 
     def get(self, name):
+        """Return an item as a scalar or array
+
+        Return an array if the item has more than one value,
+        otherwise return a scalar.
+
+        .. deprecated:: 20180-06
+                  `get` is superseded by `getArray` or `getScalar`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
+        """Return an item as an array
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
+        """Return an item as a scalar
+
+        If the item has more than one value then the last value is returned
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value, comment=None):
+        """Set the value of an item
+
+        If the item already exists it is silently replaced; the types
+        need not match.
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+        """
         args = []
         if comment is not None:
             args.append(comment)
         return _propertyContainerSet(self, name, value, self._typeMenu, *args)
 
     def add(self, name, value, comment=None):
+        """Append one or more values to a given item, which need not exist
+
+        If the item exists then the new value(s) are appended;
+        otherwise it is like calling `set`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+
+        Notes
+        -----
+        If `value` is an ``lsst.daf.base.PropertySet`` items are added
+        using dotted names (e.g. if name="a" and value contains
+        an item "b" which is another PropertySet and contains an
+        item "c" which is numeric or string, then the value of "c"
+        is added as "a.b.c", appended to the existing values of
+        "a.b.c" if any (in which case the types must be compatible).
+
+        Raises
+        ------
+        lsst::pex::exceptions::TypeError
+            If the type of `value` is incompatible with the existing value
+            of the item.
+        """
         args = []
         if comment is not None:
             args.append(comment)
