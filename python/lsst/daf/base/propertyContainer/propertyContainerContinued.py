@@ -26,6 +26,7 @@ __all__ = ["getstate", "setstate"]
 
 import enum
 import numbers
+import warnings
 
 from lsst.utils import continueClass
 
@@ -230,6 +231,7 @@ class PropertySet:
         pass
 
     def get(self, name):
+        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
@@ -279,6 +281,7 @@ class PropertyList:
         pass
 
     def get(self, name):
+        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):

@@ -71,7 +71,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getString("string"), "bar")
         self.assertEqual(ps.typeOf("int2"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.getInt("int2"), 2009)
-        self.assertEqual(ps.get("int2"), 2009)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.getArray("int2"), [2009])
         self.assertEqual(ps.getScalar("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
@@ -125,7 +126,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getArray("ints"), v)
         self.assertEqual(ps.getScalar("ints"), v[-1])
         ps.setInt("int", 999)
-        x = ps.get("int")
+        with self.assertWarns(DeprecationWarning):
+            x = ps.get("int")
         self.assertEqual(x, 999)
         self.assertEqual(ps.getArray("int"), [999])
         self.assertEqual(ps.getScalar("int"), 999)
@@ -169,16 +171,20 @@ class PropertySetTestCase(unittest.TestCase):
         ps.set("ints", intArr)
         ps.set("floats", floatArr)
         ps.set("strs", strArr)
-        self.assertEqual(ps.get("bools"), boolArr)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("bools"), boolArr)
         self.assertEqual(ps.getArray("bools"), boolArr)
         self.assertEqual(ps.getScalar("bools"), boolArr[-1])
-        self.assertEqual(ps.get("ints"), intArr)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("ints"), intArr)
         self.assertEqual(ps.getArray("ints"), intArr)
         self.assertEqual(ps.getScalar("ints"), intArr[-1])
-        self.assertEqual(ps.get("floats"), floatArr)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("floats"), floatArr)
         self.assertEqual(ps.getArray("floats"), floatArr)
         self.assertEqual(ps.getScalar("floats"), floatArr[-1])
-        self.assertEqual(ps.get("strs"), strArr)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("strs"), strArr)
         self.assertEqual(ps.getArray("strs"), strArr)
         self.assertEqual(ps.getScalar("strs"), strArr[-1])
 
@@ -186,16 +192,20 @@ class PropertySetTestCase(unittest.TestCase):
         ps.add("ints", list(reversed(intArr)))
         ps.add("floats", list(reversed(floatArr)))
         ps.add("strs", list(reversed(strArr)))
-        self.assertEqual(ps.get("bools"), boolArr + list(reversed(boolArr)))
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("bools"), boolArr + list(reversed(boolArr)))
         self.assertEqual(ps.getArray("bools"), boolArr + list(reversed(boolArr)))
         self.assertEqual(ps.getScalar("bools"), boolArr[0])
-        self.assertEqual(ps.get("ints"), intArr + list(reversed(intArr)))
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("ints"), intArr + list(reversed(intArr)))
         self.assertEqual(ps.getArray("ints"), intArr + list(reversed(intArr)))
         self.assertEqual(ps.getScalar("ints"), intArr[0])
-        self.assertEqual(ps.get("floats"), floatArr + list(reversed(floatArr)))
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("floats"), floatArr + list(reversed(floatArr)))
         self.assertEqual(ps.getArray("floats"), floatArr + list(reversed(floatArr)))
         self.assertEqual(ps.getScalar("floats"), floatArr[0])
-        self.assertEqual(ps.get("strs"), strArr + list(reversed(strArr)))
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("strs"), strArr + list(reversed(strArr)))
         self.assertEqual(ps.getArray("strs"), strArr + list(reversed(strArr)))
         self.assertEqual(ps.getScalar("strs"), strArr[0])
 
@@ -210,8 +220,9 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        with self.assertRaises(pexExcept.NotFoundError):
-            ps.get("foo")
+        with self.assertWarns(DeprecationWarning):
+            with self.assertRaises(pexExcept.NotFoundError):
+                ps.get("foo")
 
     def testSubPS(self):
         ps = dafBase.PropertySet()
@@ -221,21 +232,25 @@ class PropertySetTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             ps.getArray("b")
         self.assertEqual(ps.getScalar("b"), ps1)
-        self.assertEqual(ps.get("b.a"), 1)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b.a"), 1)
         self.assertEqual(ps.getArray("b.a"), [1])
         self.assertEqual(ps.getScalar("b.a"), 1)
         ps.set("c", ps1)
         with self.assertRaises(TypeError):
             ps.getArray("c")
         self.assertEqual(ps.getScalar("c"), ps1)
-        self.assertEqual(ps.get("c.a"), 1)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("c.a"), 1)
         self.assertEqual(ps.getArray("c.a"), [1])
         self.assertEqual(ps.getScalar("c.a"), 1)
         ps.set("c.a", 2)
-        self.assertEqual(ps.get("b.a"), 2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b.a"), 2)
         self.assertEqual(ps.getArray("b.a"), [2])
         self.assertEqual(ps.getScalar("b.a"), 2)
-        self.assertEqual(ps.get("b").get("a"), 2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b").get("a"), 2)
 
     def testCopy(self):
         dest = dafBase.PropertySet()
@@ -243,7 +258,8 @@ class PropertySetTestCase(unittest.TestCase):
         value1 = [1.5, 3.2]
         source.set("srcItem1", value1)
         dest.copy("destItem1", source, "srcItem1")
-        self.assertEqual(dest.get("destItem1"), value1)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem1"), value1)
         self.assertEqual(dest.getArray("destItem1"), value1)
         self.assertEqual(dest.getScalar("destItem1"), value1[-1])
 
@@ -252,13 +268,15 @@ class PropertySetTestCase(unittest.TestCase):
         value2 = [5, -4, 3]
         source.set("srcItem2", value2)
         dest.copy("destItem2", source, "srcItem2")
-        self.assertEqual(dest.get("destItem2"), value2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem2"), value2)
         self.assertEqual(dest.getArray("destItem2"), value2)
         self.assertEqual(dest.getScalar("destItem2"), value2[-1])
 
         # asScalar copies only the last value
         dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
-        self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
         self.assertEqual(dest.getArray("destItem2Scalar"), [value2[-1]])
         self.assertEqual(dest.getScalar("destItem2Scalar"), value2[-1])
 
@@ -286,7 +304,8 @@ class FlatTestCase(unittest.TestCase):
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
         self.assertIs(ps.getBool("bool"), True)
-        self.assertIs(ps.get("bool"), True)
+        with self.assertWarns(DeprecationWarning):
+            self.assertIs(ps.get("bool"), True)
         self.assertEqual(ps.getArray("bool"), [True])
         self.assertIs(ps.getScalar("bool"), True)
         self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
@@ -306,13 +325,15 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getString("string"), "bar")
         self.assertEqual(ps.typeOf("int2"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.getInt("int2"), 2009)
-        self.assertEqual(ps.get("int2"), 2009)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("int2"), 2009)
         self.assertEqual(ps.getArray("int2"), [2009])
         self.assertEqual(ps.getScalar("int2"), 2009)
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.typeOf("autobool"), dafBase.PropertySet.TYPE_Bool)
-        self.assertIs(ps.get("autobool"), True)
+        with self.assertWarns(DeprecationWarning):
+            self.assertIs(ps.get("autobool"), True)
         self.assertEqual(ps.getArray("autobool"), [True])
         self.assertIs(ps.getScalar("autobool"), True)
 
@@ -342,7 +363,8 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getArray("ints"), v)
         self.assertEqual(ps.getScalar("ints"), v[-1])
         ps.setInt("int", 999)
-        x = ps.get("int")
+        with self.assertWarns(DeprecationWarning):
+            x = ps.get("int")
         self.assertEqual(x, 999)
         self.assertEqual(ps.getArray("int"), [999])
         self.assertEqual(ps.getScalar("int"), 999)
@@ -387,8 +409,9 @@ class FlatTestCase(unittest.TestCase):
         ps.setBool("bool", True)
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
-        with self.assertRaises(pexExcept.NotFoundError):
-            ps.get("foo")
+        with self.assertWarns(DeprecationWarning):
+            with self.assertRaises(pexExcept.NotFoundError):
+                ps.get("foo")
 
     def testSubPS(self):
         ps = dafBase.PropertySet(flat=True)
@@ -398,18 +421,21 @@ class FlatTestCase(unittest.TestCase):
         ps1.set("foo", "bar")
         ps.setPropertySet("b", ps1)
         self.assertEqual(ps.exists("b.a"), True)
-        self.assertEqual(ps.get("b.a"), [1, 2])
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b.a"), [1, 2])
         self.assertEqual(ps.getArray("b.a"), [1, 2])
         self.assertEqual(ps.getScalar("b.a"), 2)
         self.assertEqual(ps.exists("b"), False)
         self.assertEqual(ps.exists("b.foo"), True)
-        self.assertEqual(ps.get("b.foo"), "bar")
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b.foo"), "bar")
         self.assertEqual(ps.getArray("b.foo"), ["bar"])
         self.assertEqual(ps.getScalar("b.foo"), "bar")
 
         ps.set("b.c", 20)
         self.assertEqual(ps.exists("b.c"), True)
-        self.assertEqual(ps.get("b.c"), 20)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(ps.get("b.c"), 20)
         self.assertEqual(ps.getArray("b.c"), [20])
         self.assertEqual(ps.getScalar("b.c"), 20)
         self.assertEqual(ps.exists("b"), False)
