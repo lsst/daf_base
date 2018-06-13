@@ -174,15 +174,24 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
-        self.assertRaises(pexExcept.NotFoundError, apl.get, "foo")
-        self.assertRaises(pexExcept.TypeError, apl.getBool, "short")
-        self.assertRaises(pexExcept.TypeError, apl.getBool, "int")
-        self.assertRaises(pexExcept.TypeError, apl.getShort, "int")
-        self.assertRaises(pexExcept.TypeError, apl.getInt, "short")
-        self.assertRaises(pexExcept.TypeError, apl.getInt, "bool")
-        self.assertRaises(pexExcept.TypeError, apl.getDouble, "float")
-        self.assertRaises(pexExcept.TypeError, apl.getFloat, "double")
-        self.assertRaises(pexExcept.TypeError, apl.getString, "int")
+        with self.assertRaises(pexExcept.NotFoundError):
+            apl.get("foo")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getBool("short")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getBool("int")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getShort("int")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getInt("short")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getInt("bool")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getDouble("float")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getFloat("double")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getString("int")
 
     def testAddVector(self):
         apl = dafBase.PropertyList()
@@ -293,7 +302,8 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("top", aps)
         self.assertEqual(apl.get("top.bottom"), "x")
         self.assertEqual(apl.get("top.sibling"), 42)
-        self.assertRaises(pexExcept.NotFoundError, apl.get, "top")
+        with self.assertRaises(pexExcept.NotFoundError):
+            apl.get("top")
         self.assertEqual(apl.toString(),
                          'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
                          'top.sibling = 42\ntop.bottom = "x"\n')
