@@ -21,12 +21,12 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
 
 __all__ = ["getstate", "setstate"]
 
-from past.builtins import long
+import enum
 import numbers
+import warnings
 
 from lsst.utils import continueClass
 
@@ -35,6 +35,12 @@ from .propertyList import PropertyList
 
 import lsst.pex.exceptions
 from ..dateTime import DateTime
+
+
+class ReturnStyle(enum.Enum):
+    ARRAY = enum.auto()
+    SCALAR = enum.auto()
+    AUTO = enum.auto()
 
 
 def _propertyContainerElementTypeName(container, name):
@@ -46,15 +52,53 @@ def _propertyContainerElementTypeName(container, name):
     return None
 
 
-def _propertyContainerGet(container, name, asArray=False):
-    """Extract a single Python value of unknown type"""
+def _propertyContainerGet(container, name, returnStyle):
+    """Get a value of unknown type as a scalar or array
+
+    Parameters
+    ----------
+    container : ``lsst.daf.base.PropertySet`` or ``lsst.daf.base.PropertyList``
+        Container from which to get the value
+    name : ``str``
+        Name of item
+    returnStyle : ``ReturnStyle``
+        Control whether data is returned as an array or scalar:
+        - ReturnStyle.ARRAY: return numeric or string data types
+            as an array of values. Raise TypeError for
+            PropertyList, PropertySet or PersistablePtr.
+        - ReturnStyle.SCALAR: return numeric or string data types
+            as a single value; if the item has multiple values then
+            return the last value. Return PropertyList, PropertySet
+            or PersistablePtr as a single item.
+        - ReturnStyle.AUTO: (deprecated) return numeric or string data
+            as a scalar if there is just one item, or as an array
+            otherwise. Return PropertyList, PropertySet
+            or PersistablePtr as a single item.
+
+    Raises
+    ------
+    ValueError
+        If `returnStyle`=``ReturnStyle.ARRAY`` and the item is of type
+        ``PropertyList``, ``PropertySet`` or ``PersistablePtr``
+
+    Notes
+    -----
+    `returnStyle` is handled as follows:
+    """
     if not container.exists(name):
         raise lsst.pex.exceptions.NotFoundError(name + " not found")
+    if returnStyle not in ReturnStyle:
+        raise ValueError("returnStyle {} must be a ReturnStyle".format(returnStyle))
 
     elemType = _propertyContainerElementTypeName(container, name)
     if elemType:
         value = getattr(container, "getArray" + elemType)(name)
-        return value[0] if len(value) == 1 and not asArray else value
+        if returnStyle == ReturnStyle.ARRAY or (returnStyle == ReturnStyle.AUTO and len(value) > 1):
+            return value
+        return value[-1]
+
+    if returnStyle == ReturnStyle.ARRAY:
+        raise TypeError("Item {} is not numeric or string".format(name))
 
     try:
         return container.getAsPropertyListPtr(name)
@@ -157,7 +201,8 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
 
 
 def getstate(self):
-    return [(name, _propertyContainerElementTypeName(self, name), self.get(name),
+    return [(name, _propertyContainerElementTypeName(self, name),
+             _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
              self.getComment(name)) for name in self.getOrderedNames()]
 
 
@@ -168,10 +213,9 @@ def setstate(self, state):
 
 @continueClass
 class PropertySet:
-    # Mapping of type to method names
+    # Mapping of type to method names;
+    # int types are omitted due to use of _guessIntegerType
     _typeMenu = {bool: "Bool",
-                 long: "LongLong",
-                 int: "Int",  # overwrites long on Python 3.x
                  float: "Double",
                  str: "String",
                  DateTime: "DateTime",
@@ -186,13 +230,106 @@ class PropertySet:
     except Exception:
         pass
 
-    def get(self, name, asArray=False):
-        return _propertyContainerGet(self, name, asArray)
+    def get(self, name):
+        """Return an item as a scalar or array
+
+        Return an array if the item is of numeric or string type and has
+        more than one value, otherwise return a scalar.
+
+        .. deprecated:: 20180-06
+                  `get` is superseded by `getArray` or `getScalar`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
+        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
+    def getArray(self, name):
+        """Return an item as an array; the item type must be numeric or string
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        TypeError
+            If item type is ``lsst.daf.base.PropertyList``,
+            ``lsst.daf.base.PropertySet``
+            or ``lsst.daf.base.PersistablePtr``.
+        """
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
+
+    def getScalar(self, name):
+        """Return an item as a scalar
+
+        If the item has more than one value then the last value is returned
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value):
+        """Set the value of an item
+
+        If the item already exists it is silently replaced; the types
+        need not match.
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+        """
         return _propertyContainerSet(self, name, value, self._typeMenu)
 
     def add(self, name, value):
+        """Append one or more values to a given item, which need not exist
+
+        If the item exists then the new value(s) are appended;
+        otherwise it is like calling `set`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+
+        Notes
+        -----
+        If `value` is an ``lsst.daf.base.PropertySet`` or
+        ``lsst.daf.base.PropertyList`` then `value` replaces
+        the existing value. Also the item is added as a live
+        reference, so updating `value` will update this container
+        and vice-versa.
+
+        Raises
+        ------
+        lsst::pex::exceptions::TypeError
+            If the type of `value` is incompatible with the existing value
+            of the item.
+        """
         return _propertyContainerAdd(self, name, value, self._typeMenu)
 
     def toDict(self):
@@ -201,7 +338,7 @@ class PropertySet:
 
         d = {}
         for name in self.names():
-            v = self.get(name)
+            v = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
             if isinstance(v, PropertySet):
                 d[name] = PropertySet.toDict(v)
@@ -214,8 +351,7 @@ class PropertySet:
 class PropertyList:
     # Mapping of type to method names
     _typeMenu = {bool: "Bool",
-                 long: "LongLong",
-                 int: "Int",  # overwrites long on Python 3.x
+                 int: "Int",
                  float: "Double",
                  str: "String",
                  DateTime: "DateTime",
@@ -230,16 +366,106 @@ class PropertyList:
     except Exception:
         pass
 
-    def get(self, name, asArray=False):
-        return _propertyContainerGet(self, name, asArray)
+    def get(self, name):
+        """Return an item as a scalar or array
+
+        Return an array if the item has more than one value,
+        otherwise return a scalar.
+
+        .. deprecated:: 20180-06
+                  `get` is superseded by `getArray` or `getScalar`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
+        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
+    def getArray(self, name):
+        """Return an item as an array
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
+
+    def getScalar(self, name):
+        """Return an item as a scalar
+
+        If the item has more than one value then the last value is returned
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+
+        Raises
+        ------
+        lsst.pex.exceptions.NotFoundError
+            If the item does not exist.
+        """
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def set(self, name, value, comment=None):
+        """Set the value of an item
+
+        If the item already exists it is silently replaced; the types
+        need not match.
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+        """
         args = []
         if comment is not None:
             args.append(comment)
         return _propertyContainerSet(self, name, value, self._typeMenu, *args)
 
     def add(self, name, value, comment=None):
+        """Append one or more values to a given item, which need not exist
+
+        If the item exists then the new value(s) are appended;
+        otherwise it is like calling `set`
+
+        Parameters
+        ----------
+        name : ``str``
+            Name of item
+        value : any supported type
+            Value of item; may be a scalar or array
+
+        Notes
+        -----
+        If `value` is an ``lsst.daf.base.PropertySet`` items are added
+        using dotted names (e.g. if name="a" and value contains
+        an item "b" which is another PropertySet and contains an
+        item "c" which is numeric or string, then the value of "c"
+        is added as "a.b.c", appended to the existing values of
+        "a.b.c" if any (in which case the types must be compatible).
+
+        Raises
+        ------
+        lsst::pex::exceptions::TypeError
+            If the type of `value` is incompatible with the existing value
+            of the item.
+        """
         args = []
         if comment is not None:
             args.append(comment)
@@ -250,11 +476,12 @@ class PropertyList:
         ret = []
         for name in orderedNames:
             if self.isArray(name):
-                values = self.get(name)
+                values = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
                 for v in values:
                     ret.append((name, v, self.getComment(name)))
             else:
-                ret.append((name, self.get(name), self.getComment(name)))
+                ret.append((name, _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
+                            self.getComment(name)))
         return ret
 
     def toOrderedDict(self):
@@ -265,5 +492,5 @@ class PropertyList:
 
         d = OrderedDict()
         for name in self.getOrderedNames():
-            d[name] = self.get(name)
+            d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d

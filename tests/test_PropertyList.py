@@ -21,9 +21,6 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
-from past.builtins import long
-
 import unittest
 import lsst.utils.tests
 import lsst.daf.base as dafBase
@@ -52,7 +49,10 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(original.nameCount(), new.nameCount())
         self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
         for name in original.getOrderedNames():
-            self.assertEqual(original.get(name), new.get(name))
+            with self.assertWarns(DeprecationWarning):
+                self.assertEqual(original.get(name), new.get(name))
+            self.assertEqual(original.getArray(name), new.getArray(name))
+            self.assertEqual(original.getScalar(name), new.getScalar(name))
             self.assertEqual(original.typeOf(name), new.typeOf(name))
 
     def testScalar(self):
@@ -60,7 +60,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
+        apl.setLongLong("int64_t", 0xfeeddeadbeef)
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.set("char*", "foo")
@@ -77,7 +77,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getInt("int"), 2008)
         self.assertEqual(apl.typeOf("int64_t"),
                          dafBase.PropertyList.TYPE_LongLong)
-        self.assertEqual(apl.getLongLong("int64_t"), long(0xfeeddeadbeef))
+        self.assertEqual(apl.getLongLong("int64_t"), 0xfeeddeadbeef)
         self.assertEqual(apl.typeOf("float"), dafBase.PropertyList.TYPE_Float)
         self.assertAlmostEqual(apl.getFloat("float"), 3.14159, 6)
         self.assertEqual(apl.typeOf("double"), dafBase.PropertyList.TYPE_Double)
@@ -88,9 +88,12 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getString("string"), "bar")
         self.assertEqual(apl.typeOf("int2"), dafBase.PropertyList.TYPE_Int)
         self.assertEqual(apl.getInt("int2"), 2009)
-        self.assertEqual(apl.get("int2"), 2009)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("int2"), 2009)
+        self.assertEqual(apl.getArray("int2"), [2009])
+        self.assertEqual(apl.getScalar("int2"), 2009)
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
-        self.assertEqual(apl.getDateTime("dt").nsecs(), long(1238657233314159265))
+        self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(apl.getDouble("subclass"), 1.23456789)
         self.checkPickle(apl)
 
@@ -117,15 +120,18 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(v, w)
         self.assertEqual(apl.getInt("ints2"), 8)
         self.assertEqual(apl.getArrayInt("ints2"), [10, 9, 8])
-        w = apl.get("ints", asArray=True)
+        with self.assertWarns(DeprecationWarning):
+            w = apl.get("ints")
         self.assertEqual(len(w), 3)
         self.assertEqual(v, w)
+        self.assertEqual(apl.getArray("ints"), v)
+        self.assertEqual(apl.getScalar("ints"), v[-1])
         apl.setInt("int", 999)
-        x = apl.get("int")
+        with self.assertWarns(DeprecationWarning):
+            x = apl.get("int")
         self.assertEqual(x, 999)
-        x = apl.get("int", asArray=True)
-        self.assertEqual(len(x), 1)
-        self.assertEqual(x, [999, ])
+        self.assertEqual(apl.getArray("int"), [999])
+        self.assertEqual(apl.getScalar("int"), 999)
 
         self.checkPickle(apl)
 
@@ -160,7 +166,10 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(w[3], -999)
         self.assertEqual(w[4], 13)
         self.assertEqual(apl.getString("other"), "foo")
-        self.assertEqual(apl.get("subclass"), 1.23456789)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("subclass"), 1.23456789)
+        self.assertEqual(apl.getArray("subclass"), [1.23456789])
+        self.assertEqual(apl.getScalar("subclass"), 1.23456789)
 
     def testDateTimeToString(self):
         apl = dafBase.PropertyList()
@@ -173,19 +182,29 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setBool("bool", True)
         apl.setShort("short", 42)
         apl.setInt("int", 2008)
-        apl.setLongLong("int64_t", long(0xfeeddeadbeef))
+        apl.setLongLong("int64_t", 0xfeeddeadbeef)
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
-        self.assertRaises(pexExcept.NotFoundError, apl.get, "foo")
-        self.assertRaises(pexExcept.TypeError, apl.getBool, "short")
-        self.assertRaises(pexExcept.TypeError, apl.getBool, "int")
-        self.assertRaises(pexExcept.TypeError, apl.getShort, "int")
-        self.assertRaises(pexExcept.TypeError, apl.getInt, "short")
-        self.assertRaises(pexExcept.TypeError, apl.getInt, "bool")
-        self.assertRaises(pexExcept.TypeError, apl.getDouble, "float")
-        self.assertRaises(pexExcept.TypeError, apl.getFloat, "double")
-        self.assertRaises(pexExcept.TypeError, apl.getString, "int")
+        with self.assertWarns(DeprecationWarning):
+            with self.assertRaises(pexExcept.NotFoundError):
+                apl.get("foo")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getBool("short")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getBool("int")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getShort("int")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getInt("short")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getInt("bool")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getDouble("float")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getFloat("double")
+        with self.assertRaises(pexExcept.TypeError):
+            apl.getString("int")
 
     def testAddVector(self):
         apl = dafBase.PropertyList()
@@ -196,15 +215,24 @@ class PropertyListTestCase(unittest.TestCase):
         apl.add("subclass", subclass)
         self.assertEqual(apl.getArrayInt("ints"),
                          [42, 2008, 1, -42, -2008, -1])
-        self.assertEqual(apl.get("subclass"), subclass)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("subclass"), subclass)
+        self.assertEqual(apl.getArray("subclass"), subclass)
+        self.assertEqual(apl.getScalar("subclass"), subclass[-1])
 
     def testComment(self):
         apl = dafBase.PropertyList()
         apl.set("NAXIS", 2, "two-dimensional")
-        self.assertEqual(apl.get("NAXIS"), 2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("NAXIS"), 2)
+        self.assertEqual(apl.getArray("NAXIS"), [2])
+        self.assertEqual(apl.getScalar("NAXIS"), 2)
         self.assertEqual(apl.getComment("NAXIS"), "two-dimensional")
         apl.set("NAXIS", 3, "three-dimensional")
-        self.assertEqual(apl.get("NAXIS"), 3)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("NAXIS"), 3)
+        self.assertEqual(apl.getArray("NAXIS"), [3])
+        self.assertEqual(apl.getScalar("NAXIS"), 3)
         self.assertEqual(apl.getComment("NAXIS"), "three-dimensional")
 
     def testOrder(self):
@@ -286,17 +314,34 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("CURRENT", 49.5)
         apl.set("CURRENT.foo", -32)
         apl.set("CURRENT.bar", 2)
-        self.assertEqual(apl.get("CURRENT"), 49.5)
-        self.assertEqual(apl.get("CURRENT.foo"), -32)
-        self.assertEqual(apl.get("CURRENT.bar"), 2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("CURRENT"), 49.5)
+        self.assertEqual(apl.getArray("CURRENT"), [49.5])
+        self.assertEqual(apl.getScalar("CURRENT"), 49.5)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("CURRENT.foo"), -32)
+        self.assertEqual(apl.getArray("CURRENT.foo"), [-32])
+        self.assertEqual(apl.getScalar("CURRENT.foo"), -32)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("CURRENT.bar"), 2)
+        self.assertEqual(apl.getArray("CURRENT.bar"), [2])
+        self.assertEqual(apl.getScalar("CURRENT.bar"), 2)
 
         aps = dafBase.PropertySet()
         aps.set("bottom", "x")
         aps.set("sibling", 42)
         apl.set("top", aps)
-        self.assertEqual(apl.get("top.bottom"), "x")
-        self.assertEqual(apl.get("top.sibling"), 42)
-        self.assertRaises(pexExcept.NotFoundError, apl.get, "top")
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("top.bottom"), "x")
+        self.assertEqual(apl.getArray("top.bottom"), ["x"])
+        self.assertEqual(apl.getScalar("top.bottom"), "x")
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(apl.get("top.sibling"), 42)
+        self.assertEqual(apl.getArray("top.sibling"), [42])
+        self.assertEqual(apl.getScalar("top.sibling"), 42)
+        with self.assertWarns(DeprecationWarning):
+            with self.assertRaises(pexExcept.NotFoundError):
+                apl.get("top")
         self.assertEqual(apl.toString(),
                          'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
                          'top.sibling = 42\ntop.bottom = "x"\n')
@@ -310,7 +355,10 @@ class PropertyListTestCase(unittest.TestCase):
         pl1 = dafBase.PropertyList()
         pl1.set("a.b", 1)
         pl2 = pl1.deepCopy()  # should not segfault
-        self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(pl1.get("a.b"), pl2.get("a.b"))
+        self.assertEqual(pl1.getArray("a.b"), pl2.getArray("a.b"))
+        self.assertEqual(pl1.getScalar("a.b"), pl2.getScalar("a.b"))
 
     def testCopy(self):
         dest = dafBase.PropertyList()
@@ -318,18 +366,27 @@ class PropertyListTestCase(unittest.TestCase):
         value1 = [1.5, 3.2]
         source.set("srcItem1", value1)
         dest.copy("destItem1", source, "srcItem1")
-        self.assertEqual(dest.get("destItem1"), value1)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem1"), value1)
+        self.assertEqual(dest.getArray("destItem1"), value1)
+        self.assertEqual(dest.getScalar("destItem1"), value1[-1])
 
         # items are replaced, regardless of type
         dest.set("destItem2", "string value")
         value2 = [5, -4, 3]
         source.set("srcItem2", value2)
         dest.copy("destItem2", source, "srcItem2")
-        self.assertEqual(dest.get("destItem2"), value2)
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem2"), value2)
+        self.assertEqual(dest.getArray("destItem2"), value2)
+        self.assertEqual(dest.getScalar("destItem2"), value2[-1])
 
         # asScalar copies only the last value
         dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
-        self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+        with self.assertWarns(DeprecationWarning):
+            self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
+        self.assertEqual(dest.getArray("destItem2Scalar"), [value2[-1]])
+        self.assertEqual(dest.getScalar("destItem2Scalar"), value2[-1])
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

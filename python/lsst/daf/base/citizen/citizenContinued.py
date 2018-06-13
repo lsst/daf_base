@@ -21,11 +21,9 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
 
 __all__ = ["setCallbacks", "mortal"]
 
-from builtins import range
 import re
 
 from .citizen import Citizen
