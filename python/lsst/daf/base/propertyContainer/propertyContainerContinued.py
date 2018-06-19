@@ -62,28 +62,17 @@ def _propertyContainerGet(container, name, returnStyle):
     name : ``str``
         Name of item
     returnStyle : ``ReturnStyle``
-        Control whether data is returned as an array or scalar:
+        Control whether numeric or string data is returned as an array
+        or scalar (the other types, ``PropertyList``, ``PropertySet``
+            and ``PersistablePtr``, are always returned as a scalar):
         - ReturnStyle.ARRAY: return numeric or string data types
-            as an array of values. Raise TypeError for
-            PropertyList, PropertySet or PersistablePtr.
+            as an array of values.
         - ReturnStyle.SCALAR: return numeric or string data types
             as a single value; if the item has multiple values then
-            return the last value. Return PropertyList, PropertySet
-            or PersistablePtr as a single item.
+            return the last value.
         - ReturnStyle.AUTO: (deprecated) return numeric or string data
             as a scalar if there is just one item, or as an array
-            otherwise. Return PropertyList, PropertySet
-            or PersistablePtr as a single item.
-
-    Raises
-    ------
-    ValueError
-        If `returnStyle`=``ReturnStyle.ARRAY`` and the item is of type
-        ``PropertyList``, ``PropertySet`` or ``PersistablePtr``
-
-    Notes
-    -----
-    `returnStyle` is handled as follows:
+            otherwise.
     """
     if not container.exists(name):
         raise lsst.pex.exceptions.NotFoundError(name + " not found")
@@ -96,9 +85,6 @@ def _propertyContainerGet(container, name, returnStyle):
         if returnStyle == ReturnStyle.ARRAY or (returnStyle == ReturnStyle.AUTO and len(value) > 1):
             return value
         return value[-1]
-
-    if returnStyle == ReturnStyle.ARRAY:
-        raise TypeError("Item {} is not numeric or string".format(name))
 
     try:
         return container.getAsPropertyListPtr(name)
@@ -253,7 +239,10 @@ class PropertySet:
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def getArray(self, name):
-        """Return an item as an array; the item type must be numeric or string
+        """Return an item as an array if the item is numeric or string
+
+        If the item is a ``PropertySet``, ``PropertyList`` or
+        ``lsst.daf.base.PersistablePtr`` then return the item as a scalar.
 
         Parameters
         ----------
@@ -264,10 +253,6 @@ class PropertySet:
         ------
         lsst.pex.exceptions.NotFoundError
             If the item does not exist.
-        TypeError
-            If item type is ``lsst.daf.base.PropertyList``,
-            ``lsst.daf.base.PropertySet``
-            or ``lsst.daf.base.PersistablePtr``.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 

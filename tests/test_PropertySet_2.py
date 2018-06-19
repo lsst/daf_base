@@ -229,16 +229,14 @@ class PropertySetTestCase(unittest.TestCase):
         ps1 = dafBase.PropertySet()
         ps1.set("a", 1)
         ps.setPropertySet("b", ps1)
-        with self.assertRaises(TypeError):
-            ps.getArray("b")
+        self.assertEqual(ps.getArray("b"), ps1)
         self.assertEqual(ps.getScalar("b"), ps1)
         with self.assertWarns(DeprecationWarning):
             self.assertEqual(ps.get("b.a"), 1)
         self.assertEqual(ps.getArray("b.a"), [1])
         self.assertEqual(ps.getScalar("b.a"), 1)
         ps.set("c", ps1)
-        with self.assertRaises(TypeError):
-            ps.getArray("c")
+        self.assertEqual(ps.getArray("c"), ps1)
         self.assertEqual(ps.getScalar("c"), ps1)
         with self.assertWarns(DeprecationWarning):
             self.assertEqual(ps.get("c.a"), 1)
