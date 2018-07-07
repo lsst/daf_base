@@ -187,14 +187,24 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
 
 
 def getstate(self):
-    return [(name, _propertyContainerElementTypeName(self, name),
-             _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
-             self.getComment(name)) for name in self.getOrderedNames()]
+    if isinstance(self, PropertyList):
+        return [(name, _propertyContainerElementTypeName(self, name),
+                 _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
+                 self.getComment(name))
+                for name in self.getOrderedNames()]
+    else:
+        return [(name, _propertyContainerElementTypeName(self, name),
+                 _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO))
+                for name in self.paramNames(False)]
 
 
 def setstate(self, state):
-    for name, elemType, value, comment in state:
-        getattr(self, "set" + elemType)(name, value, comment)
+    if isinstance(self, PropertyList):
+        for name, elemType, value, comment in state:
+            getattr(self, "set" + elemType)(name, value, comment)
+    else:
+        for name, elemType, value in state:
+            getattr(self, "set" + elemType)(name, value)
 
 
 @continueClass
