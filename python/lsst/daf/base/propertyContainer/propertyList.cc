@@ -57,10 +57,8 @@ void declareAccessors(C& cls, std::string const& name) {
 
 }  // <anonymous>
 
-PYBIND11_PLUGIN(propertyList) {
+PYBIND11_MODULE(propertyList, mod) {
     py::module::import("lsst.daf.base.persistable");
-
-    py::module mod("propertyList");
 
     py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet, Citizen> cls(mod, "PropertyList");
 
@@ -82,8 +80,6 @@ PYBIND11_PLUGIN(propertyList) {
 
     cls.def("setPropertySet",
             (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&)) & PropertyList::set);
-
-    return mod.ptr();
 }
 
 }  // base

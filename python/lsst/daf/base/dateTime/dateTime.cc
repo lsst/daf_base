@@ -9,9 +9,7 @@ namespace lsst {
 namespace daf {
 namespace base {
 
-PYBIND11_PLUGIN(dateTime) {
-    py::module mod("dateTime");
-
+PYBIND11_MODULE(dateTime, mod) {
     py::class_<DateTime> cls(mod, "DateTime");
 
     py::enum_<DateTime::Timescale>(cls, "Timescale")
@@ -45,8 +43,6 @@ PYBIND11_PLUGIN(dateTime) {
             .def_static("initializeLeapSeconds", &DateTime::initializeLeapSeconds)
             .def("__eq__", [](DateTime const &self, DateTime const &other) { return self == other; },
                  py::is_operator());
-
-    return mod.ptr();
 }
 
 }  // base

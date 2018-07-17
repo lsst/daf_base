@@ -9,9 +9,7 @@ namespace lsst {
 namespace daf {
 namespace base {
 
-PYBIND11_PLUGIN(citizen) {
-    py::module mod("citizen");
-
+PYBIND11_MODULE(citizen, mod) {
     py::class_<Citizen, std::shared_ptr<Citizen>> cls(mod, "Citizen");
 
     cls.def("repr", &Citizen::repr);
@@ -30,8 +28,6 @@ PYBIND11_PLUGIN(citizen) {
     cls.def_static("getNextMemId", &Citizen::getNextMemId);
     cls.def_static("setNewCallbackId", &Citizen::setNewCallbackId);
     cls.def_static("setDeleteCallbackId", &Citizen::setDeleteCallbackId);
-
-    return mod.ptr();
 }
 
 }  // base
