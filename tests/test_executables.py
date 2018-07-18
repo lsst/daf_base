@@ -21,8 +21,8 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-
 import unittest
+
 import lsst.utils.tests
 
 

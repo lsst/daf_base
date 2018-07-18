@@ -21,15 +21,12 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import pickle
 import unittest
+
 import lsst.utils.tests
 import lsst.daf.base as dafBase
 import lsst.pex.exceptions as pexExcept
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 
 class FloatSubClass(float):

@@ -23,7 +23,8 @@
 
 import pickle
 import unittest
-import numpy
+
+import numpy as np
 
 import lsst.utils.tests
 import lsst.daf.base as dafBase
@@ -96,11 +97,11 @@ class PropertySetTestCase(unittest.TestCase):
         """Test that we can also pass NumPy array scalars to PropertySet setters.
         """
         ps = dafBase.PropertySet()
-        ps.setShort("short", numpy.int16(42))
-        ps.setInt("int", numpy.int32(2008))
-        ps.setLongLong("int64_t", numpy.int64(0xfeeddeadbeef))
-        ps.setFloat("float", numpy.float32(3.14159))
-        ps.setDouble("double", numpy.float64(2.718281828459045))
+        ps.setShort("short", np.int16(42))
+        ps.setInt("int", np.int32(2008))
+        ps.setLongLong("int64_t", np.int64(0xfeeddeadbeef))
+        ps.setFloat("float", np.float32(3.14159))
+        ps.setDouble("double", np.float64(2.718281828459045))
         self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
         self.assertEqual(ps.getShort("short"), 42)
         self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
