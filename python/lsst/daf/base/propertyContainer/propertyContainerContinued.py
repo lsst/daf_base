@@ -22,7 +22,7 @@
 #
 
 
-__all__ = ["getstate", "setstate"]
+__all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState", "setPropertyListState"]
 
 import enum
 import numbers
@@ -34,6 +34,91 @@ from .propertySet import PropertySet
 from .propertyList import PropertyList
 import lsst.pex.exceptions
 from ..dateTime import DateTime
+
+
+def getPropertySetState(container):
+    """Get the state of a PropertySet in a form that can be pickled.
+
+    Parameters
+    ----------
+    container : `PropertySet`\
+        The property container.
+
+    Returns
+    -------
+    state : `list`
+        The state, as a list of tuples, each of which contains
+        the following 3 items:
+        - name (a `str`): the name of the item
+        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+            which is appropriate for the data type. For example integer
+            data has ``elementTypeName="Int"` which corresponds to
+            the ``setInt`` method.
+        - value: the data for the item, in a form compatible
+            with the set method named by ``elementTypeName``
+    """
+    return [(name, _propertyContainerElementTypeName(container, name),
+             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO))
+            for name in container.paramNames(False)]
+
+
+def getPropertyListState(container):
+    """Get the state of a PropertyList in a form that can be pickled.
+
+    Parameters
+    ----------
+    container : `PropertyList`
+        The property container.
+
+    Returns
+    -------
+    state : `list`
+        The state, as a list of tuples, each of which contains
+        the following 4 items:
+        - name (a `str`): the name of the item
+        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+            which is appropriate for the data type. For example integer
+            data has ``elementTypeName="Int"` which corresponds to
+            the ``setInt`` method.
+        - value: the data for the item, in a form compatible
+            with the set method named by ``elementTypeName``
+        - comment (a `str`): the comment. This item is only present
+            if ``container`` is a PropertyList.
+    """
+    return [(name, _propertyContainerElementTypeName(container, name),
+             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
+             container.getComment(name))
+            for name in container.getOrderedNames()]
+
+
+def setPropertySetState(container, state):
+    """Restore the state of a PropertySet, in place.
+
+    Parameters
+    ----------
+    container : `PropertySet`
+        The property container whose state is to be restored.
+        It should be empty to start with and is updated in place.
+    state : `list`
+        The state, as returned by ``getPropertySetState``
+    """
+    for name, elemType, value in state:
+        getattr(container, "set" + elemType)(name, value)
+
+
+def setPropertyListState(container, state):
+    """Restore the state of a PropertyList, in place.
+
+    Parameters
+    ----------
+    container : `PropertyList`
+        The property container whose state is to be restored.
+        It should be empty to start with and is updated in place.
+    state : `list`
+        The state, as returned by ``getPropertyListState``
+    """
+    for name, elemType, value, comment in state:
+        getattr(container, "set" + elemType)(name, value, comment)
 
 
 class ReturnStyle(enum.Enum):
@@ -185,60 +270,6 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
 
-def getstate(container):
-    """Get the state of a PropertySet or PropertyList in a form that
-    can be pickled.
-
-    Parameters
-    ----------
-    container : `PropertySet` or `PropertyList`
-        The property container.
-
-    Returns
-    -------
-    state : `list`
-        The state, as a list of tuples, each of which contains
-        the following 3 or 4 items, depending on the type of ``container``:
-        - name (a `str`): the name of the item
-        - elementTypeName (a `str`): the suffix of a ``setX`` method name
-            which is appropriate for the data type. For example integer
-            data has ``elementTypeName="Int"` which corresponds to
-            the ``setInt`` method.
-        - value: the data for the item, as returned by
-          ``propertySetContainer`` with ``returnStyle=AUTO``.
-        - comment (a `str`): the comment. This item is only present
-            if ``container`` is a PropertyList.
-    """
-    if isinstance(container, PropertyList):
-        return [(name, _propertyContainerElementTypeName(container, name),
-                 _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
-                 container.getComment(name))
-                for name in container.getOrderedNames()]
-    else:
-        return [(name, _propertyContainerElementTypeName(container, name),
-                 _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO))
-                for name in container.paramNames(False)]
-
-
-def setstate(container, state):
-    """Restore the state of a PropertySet or PropertyList, in place.
-
-    Parameters
-    ----------
-    container : `PropertySet` or `PropertyList`
-        The property container whose state is to be restored.
-        It should be empty to start with and is updated in place.
-    state : `list`
-        The state, as returned by ``getstate``
-    """
-    if isinstance(container, PropertyList):
-        for name, elemType, value, comment in state:
-            getattr(container, "set" + elemType)(name, value, comment)
-    else:
-        for name, elemType, value in state:
-            getattr(container, "set" + elemType)(name, value)
-
-
 def _makePropertySet(state):
     """Make a ``PropertySet`` from the state returned by ``getstate``
 
@@ -248,7 +279,7 @@ def _makePropertySet(state):
         The data returned by ``getstate``.
     """
     ps = PropertySet()
-    setstate(ps, state)
+    setPropertySetState(ps, state)
     return ps
 
 
@@ -261,7 +292,7 @@ def _makePropertyList(state):
         The data returned by ``getstate``.
     """
     pl = PropertyList()
-    setstate(pl, state)
+    setPropertyListState(pl, state)
     return pl
 
 
@@ -405,7 +436,7 @@ class PropertySet:
         # because pickle creates a new instance by calling
         # object.__new__(PropertyList, *args) which bypasses
         # the pybind11 memory allocation step.
-        return (_makePropertySet, (getstate(self),))
+        return (_makePropertySet, (getPropertySetState(self),))
 
 
 @continueClass
@@ -562,4 +593,4 @@ class PropertyList:
         # because pickle creates a new instance by calling
         # object.__new__(PropertyList, *args) which bypasses
         # the pybind11 memory allocation step.
-        return (_makePropertyList, (getstate(self),))
+        return (_makePropertyList, (getPropertyListState(self),))
