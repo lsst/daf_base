@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import pickle
 import unittest
 import numpy
 
@@ -35,6 +36,17 @@ class PropertySetTestCase(unittest.TestCase):
     def testConstruct(self):
         ps = dafBase.PropertySet()
         self.assertIsNotNone(ps)
+
+    def checkPickle(self, original):
+        new = pickle.loads(pickle.dumps(original, 2))
+        self.assertEqual(original.nameCount(), new.nameCount())
+        self.assertEqual(set(original.paramNames(False)), set(new.paramNames(False)))
+        for name in original.paramNames(False):
+            with self.assertWarns(DeprecationWarning):
+                self.assertEqual(original.get(name), new.get(name))
+            self.assertEqual(original.getArray(name), new.getArray(name))
+            self.assertEqual(original.getScalar(name), new.getScalar(name))
+            self.assertEqual(original.typeOf(name), new.typeOf(name))
 
     def testScalar(self):
         ps = dafBase.PropertySet()
@@ -78,6 +90,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.getString("blank"), "")
+        self.checkPickle(ps)
 
     def testNumPyScalars(self):
         """Test that we can also pass NumPy array scalars to PropertySet setters.
@@ -99,6 +112,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
         self.assertEqual(ps.getDouble("double"), 2.718281828459045)
+        self.checkPickle(ps)
 
     def testGetDefault(self):
         ps = dafBase.PropertySet()
@@ -106,10 +120,12 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getInt("int"), 42)
         self.assertEqual(ps.getInt("int", 2008), 42)
         self.assertEqual(ps.getInt("foo", 2008), 2008)
+        self.checkPickle(ps)
 
     def testExists(self):
         ps = dafBase.PropertySet()
         ps.setInt("int", 42)
+        self.checkPickle(ps)
         self.assertEqual(ps.exists("int"), True)
         self.assertEqual(ps.exists("foo"), False)
 
@@ -131,6 +147,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(x, 999)
         self.assertEqual(ps.getArray("int"), [999])
         self.assertEqual(ps.getScalar("int"), 999)
+        self.checkPickle(ps)
 
     def testGetVector2(self):
         ps = dafBase.PropertySet()
@@ -144,6 +161,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(v[2], w[2])
         self.assertEqual(ps.getInt("ints2"), 8)
         self.assertEqual(ps.getArrayInt("ints2"), [10, 9, 8])
+        self.checkPickle(ps)
 
     def testAddScalar(self):
         ps = dafBase.PropertySet()
@@ -160,6 +178,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(w[3], -999)
         self.assertEqual(w[4], 13)
         self.assertEqual(ps.getString("other"), "foo")
+        self.checkPickle(ps)
 
     def testSetAddVector(self):
         ps = dafBase.PropertySet()
@@ -208,12 +227,14 @@ class PropertySetTestCase(unittest.TestCase):
             self.assertEqual(ps.get("strs"), strArr + list(reversed(strArr)))
         self.assertEqual(ps.getArray("strs"), strArr + list(reversed(strArr)))
         self.assertEqual(ps.getScalar("strs"), strArr[0])
+        self.checkPickle(ps)
 
     def testDateTimeToString(self):
         ps = dafBase.PropertySet()
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         self.assertEqual(ps.toString(),
                          "dt = 2009-04-02T07:26:39.314159265Z\n")
+        self.checkPickle(ps)
 
     def testGetScalarThrow(self):
         ps = dafBase.PropertySet()
@@ -223,6 +244,7 @@ class PropertySetTestCase(unittest.TestCase):
         with self.assertWarns(DeprecationWarning):
             with self.assertRaises(pexExcept.NotFoundError):
                 ps.get("foo")
+        self.checkPickle(ps)
 
     def testSubPS(self):
         ps = dafBase.PropertySet()

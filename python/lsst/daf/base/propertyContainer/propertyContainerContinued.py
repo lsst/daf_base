@@ -239,6 +239,19 @@ def setstate(container, state):
             getattr(container, "set" + elemType)(name, value)
 
 
+def _makePropertySet(state):
+    """Make a ``PropertySet`` from the state returned by ``getstate``
+
+    Parameters
+    ----------
+    state : `list`
+        The data returned by ``getstate``.
+    """
+    ps = PropertySet()
+    setstate(ps, state)
+    return ps
+
+
 def _makePropertyList(state):
     """Make a ``PropertyList`` from the state returned by ``getstate``
 
@@ -385,6 +398,14 @@ class PropertySet:
             else:
                 d[name] = v
         return d
+
+    def __reduce__(self):
+        # It would be a bit simpler to use __setstate__ and __getstate__.
+        # However, implementing __setstate__ in Python causes segfaults
+        # because pickle creates a new instance by calling
+        # object.__new__(PropertyList, *args) which bypasses
+        # the pybind11 memory allocation step.
+        return (_makePropertySet, (getstate(self),))
 
 
 @continueClass
