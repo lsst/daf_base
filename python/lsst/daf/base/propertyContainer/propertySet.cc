@@ -47,10 +47,8 @@ void declareAccessors(C& cls, std::string const& name) {
 
 }  // <anonymous>
 
-PYBIND11_PLUGIN(propertySet) {
+PYBIND11_MODULE(propertySet, mod) {
     py::module::import("lsst.daf.base.persistable");
-
-    py::module mod("propertySet");
 
     py::class_<std::type_info>(mod, "TypeInfo")
             .def("__eq__",
@@ -94,8 +92,6 @@ PYBIND11_PLUGIN(propertySet) {
     declareAccessors<std::string>(cls, "String");
     declareAccessors<DateTime>(cls, "DateTime");
     declareAccessors<std::shared_ptr<PropertySet>>(cls, "PropertySet");
-
-    return mod.ptr();
 }
 
 }  // base

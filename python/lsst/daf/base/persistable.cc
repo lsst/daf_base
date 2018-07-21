@@ -11,12 +11,8 @@ namespace lsst {
 namespace daf {
 namespace base {
 
-PYBIND11_PLUGIN(persistable) {
-    py::module mod("persistable", "Access to the classes from the daf_base persistable library");
-
+PYBIND11_MODULE(persistable, mod) {
     py::class_<Persistable, std::shared_ptr<Persistable>> cls(mod, "Persistable");
-
-    return mod.ptr();
 }
 
 }  // base

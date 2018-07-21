@@ -21,16 +21,13 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import os
+import pickle
+import time
 import unittest
 
 from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
-import os
-import time
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 
 class DateTimeTestCase(unittest.TestCase):

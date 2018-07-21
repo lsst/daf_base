@@ -57,10 +57,8 @@ void declareAccessors(C& cls, std::string const& name) {
 
 }  // <anonymous>
 
-PYBIND11_PLUGIN(propertyList) {
+PYBIND11_MODULE(propertyList, mod) {
     py::module::import("lsst.daf.base.persistable");
-
-    py::module mod("propertyList");
 
     py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet, Citizen> cls(mod, "PropertyList");
 
@@ -70,55 +68,6 @@ PYBIND11_PLUGIN(propertyList) {
     cls.def("getOrderedNames", &PropertyList::getOrderedNames);
     cls.def("deepCopy",
             [](PropertyList const& self) { return std::static_pointer_cast<PropertySet>(self.deepCopy()); });
-
-    /* __getstate__ and __setstate__ implement support for pickling (protocol version 2)
-     *
-     * They are most easily implemented in Python because the container can hold many different types.
-     * However, implementing __setstate__ in Python leads pickle to create a new instance by calling
-     * object.__new__(PropertyList, *args) which bypasses the pybind11 memory allocation step and hence
-     * leads to segfaults. Thus, __setstate__ first calls the C++ constructor and then calls back to
-     * Python to do the remaining initialization. Note that __getstate__ is mainly implemented in the
-     * same way for clarity, but not strictly needed (I think).
-     */
-    cls.def("__getstate__", [](PropertyList const& self) -> py::object {
-        auto module =
-                py::reinterpret_borrow<py::object>(PyImport_ImportModule("lsst.daf.base.propertyContainer"));
-        if (!module.ptr()) {
-            throw py::error_already_set();
-        } else {
-            auto func = py::reinterpret_borrow<py::object>(PyObject_GetAttrString(module.ptr(), "getstate"));
-            if (!func.ptr()) {
-                throw py::error_already_set();
-            } else {
-                auto pySelf = py::cast(self);
-                auto result = py::reinterpret_steal<py::object>(
-                        PyObject_CallFunctionObjArgs(func.ptr(), pySelf.ptr(), NULL));
-                return result;
-            }
-        }
-        return py::none{};
-    });
-    cls.def("__setstate__", [](PropertyList& self, py::object state) {
-        /* Invoke the in-place constructor. Note that this is needed even
-           when the object just has a trivial default constructor */
-        new (&self) PropertyList();
-
-        auto module =
-                py::reinterpret_borrow<py::object>(PyImport_ImportModule("lsst.daf.base.propertyContainer"));
-        if (!module.ptr()) {
-            throw py::error_already_set();
-        } else {
-            auto func = py::reinterpret_borrow<py::object>(PyObject_GetAttrString(module.ptr(), "setstate"));
-            if (!func.ptr()) {
-                throw py::error_already_set();
-            } else {
-                auto pySelf = py::cast(self, py::return_value_policy::reference);
-                auto result = py::reinterpret_steal<py::object>(
-                        PyObject_CallFunctionObjArgs(func.ptr(), pySelf.ptr(), state.ptr(), NULL));
-            }
-        }
-    });
-
     declareAccessors<bool>(cls, "Bool");
     declareAccessors<short>(cls, "Short");
     declareAccessors<int>(cls, "Int");
@@ -131,8 +80,6 @@ PYBIND11_PLUGIN(propertyList) {
 
     cls.def("setPropertySet",
             (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&)) & PropertyList::set);
-
-    return mod.ptr();
 }
 
 }  // base

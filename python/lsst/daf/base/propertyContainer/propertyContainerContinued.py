@@ -22,7 +22,7 @@
 #
 
 
-__all__ = ["getstate", "setstate"]
+__all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState", "setPropertyListState"]
 
 import enum
 import numbers
@@ -32,9 +32,93 @@ from lsst.utils import continueClass
 
 from .propertySet import PropertySet
 from .propertyList import PropertyList
-
 import lsst.pex.exceptions
 from ..dateTime import DateTime
+
+
+def getPropertySetState(container):
+    """Get the state of a PropertySet in a form that can be pickled.
+
+    Parameters
+    ----------
+    container : `PropertySet`\
+        The property container.
+
+    Returns
+    -------
+    state : `list`
+        The state, as a list of tuples, each of which contains
+        the following 3 items:
+        - name (a `str`): the name of the item
+        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+            which is appropriate for the data type. For example integer
+            data has ``elementTypeName="Int"` which corresponds to
+            the ``setInt`` method.
+        - value: the data for the item, in a form compatible
+            with the set method named by ``elementTypeName``
+    """
+    return [(name, _propertyContainerElementTypeName(container, name),
+             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO))
+            for name in container.paramNames(False)]
+
+
+def getPropertyListState(container):
+    """Get the state of a PropertyList in a form that can be pickled.
+
+    Parameters
+    ----------
+    container : `PropertyList`
+        The property container.
+
+    Returns
+    -------
+    state : `list`
+        The state, as a list of tuples, each of which contains
+        the following 4 items:
+        - name (a `str`): the name of the item
+        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+            which is appropriate for the data type. For example integer
+            data has ``elementTypeName="Int"` which corresponds to
+            the ``setInt`` method.
+        - value: the data for the item, in a form compatible
+            with the set method named by ``elementTypeName``
+        - comment (a `str`): the comment. This item is only present
+            if ``container`` is a PropertyList.
+    """
+    return [(name, _propertyContainerElementTypeName(container, name),
+             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
+             container.getComment(name))
+            for name in container.getOrderedNames()]
+
+
+def setPropertySetState(container, state):
+    """Restore the state of a PropertySet, in place.
+
+    Parameters
+    ----------
+    container : `PropertySet`
+        The property container whose state is to be restored.
+        It should be empty to start with and is updated in place.
+    state : `list`
+        The state, as returned by ``getPropertySetState``
+    """
+    for name, elemType, value in state:
+        getattr(container, "set" + elemType)(name, value)
+
+
+def setPropertyListState(container, state):
+    """Restore the state of a PropertyList, in place.
+
+    Parameters
+    ----------
+    container : `PropertyList`
+        The property container whose state is to be restored.
+        It should be empty to start with and is updated in place.
+    state : `list`
+        The state, as returned by ``getPropertyListState``
+    """
+    for name, elemType, value, comment in state:
+        getattr(container, "set" + elemType)(name, value, comment)
 
 
 class ReturnStyle(enum.Enum):
@@ -186,25 +270,30 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
 
 
-def getstate(self):
-    if isinstance(self, PropertyList):
-        return [(name, _propertyContainerElementTypeName(self, name),
-                 _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO),
-                 self.getComment(name))
-                for name in self.getOrderedNames()]
-    else:
-        return [(name, _propertyContainerElementTypeName(self, name),
-                 _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO))
-                for name in self.paramNames(False)]
+def _makePropertySet(state):
+    """Make a ``PropertySet`` from the state returned by ``getstate``
+
+    Parameters
+    ----------
+    state : `list`
+        The data returned by ``getstate``.
+    """
+    ps = PropertySet()
+    setPropertySetState(ps, state)
+    return ps
 
 
-def setstate(self, state):
-    if isinstance(self, PropertyList):
-        for name, elemType, value, comment in state:
-            getattr(self, "set" + elemType)(name, value, comment)
-    else:
-        for name, elemType, value in state:
-            getattr(self, "set" + elemType)(name, value)
+def _makePropertyList(state):
+    """Make a ``PropertyList`` from the state returned by ``getstate``
+
+    Parameters
+    ----------
+    state : `list`
+        The data returned by ``getstate``.
+    """
+    pl = PropertyList()
+    setPropertyListState(pl, state)
+    return pl
 
 
 @continueClass
@@ -340,6 +429,14 @@ class PropertySet:
             else:
                 d[name] = v
         return d
+
+    def __reduce__(self):
+        # It would be a bit simpler to use __setstate__ and __getstate__.
+        # However, implementing __setstate__ in Python causes segfaults
+        # because pickle creates a new instance by calling
+        # object.__new__(PropertyList, *args) which bypasses
+        # the pybind11 memory allocation step.
+        return (_makePropertySet, (getPropertySetState(self),))
 
 
 @continueClass
@@ -489,3 +586,11 @@ class PropertyList:
         for name in self.getOrderedNames():
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
+
+    def __reduce__(self):
+        # It would be a bit simpler to use __setstate__ and __getstate__.
+        # However, implementing __setstate__ in Python causes segfaults
+        # because pickle creates a new instance by calling
+        # object.__new__(PropertyList, *args) which bypasses
+        # the pybind11 memory allocation step.
+        return (_makePropertyList, (getPropertyListState(self),))
