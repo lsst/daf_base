@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #include <string>
 
+#include "lsst/base.h"
 #include "lsst/pex/exceptions.h"
 
 // Forward declaration of the boost::serialization::access class.
@@ -60,7 +61,7 @@ namespace lsst {
 namespace daf {
 namespace base {
 
-class DateTime {
+class LSST_EXPORT DateTime {
 public:
     enum DateSystem { JD = 0, MJD, EPOCH };
     enum Timescale {

@@ -51,6 +51,7 @@
 
 #include "boost/any.hpp"
 
+#include "lsst/base.h"
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/pex/exceptions.h"
@@ -69,7 +70,7 @@ namespace base {
 #pragma warning(disable : 444)
 #endif
 
-class PropertySet : public Persistable, public Citizen {
+class LSST_EXPORT PropertySet : public Persistable, public Citizen {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;

@@ -32,6 +32,8 @@
 #include <vector>
 #include <typeinfo>
 
+#include "lsst/base.h"
+
 namespace lsst {
 namespace daf {
 namespace base {
@@ -50,7 +52,7 @@ class PersistentCitizenScope;
  * block ID is allocated or deleted, and check whether any
  * of the data blocks are known to be corrupted
  */
-class Citizen {
+class LSST_EXPORT Citizen {
 public:
     //! Type of the block's ID
     typedef unsigned long memId;

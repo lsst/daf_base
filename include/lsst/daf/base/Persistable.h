@@ -50,6 +50,8 @@
 #include <memory>
 #include <typeinfo>
 
+#include "lsst/base.h"
+
 namespace lsst {
 namespace daf {
 namespace base {
@@ -70,7 +72,7 @@ void delegateSerialize(Archive& ar, unsigned int const version, lsst::daf::base:
 
 namespace base {
 
-class Persistable {
+class LSST_EXPORT Persistable {
 public:
     typedef std::shared_ptr<Persistable> Ptr;
 
