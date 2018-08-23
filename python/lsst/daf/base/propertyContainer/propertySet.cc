@@ -54,7 +54,9 @@ PYBIND11_MODULE(propertySet, mod) {
             .def("__eq__",
                  [](std::type_info const& self, std::type_info const& other) { return self == other; })
             .def("__ne__",
-                 [](std::type_info const& self, std::type_info const& other) { return self != other; });
+                 [](std::type_info const& self, std::type_info const& other) { return self != other; })
+            .def("name", &std::type_info::name)
+            .def("__hash__", &std::type_info::hash_code);
 
     py::class_<PropertySet, std::shared_ptr<PropertySet>, Persistable, Citizen> cls(mod, "PropertySet");
 
