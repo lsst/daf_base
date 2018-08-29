@@ -42,7 +42,7 @@ void declareAccessors(C& cls, std::string const& name) {
             "name"_a, "value"_a);
 
     const std::string typeName = "TYPE_" + name;
-    cls.attr(typeName.c_str()) = py::cast(typeid(T), py::return_value_policy::reference);
+    cls.attr(typeName.c_str()) = py::cast(PropertySet::typeOfT<T>(), py::return_value_policy::reference);
 }
 
 }  // <anonymous>

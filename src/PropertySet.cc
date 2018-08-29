@@ -174,6 +174,11 @@ std::type_info const& PropertySet::typeOf(std::string const& name) const {
     return i->second->back().type();
 }
 
+template <typename T>
+std::type_info const& PropertySet::typeOfT() {
+    return typeid(T);
+}
+
 // The following throw an exception if the type does not match exactly.
 
 template <typename T>
@@ -688,6 +693,7 @@ void PropertySet::_cycleCheckPtr(Ptr const& v, std::string const& name) {
 // Explicit template instantiations are not well understood by doxygen.
 
 #define INSTANTIATE(t)                                                                       \
+    template std::type_info const& PropertySet::typeOfT<t>();                                                       \
     template t PropertySet::get<t>(std::string const& name) const;                           \
     template t PropertySet::get<t>(std::string const& name, t const& defaultValue) const;    \
     template std::vector<t> PropertySet::getArray<t>(std::string const& name) const;         \
@@ -697,6 +703,7 @@ void PropertySet::_cycleCheckPtr(Ptr const& v, std::string const& name) {
     template void PropertySet::add<t>(std::string const& name, std::vector<t> const& value);
 
 #define INSTANTIATE_PROPERTY_SET(t)                                                       \
+    template std::type_info const& PropertySet::typeOfT<t>();                                                    \
     template t PropertySet::get<t>(std::string const& name) const;                        \
     template t PropertySet::get<t>(std::string const& name, t const& defaultValue) const; \
     template std::vector<t> PropertySet::getArray<t>(std::string const& name) const;      \

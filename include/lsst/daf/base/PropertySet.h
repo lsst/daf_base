@@ -173,6 +173,14 @@ public:
      */
     std::type_info const& typeOf(std::string const& name) const;
 
+    /**
+     * Get type info for the specified class
+     */
+     // Implemented in the .cc file to work around symbol visiblity issues on macOS
+     // e.g. https://github.com/pybind/pybind11/issues/1503
+    template <typename T>
+    static std::type_info const& typeOfT();
+
     // The following throw an exception if the type does not match exactly.
 
     /**
