@@ -36,14 +36,14 @@ import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container, asList=False):
+def getPropertySetState(container, asLists=False):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
     ----------
     container : `PropertySet`
         The property container.
-    asList : `bool`, optional
+    asLists : `bool`, optional
         If False, the default, `tuple` will be used for the contents. If true
         a `list` will be used.
 
@@ -60,20 +60,20 @@ def getPropertySetState(container, asList=False):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
-    sequence = list if asList else tuple
+    sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
             for name in container.paramNames(False)]
 
 
-def getPropertyListState(container, asList=False):
+def getPropertyListState(container, asLists=False):
     """Get the state of a PropertyList in a form that can be pickled.
 
     Parameters
     ----------
     container : `PropertyList`
         The property container.
-    asList : `bool`, optional
+    asLists : `bool`, optional
         If False, the default, `tuple` will be used for the contents. If true
         a `list` will be used.
 
@@ -92,7 +92,7 @@ def getPropertyListState(container, asList=False):
         - comment (a `str`): the comment. This item is only present
             if ``container`` is a PropertyList.
     """
-    sequence = list if asList else tuple
+    sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
             container.getComment(name)))
