@@ -49,7 +49,8 @@ if yaml:
 def pl_representer(dumper, data):
     """Represent an lsst.daf.base.PropertyList as an ordered sequence of
     name/type/value/comment tuples)"""
-    result = getPropertyListState(data)
+    # Turn the tuples into list for cleaner representation in yaml
+    result = getPropertyListState(data, asList=True)
     return dumper.represent_sequence('lsst.daf.base.PropertyList', result,
                                      flow_style=None)
 

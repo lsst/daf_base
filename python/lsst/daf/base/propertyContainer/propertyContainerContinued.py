@@ -62,18 +62,21 @@ def getPropertySetState(container):
             for name in container.paramNames(False)]
 
 
-def getPropertyListState(container):
+def getPropertyListState(container, asList=False):
     """Get the state of a PropertyList in a form that can be pickled.
 
     Parameters
     ----------
     container : `PropertyList`
         The property container.
+    asList : `bool`, optional
+        If False, the default, `tuple` will be used for the contents. If true
+        a `list` will be used.
 
     Returns
     -------
-    state : `list`
-        The state, as a list of tuples, each of which contains
+    state : `list` of `tuple` or `list` of `list`
+        The state, as a list of tuples (or lists), each of which contains
         the following 4 items:
         - name (a `str`): the name of the item
         - elementTypeName (a `str`): the suffix of a ``setX`` method name
@@ -85,9 +88,10 @@ def getPropertyListState(container):
         - comment (a `str`): the comment. This item is only present
             if ``container`` is a PropertyList.
     """
-    return [(name, _propertyContainerElementTypeName(container, name),
-             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
-             container.getComment(name))
+    sequence = list if asList else tuple
+    return [sequence((name, _propertyContainerElementTypeName(container, name),
+            _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
+            container.getComment(name)))
             for name in container.getOrderedNames()]
 
 
