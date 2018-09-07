@@ -21,7 +21,11 @@
 
 """This module defines YAML I/O for key lsst.daf.base classes."""
 
-import yaml
+# If yaml package is not installed there is no reason to fail everywhere
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 from .dateTime import DateTime
 from .propertyContainer import PropertyList, getPropertyListState, setPropertyListState, \
@@ -38,7 +42,8 @@ def dt_representer(dumper, data):
                                    data.toString(DateTime.TAI))
 
 
-yaml.add_representer(DateTime, dt_representer)
+if yaml:
+    yaml.add_representer(DateTime, dt_representer)
 
 
 def pl_representer(dumper, data):
@@ -49,7 +54,8 @@ def pl_representer(dumper, data):
                                      flow_style=None)
 
 
-yaml.add_representer(PropertyList, pl_representer)
+if yaml:
+    yaml.add_representer(PropertyList, pl_representer)
 
 
 def ps_representer(dumper, data):
@@ -60,7 +66,8 @@ def ps_representer(dumper, data):
                                      flow_style=None)
 
 
-yaml.add_representer(PropertySet, ps_representer)
+if yaml:
+    yaml.add_representer(PropertySet, ps_representer)
 
 ###############################################################################
 
@@ -74,7 +81,8 @@ def dt_constructor(loader, node):
     return DateTime(str(dt), DateTime.TAI)
 
 
-yaml.add_constructor('lsst.daf.base.DateTime', dt_constructor)
+if yaml:
+    yaml.add_constructor('lsst.daf.base.DateTime', dt_constructor)
 
 
 def pl_constructor(loader, node):
@@ -85,7 +93,8 @@ def pl_constructor(loader, node):
     setPropertyListState(pl, state)
 
 
-yaml.add_constructor('lsst.daf.base.PropertyList', pl_constructor)
+if yaml:
+    yaml.add_constructor('lsst.daf.base.PropertyList', pl_constructor)
 
 
 def ps_constructor(loader, node):
@@ -96,4 +105,5 @@ def ps_constructor(loader, node):
     setPropertySetState(ps, state)
 
 
-yaml.add_constructor('lsst.daf.base.PropertySet', ps_constructor)
+if yaml:
+    yaml.add_constructor('lsst.daf.base.PropertySet', ps_constructor)
