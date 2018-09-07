@@ -36,18 +36,21 @@ import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container):
+def getPropertySetState(container, asList=False):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
     ----------
-    container : `PropertySet`\
+    container : `PropertySet`
         The property container.
+    asList : `bool`, optional
+        If False, the default, `tuple` will be used for the contents. If true
+        a `list` will be used.
 
     Returns
     -------
-    state : `list`
-        The state, as a list of tuples, each of which contains
+    state : `list` of `tuple` or `list` of `list`
+        The state, as a list of tuples (or lists), each of which contains
         the following 3 items:
         - name (a `str`): the name of the item
         - elementTypeName (a `str`): the suffix of a ``setX`` method name
@@ -57,8 +60,9 @@ def getPropertySetState(container):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
-    return [(name, _propertyContainerElementTypeName(container, name),
-             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO))
+    sequence = list if asList else tuple
+    return [sequence((name, _propertyContainerElementTypeName(container, name),
+            _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
             for name in container.paramNames(False)]
 
 

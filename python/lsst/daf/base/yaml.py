@@ -62,7 +62,8 @@ if yaml:
 def ps_representer(dumper, data):
     """Represent an lsst.daf.base.PropertySet as a mapping from names to
     type/value pairs."""
-    result = getPropertySetState(data)
+    # Turn the tuples into list for cleaner representation in yaml
+    result = getPropertySetState(data, asList=True)
     return dumper.represent_sequence('lsst.daf.base.PropertySet', result,
                                      flow_style=None)
 
