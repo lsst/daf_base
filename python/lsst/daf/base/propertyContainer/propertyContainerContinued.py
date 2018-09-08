@@ -32,7 +32,6 @@ from lsst.utils import continueClass
 
 from .propertySet import PropertySet
 from .propertyList import PropertyList
-import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
@@ -137,7 +136,12 @@ class ReturnStyle(enum.Enum):
 
 def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
-    t = container.typeOf(name)
+    try:
+        t = container.typeOf(name)
+    except LookupError:
+        # KeyError is more commonly expected when asking for an element
+        # from a mapping.
+        raise KeyError
     for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
@@ -165,9 +169,18 @@ def _propertyContainerGet(container, name, returnStyle):
         - ReturnStyle.AUTO: (deprecated) return numeric or string data
             as a scalar if there is just one item, or as an array
             otherwise.
+
+    Raises
+    ------
+    KeyError
+        The specified key does not exist in the container.
+    TypeError
+        The value retrieved is of an unexpected type.
+    ValueError
+        The value for ``returnStyle`` is not correct.
     """
     if not container.exists(name):
-        raise lsst.pex.exceptions.NotFoundError(name + " not found")
+        raise KeyError(name + " not found")
     if returnStyle not in ReturnStyle:
         raise ValueError("returnStyle {} must be a ReturnStyle".format(returnStyle))
 
@@ -187,7 +200,7 @@ def _propertyContainerGet(container, name, returnStyle):
         return container.getAsPersistablePtr(name)
     except Exception:
         pass
-    raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
+    raise TypeError('Unknown PropertySet value type for ' + name)
 
 
 def _guessIntegerType(container, name, value):
@@ -216,7 +229,7 @@ def _guessIntegerType(container, name, value):
     if isinstance(value, numbers.Integral):
         try:
             containerType = _propertyContainerElementTypeName(container, name)
-        except lsst.pex.exceptions.NotFoundError:
+        except LookupError:
             # nothing in the container so choose based on size. Safe option is to
             # always use LongLong
             if value <= maxInt and value >= minInt:
@@ -253,7 +266,7 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for %s: %s" % (name, t))
 
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
@@ -274,7 +287,7 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for %s: %s" % (name, t))
 
 
 def _makePropertySet(state):
@@ -339,7 +352,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
@@ -358,7 +371,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
@@ -375,7 +388,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
@@ -520,7 +533,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
@@ -536,7 +549,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
@@ -553,7 +566,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)

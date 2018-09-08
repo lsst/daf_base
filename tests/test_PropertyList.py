@@ -26,7 +26,6 @@ import unittest
 
 import lsst.utils.tests
 import lsst.daf.base as dafBase
-import lsst.pex.exceptions as pexExcept
 
 
 class FloatSubClass(float):
@@ -184,23 +183,23 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
         with self.assertWarns(DeprecationWarning):
-            with self.assertRaises(pexExcept.NotFoundError):
+            with self.assertRaises(KeyError):
                 apl.get("foo")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getBool("short")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getBool("int")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getShort("int")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getInt("short")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getInt("bool")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getDouble("float")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getFloat("double")
-        with self.assertRaises(pexExcept.TypeError):
+        with self.assertRaises(TypeError):
             apl.getString("int")
 
     def testAddVector(self):
@@ -337,7 +336,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getArray("top.sibling"), [42])
         self.assertEqual(apl.getScalar("top.sibling"), 42)
         with self.assertWarns(DeprecationWarning):
-            with self.assertRaises(pexExcept.NotFoundError):
+            with self.assertRaises(KeyError):
                 apl.get("top")
         self.assertEqual(apl.toString(),
                          'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'

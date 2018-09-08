@@ -28,7 +28,6 @@ import numpy as np
 
 import lsst.utils.tests
 import lsst.daf.base as dafBase
-import lsst.pex.exceptions as pexExcept
 
 
 class PropertySetTestCase(unittest.TestCase):
@@ -243,7 +242,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         with self.assertWarns(DeprecationWarning):
-            with self.assertRaises(pexExcept.NotFoundError):
+            with self.assertRaises(KeyError):
                 ps.get("foo")
         self.checkPickle(ps)
 
@@ -432,7 +431,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         with self.assertWarns(DeprecationWarning):
-            with self.assertRaises(pexExcept.NotFoundError):
+            with self.assertRaises(KeyError):
                 ps.get("foo")
 
     def testSubPS(self):
