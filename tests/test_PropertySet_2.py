@@ -39,7 +39,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertIsNotNone(ps)
 
     def checkPickle(self, original):
-        new = pickle.loads(pickle.dumps(original, 2))
+        new = pickle.loads(pickle.dumps(original, 4))
         self.assertEqual(original.nameCount(), new.nameCount())
         self.assertEqual(set(original.paramNames(False)), set(new.paramNames(False)))
         for name in original.paramNames(False):
@@ -272,6 +272,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getScalar("b.a"), 2)
         with self.assertWarns(DeprecationWarning):
             self.assertEqual(ps.get("b").get("a"), 2)
+        self.checkPickle(ps)
 
     def testCopy(self):
         dest = dafBase.PropertySet()
