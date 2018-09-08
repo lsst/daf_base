@@ -41,12 +41,16 @@ class YAMLTestCase(unittest.TestCase):
         pass
 
     def assertEqualPL(self, pl1, pl2):
+        self.assertEqual(pl1, pl2)
+        self.assertEqual(len(pl1), len(pl2))
         for name in pl1.getOrderedNames():
             self.assertEqual(pl1.getArray(name), pl2.getArray(name))
             self.assertEqual(pl1.getScalar(name), pl2.getScalar(name))
             self.assertEqual(pl1.typeOf(name), pl2.typeOf(name))
 
     def assertEqualPS(self, ps1, ps2):
+        self.assertEqual(ps1, ps2)
+        self.assertEqual(len(ps1), len(ps2))
         self.assertEqual(ps1.nameCount(), ps2.nameCount())
         self.assertEqual(set(ps1.paramNames(False)), set(ps2.paramNames(False)))
         for name in ps1.paramNames(False):
@@ -73,6 +77,10 @@ class YAMLTestCase(unittest.TestCase):
         ps2 = yaml.load(yaml.dump(ps))
         self.assertIsInstance(ps2, lsst.daf.base.PropertySet)
         self.assertEqualPS(ps, ps2)
+        print(ps2)
+        print(f"Length: {len(ps2)}")
+        for n in ps2:
+            print(f"N is {n}")
 
     def testYamlPL(self):
         apl = lsst.daf.base.PropertyList()
@@ -90,6 +98,11 @@ class YAMLTestCase(unittest.TestCase):
         apl2 = yaml.load(yaml.dump(apl))
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)
         self.assertEqualPL(apl, apl2)
+        print(apl2)
+        print(repr(apl2))
+        print(f"Length: {len(apl2)}")
+        for n, v in apl2.items():
+            print(f"Npl is {n}: {v}")
 
     def testYamlNest(self):
         """Test nested property sets"""
