@@ -91,6 +91,34 @@ class YAMLTestCase(unittest.TestCase):
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)
         self.assertEqualPL(apl, apl2)
 
+    def testYamlNest(self):
+        """Test nested property sets"""
+        ps = lsst.daf.base.PropertySet()
+        ps.setBool("bool", True)
+        ps.setShort("short", 42)
+        ps.setInt("int", 2008)
+
+        ps2 = lsst.daf.base.PropertySet()
+        ps2.setString("string", "foo")
+        ps2.setString("string2", "bar")
+
+        ps.setPropertySet("ps", ps2)
+
+        ps3 = yaml.load(yaml.dump(ps))
+        self.assertEqualPS(ps3, ps)
+        self.assertEqualPS(ps3.getPropertySet("ps"), ps.getPropertySet("ps"))
+
+        # Now for a PropertyList
+        apl = lsst.daf.base.PropertyList()
+        apl.setBool("bool", True)
+        apl.setShort("short", 42)
+        apl.setInt("int", 2008)
+        apl.add("withcom", "string", "a comment")
+        apl.setPropertySet("ps", ps3)
+
+        apl2 = yaml.load(yaml.dump(apl))
+        self.assertEqualPL(apl2, apl)
+
     def testYamlDateTime(self):
         ts = lsst.daf.base.DateTime("2004-03-01T12:39:45.1Z", lsst.daf.base.DateTime.UTC)
         ts2 = yaml.load(yaml.dump(ts))
