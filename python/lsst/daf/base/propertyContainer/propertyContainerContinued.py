@@ -443,6 +443,39 @@ class PropertySet:
                 d[name] = v
         return d
 
+    def items(self):
+        for name in self:
+            yield name, _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        if len(self) != len(other):
+            return False
+
+        for name in self:
+            if _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO) != \
+                    _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO):
+                return False
+            if self.typeOf(name) != other.typeOf(name):
+                return False
+
+        return True
+
+    def __getitem__(self, name):
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
+    def __str__(self):
+        return self.toString()
+
+    def __len__(self):
+        return len(self.names())
+
+    def __iter__(self):
+        for n in self.names():
+            yield n
+
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
         # However, implementing __setstate__ in Python causes segfaults
@@ -614,6 +647,20 @@ class PropertyList:
         for name in self.getOrderedNames():
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
+
+    def __eq__(self, other):
+        if not super(PropertySet, self).__eq__(other):
+            return False
+
+        for name in self:
+            if self.getComment(name) != other.getComment(name):
+                return False
+
+        return True
+
+    def __iter__(self):
+        for n in self.getOrderedNames():
+            yield n
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
