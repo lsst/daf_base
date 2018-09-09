@@ -36,18 +36,21 @@ import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container):
+def getPropertySetState(container, asLists=False):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
     ----------
-    container : `PropertySet`\
+    container : `PropertySet`
         The property container.
+    asLists : `bool`, optional
+        If False, the default, `tuple` will be used for the contents. If true
+        a `list` will be used.
 
     Returns
     -------
-    state : `list`
-        The state, as a list of tuples, each of which contains
+    state : `list` of `tuple` or `list` of `list`
+        The state, as a list of tuples (or lists), each of which contains
         the following 3 items:
         - name (a `str`): the name of the item
         - elementTypeName (a `str`): the suffix of a ``setX`` method name
@@ -57,23 +60,27 @@ def getPropertySetState(container):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
-    return [(name, _propertyContainerElementTypeName(container, name),
-             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO))
+    sequence = list if asLists else tuple
+    return [sequence((name, _propertyContainerElementTypeName(container, name),
+            _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
             for name in container.paramNames(False)]
 
 
-def getPropertyListState(container):
+def getPropertyListState(container, asLists=False):
     """Get the state of a PropertyList in a form that can be pickled.
 
     Parameters
     ----------
     container : `PropertyList`
         The property container.
+    asLists : `bool`, optional
+        If False, the default, `tuple` will be used for the contents. If true
+        a `list` will be used.
 
     Returns
     -------
-    state : `list`
-        The state, as a list of tuples, each of which contains
+    state : `list` of `tuple` or `list` of `list`
+        The state, as a list of tuples (or lists), each of which contains
         the following 4 items:
         - name (a `str`): the name of the item
         - elementTypeName (a `str`): the suffix of a ``setX`` method name
@@ -85,9 +92,10 @@ def getPropertyListState(container):
         - comment (a `str`): the comment. This item is only present
             if ``container`` is a PropertyList.
     """
-    return [(name, _propertyContainerElementTypeName(container, name),
-             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
-             container.getComment(name))
+    sequence = list if asLists else tuple
+    return [sequence((name, _propertyContainerElementTypeName(container, name),
+            _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO),
+            container.getComment(name)))
             for name in container.getOrderedNames()]
 
 
@@ -141,11 +149,11 @@ def _propertyContainerGet(container, name, returnStyle):
 
     Parameters
     ----------
-    container : ``lsst.daf.base.PropertySet`` or ``lsst.daf.base.PropertyList``
+    container : `lsst.daf.base.PropertySet` or `lsst.daf.base.PropertyList`
         Container from which to get the value
-    name : ``str``
+    name : `str`
         Name of item
-    returnStyle : ``ReturnStyle``
+    returnStyle : `ReturnStyle`
         Control whether numeric or string data is returned as an array
         or scalar (the other types, ``PropertyList``, ``PropertySet``
             and ``PersistablePtr``, are always returned as a scalar):
@@ -271,12 +279,12 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
 
 
 def _makePropertySet(state):
-    """Make a ``PropertySet`` from the state returned by ``getstate``
+    """Make a `PropertySet` from the state returned by `getPropertySetState`
 
     Parameters
     ----------
     state : `list`
-        The data returned by ``getstate``.
+        The data returned by `getPropertySetState`.
     """
     ps = PropertySet()
     setPropertySetState(ps, state)
@@ -284,12 +292,13 @@ def _makePropertySet(state):
 
 
 def _makePropertyList(state):
-    """Make a ``PropertyList`` from the state returned by ``getstate``
+    """Make a `PropertyList` from the state returned by
+    `getPropertyListState`
 
     Parameters
     ----------
     state : `list`
-        The data returned by ``getstate``.
+        The data returned by `getPropertySetState`.
     """
     pl = PropertyList()
     setPropertyListState(pl, state)
@@ -340,12 +349,12 @@ class PropertySet:
     def getArray(self, name):
         """Return an item as an array if the item is numeric or string
 
-        If the item is a ``PropertySet``, ``PropertyList`` or
+        If the item is a `PropertySet`, `PropertyList` or
         ``lsst.daf.base.PersistablePtr`` then return the item as a scalar.
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
 
         Raises
@@ -362,7 +371,7 @@ class PropertySet:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
 
         Raises
@@ -380,7 +389,7 @@ class PropertySet:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
         value : any supported type
             Value of item; may be a scalar or array
@@ -395,17 +404,17 @@ class PropertySet:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
         value : any supported type
             Value of item; may be a scalar or array
 
         Notes
         -----
-        If `value` is an ``lsst.daf.base.PropertySet`` or
-        ``lsst.daf.base.PropertyList`` then `value` replaces
+        If ``value`` is an `lsst.daf.base.PropertySet` or
+        `lsst.daf.base.PropertyList` then ``value`` replaces
         the existing value. Also the item is added as a live
-        reference, so updating `value` will update this container
+        reference, so updating ``value`` will update this container
         and vice-versa.
 
         Raises
@@ -418,6 +427,11 @@ class PropertySet:
 
     def toDict(self):
         """Returns a (possibly nested) dictionary with all properties.
+
+        Returns
+        -------
+        d : `dict`
+            Dictionary with all names and values (no comments).
         """
 
         d = {}
@@ -469,7 +483,7 @@ class PropertyList:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
 
         Raises
@@ -485,7 +499,7 @@ class PropertyList:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
 
         Raises
@@ -502,7 +516,7 @@ class PropertyList:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
 
         Raises
@@ -520,7 +534,7 @@ class PropertyList:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
         value : any supported type
             Value of item; may be a scalar or array
@@ -538,14 +552,14 @@ class PropertyList:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
         value : any supported type
             Value of item; may be a scalar or array
 
         Notes
         -----
-        If `value` is an ``lsst.daf.base.PropertySet`` items are added
+        If `value` is an `lsst.daf.base.PropertySet` items are added
         using dotted names (e.g. if name="a" and value contains
         an item "b" which is another PropertySet and contains an
         item "c" which is numeric or string, then the value of "c"
@@ -564,6 +578,15 @@ class PropertyList:
         return _propertyContainerAdd(self, name, value, self._typeMenu, *args)
 
     def toList(self):
+        """Return a list of tuples of name, value, comment for each property
+        in the order that they were inserted.
+
+        Returns
+        -------
+        ret : `list` of `tuple`
+            Tuples of name, value, comment for each property in the order
+            in which they were inserted.
+        """
         orderedNames = self.getOrderedNames()
         ret = []
         for name in orderedNames:
@@ -579,6 +602,12 @@ class PropertyList:
     def toOrderedDict(self):
         """Return an ordered dictionary with all properties in the order that
         they were inserted.
+
+        Returns
+        -------
+        d : `~collections.OrderedDict`
+            Ordered dictionary with all properties in the order that they
+            were inserted. Comments are not included.
         """
         from collections import OrderedDict
 
