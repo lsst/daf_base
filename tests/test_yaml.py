@@ -40,24 +40,6 @@ class YAMLTestCase(unittest.TestCase):
     def setUp(self):
         pass
 
-    def assertEqualPL(self, pl1, pl2):
-        self.assertEqual(pl1, pl2)
-        self.assertEqual(len(pl1), len(pl2))
-        for name in pl1.getOrderedNames():
-            self.assertEqual(pl1.getArray(name), pl2.getArray(name))
-            self.assertEqual(pl1.getScalar(name), pl2.getScalar(name))
-            self.assertEqual(pl1.typeOf(name), pl2.typeOf(name))
-
-    def assertEqualPS(self, ps1, ps2):
-        self.assertEqual(ps1, ps2)
-        self.assertEqual(len(ps1), len(ps2))
-        self.assertEqual(ps1.nameCount(), ps2.nameCount())
-        self.assertEqual(set(ps1.paramNames(False)), set(ps2.paramNames(False)))
-        for name in ps1.paramNames(False):
-            self.assertEqual(ps1.getArray(name), ps2.getArray(name))
-            self.assertEqual(ps1.getScalar(name), ps2.getScalar(name))
-            self.assertEqual(ps1.typeOf(name), ps2.typeOf(name))
-
     def testYamlPS(self):
         ps = lsst.daf.base.PropertySet()
         ps.setBool("bool", True)
@@ -76,11 +58,7 @@ class YAMLTestCase(unittest.TestCase):
 
         ps2 = yaml.load(yaml.dump(ps))
         self.assertIsInstance(ps2, lsst.daf.base.PropertySet)
-        self.assertEqualPS(ps, ps2)
-        print(ps2)
-        print(f"Length: {len(ps2)}")
-        for n in ps2:
-            print(f"N is {n}")
+        self.assertEqual(ps, ps2)
 
     def testYamlPL(self):
         apl = lsst.daf.base.PropertyList()
@@ -97,12 +75,7 @@ class YAMLTestCase(unittest.TestCase):
 
         apl2 = yaml.load(yaml.dump(apl))
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)
-        self.assertEqualPL(apl, apl2)
-        print(apl2)
-        print(repr(apl2))
-        print(f"Length: {len(apl2)}")
-        for n, v in apl2.items():
-            print(f"Npl is {n}: {v}")
+        self.assertEqual(apl, apl2)
 
     def testYamlNest(self):
         """Test nested property sets"""
@@ -118,8 +91,8 @@ class YAMLTestCase(unittest.TestCase):
         ps.setPropertySet("ps", ps2)
 
         ps3 = yaml.load(yaml.dump(ps))
-        self.assertEqualPS(ps3, ps)
-        self.assertEqualPS(ps3.getPropertySet("ps"), ps.getPropertySet("ps"))
+        self.assertEqual(ps3, ps)
+        self.assertEqual(ps3.getPropertySet("ps"), ps.getPropertySet("ps"))
 
         # Now for a PropertyList
         apl = lsst.daf.base.PropertyList()
@@ -130,7 +103,7 @@ class YAMLTestCase(unittest.TestCase):
         apl.setPropertySet("ps", ps3)
 
         apl2 = yaml.load(yaml.dump(apl))
-        self.assertEqualPL(apl2, apl)
+        self.assertEqual(apl2, apl)
 
     def testYamlDateTime(self):
         ts = lsst.daf.base.DateTime("2004-03-01T12:39:45.1Z", lsst.daf.base.DateTime.UTC)
@@ -147,9 +120,7 @@ class YAMLTestCase(unittest.TestCase):
             new = yaml.load(fd)
         self.assertIsInstance(new, lsst.daf.base.PropertyList)
         self.assertIsInstance(old, lsst.daf.base.PropertyList)
-
-        # There is no __eq__
-        self.assertEqualPL(old, new)
+        self.assertEqual(old, new)
 
 
 if __name__ == '__main__':
