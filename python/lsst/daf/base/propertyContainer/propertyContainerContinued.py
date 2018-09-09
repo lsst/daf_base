@@ -27,6 +27,7 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 import enum
 import numbers
 import warnings
+from collections.abc import Mapping
 
 from lsst.utils import continueClass
 
@@ -494,6 +495,12 @@ class PropertySet:
         return name in self.names(topLevelOnly=True)
 
     def __setitem__(self, name, value):
+        if isinstance(value, Mapping):
+            # Create a property set instead
+            ps = PropertySet()
+            for k, v in value.items():
+                ps[k] = v
+            value = ps
         self.set(name, value)
 
     def __getitem__(self, name):
