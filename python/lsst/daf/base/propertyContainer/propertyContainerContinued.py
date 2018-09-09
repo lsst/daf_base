@@ -112,7 +112,7 @@ def setPropertySetState(container, state):
         The property container whose state is to be restored.
         It should be empty to start with and is updated in place.
     state : `list`
-        The state, as returned by ``getPropertySetState``
+        The state, as returned by `getPropertySetState`
     """
     for name, elemType, value in state:
         if elemType is not None:
@@ -364,7 +364,7 @@ class PropertySet:
         """Return an item as an array if the item is numeric or string
 
         If the item is a `PropertySet`, `PropertyList` or
-        ``lsst.daf.base.PersistablePtr`` then return the item as a scalar.
+        `lsst.daf.base.PersistablePtr` then return the item as a scalar.
 
         Parameters
         ----------
