@@ -462,6 +462,10 @@ class PropertySet:
         for name in self:
             yield name, _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
+    def values(self):
+        for name in self:
+            yield _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
     def __eq__(self, other):
         if type(self) != type(other):
             return False
@@ -478,18 +482,40 @@ class PropertySet:
 
         return True
 
+    def __copy__(self):
+        # Provide a copy because by default __reduce__ is used and that
+        # will not shallow copy properly, we therefore use the same
+        # pickling code but restrict the names
+        state = getPropertySetState(self, names=self.names(topLevelOnly=True))
+        return _makePropertySet(state)
+
+    def __contains__(self, name):
+        # Do not use exists() because that includes "."-delimited names
+        return name in self.names(topLevelOnly=True)
+
+    def __setitem__(self, name, value):
+        self.set(name, value)
+
     def __getitem__(self, name):
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+
+    def __delitem__(self, name):
+        if name in self:
+            self.remove(name)
+        else:
+            raise KeyError(f"{name} not present in dict")
 
     def __str__(self):
         return self.toString()
 
     def __len__(self):
-        return len(self.names())
+        return self.nameCount(topLevelOnly=True)
 
     def __iter__(self):
-        for n in self.names():
+        for n in self.names(topLevelOnly=True):
             yield n
+
+    keys = __iter__
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
@@ -666,9 +692,18 @@ class PropertyList:
 
         return True
 
+    def __copy__(self):
+        # Provide a copy because by default __reduce__ is used and that
+        # will not shallow copy properly, we therefore use the same
+        # pickling code but restrict the names
+        state = getPropertyListState(self, names=self.getOrderedNames())
+        return _makePropertyList(state)
+
     def __iter__(self):
         for n in self.getOrderedNames():
             yield n
+
+    keys = __iter__
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
