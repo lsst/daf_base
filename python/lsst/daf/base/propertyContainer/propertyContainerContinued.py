@@ -329,13 +329,6 @@ class PropertySet:
                  PropertyList: "PropertySet",
                  }
 
-    # Map unicode to String, but this only works on Python 2
-    # so catch the error and do nothing on Python 3.
-    try:
-        _typeMenu[unicode] = "String"  # noqa F821
-    except Exception:
-        pass
-
     def get(self, name):
         """Return an item as a scalar or array
 
@@ -509,13 +502,6 @@ class PropertyList:
                  PropertySet: "PropertySet",
                  PropertyList: "PropertySet",
                  }
-
-    # Map unicode to String, but this only works on Python 2
-    # so catch the error and do nothing on Python 3.
-    try:
-        _typeMenu[unicode] = "String"  # noqa F821
-    except Exception:
-        pass
 
     def get(self, name):
         """Return an item as a scalar or array
