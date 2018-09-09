@@ -58,6 +58,7 @@ class DictTestCase(unittest.TestCase):
         ps.set("int2", 2009)
         ps.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
         ps.set("blank", "")
+        ps.addInt("int", 2009)
 
         ps2 = lsst.daf.base.PropertySet()
         ps2.setBool("bool2", False)
@@ -89,12 +90,34 @@ class DictTestCase(unittest.TestCase):
         self.assertIn("bool2", self.ps["ps2"])
         with self.assertRaises(KeyError):
             self.ps["RANDOM"]
-        print("NOW LOOPING")
-        for k, v in self.ps.items():
-            print(f"{k!r}: {v!r}")
+        with self.assertRaises(KeyError):
+            del self.ps["RANDOM"]
 
+        # Compare dict-like interface to pure dict version
         d = self.ps.toDict()
-        self.assertEqual(d, self.ps)
+        self.assertEqual(len(d), len(self.ps))
+        for k, v in self.ps.items():
+            if isinstance(v, lsst.daf.base.PropertySet):
+                # We do not allow __eq__ to compare dict to PropertySet
+                # at the moment
+                self.assertIsInstance(d[k], dict)
+            else:
+                self.assertEqual(v, d[k])
+
+        # Set some values
+        self.ps["new"] = "string"
+        self.ps["array"] = [1, 2, 3]
+
+        # Assign a PropertySet
+        ps2 = lsst.daf.base.PropertySet()
+        ps2.setString("newstring", "stringValue")
+        self.ps["newps2"] = ps2
+        ps2["newint"] = 5
+        self.assertEqual(self.ps["newps2"]["newint"], ps2["newint"])
+
+        # Dict should be converted to a PropertySet
+        self.ps["dict"] = {"a": 1, "b": 2}
+        self.assertEqual(self.ps["dict"]["b"], 2)
 
 
 if __name__ == '__main__':
