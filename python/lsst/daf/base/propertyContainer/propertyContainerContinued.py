@@ -35,7 +35,7 @@ from .propertyList import PropertyList
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container, asLists=False):
+def getPropertySetState(container, asLists=False, names=None):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
@@ -45,6 +45,8 @@ def getPropertySetState(container, asLists=False):
     asLists : `bool`, optional
         If False, the default, `tuple` will be used for the contents. If true
         a `list` will be used.
+    names : `list` or `tuple`
+        Override the default list of names with this subset.
 
     Returns
     -------
@@ -59,10 +61,13 @@ def getPropertySetState(container, asLists=False):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
+    if names is None:
+        # All names, including dot-delimiter subproperties
+        names = container.paramNames(False)
     sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
-            for name in container.paramNames(False)]
+            for name in names]
 
 
 def getPropertyListState(container, asLists=False):
@@ -110,7 +115,10 @@ def setPropertySetState(container, state):
         The state, as returned by ``getPropertySetState``
     """
     for name, elemType, value in state:
-        getattr(container, "set" + elemType)(name, value)
+        if elemType is not None:
+            getattr(container, "set" + elemType)(name, value)
+        else:
+            raise ValueError(f"Unrecognized values for state restoration: ({name}, {elemType}, {value})")
 
 
 def setPropertyListState(container, state):
@@ -142,7 +150,8 @@ def _propertyContainerElementTypeName(container, name):
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
         raise KeyError
-    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime"):
+    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
+                      "PropertySet"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
     return None
@@ -185,7 +194,7 @@ def _propertyContainerGet(container, name, returnStyle):
         raise ValueError("returnStyle {} must be a ReturnStyle".format(returnStyle))
 
     elemType = _propertyContainerElementTypeName(container, name)
-    if elemType:
+    if elemType and elemType != "PropertySet":
         value = getattr(container, "getArray" + elemType)(name)
         if returnStyle == ReturnStyle.ARRAY or (returnStyle == ReturnStyle.AUTO and len(value) > 1):
             return value
@@ -250,7 +259,7 @@ def _guessIntegerType(container, name, value):
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type"""
-    if hasattr(value, "__iter__") and not isinstance(value, str):
+    if hasattr(value, "__iter__") and not isinstance(value, (str, PropertySet, PropertyList)):
         exemplar = value[0]
     else:
         exemplar = value
