@@ -42,14 +42,7 @@ class PropertyListTestCase(unittest.TestCase):
 
     def checkPickle(self, original):
         new = pickle.loads(pickle.dumps(original, 2))
-        self.assertEqual(original.nameCount(), new.nameCount())
-        self.assertEqual(original.getOrderedNames(), new.getOrderedNames())
-        for name in original.getOrderedNames():
-            with self.assertWarns(DeprecationWarning):
-                self.assertEqual(original.get(name), new.get(name))
-            self.assertEqual(original.getArray(name), new.getArray(name))
-            self.assertEqual(original.getScalar(name), new.getScalar(name))
-            self.assertEqual(original.typeOf(name), new.typeOf(name))
+        self.assertEqual(new, original)
 
     def testScalar(self):
         apl = dafBase.PropertyList()
