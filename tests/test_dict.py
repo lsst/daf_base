@@ -38,9 +38,9 @@ class DictTestCase(unittest.TestCase):
         pl.setLongLong("int64_t", 0xfeeddeadbeef)
         pl.setFloat("float", 3.14159)
         pl.setDouble("double", 2.718281828459045)
-        pl.set("char*", "foo")
+        pl.set("char*", "foo", "char comment")
         pl.setString("string", "bar")
-        pl.set("int2", 2009)
+        pl.set("int2", 2009, "int comment")
         pl.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
 
         ps = lsst.daf.base.PropertySet()
@@ -66,6 +66,11 @@ class DictTestCase(unittest.TestCase):
         ps2.setInt("int2", 2018)
 
         ps.setPropertySet("ps2", ps2)
+        pl.setPropertySet("ps2", ps2)
+        print(pl)
+        print(f'ps: exists {ps.exists("ps2")}')
+        print(f'pl: exists {pl.exists("ps2")}')
+        print(f'pl.int2 exists: {pl.exists("ps2.int2")}')
 
         self.ps = ps
         self.pl = pl
@@ -84,19 +89,20 @@ class DictTestCase(unittest.TestCase):
         self.assertIn("ps2", self.ps)
 
     def testDictPropertySet(self):
-        self.assertIn("string", self.ps)
-        self.assertIn("ps2", self.ps)
-        self.assertNotIn("ps2.bool2", self.ps)
-        self.assertIn("bool2", self.ps["ps2"])
+        container = self.ps
+        self.assertIn("string", container)
+        self.assertIn("ps2", container)
+        self.assertNotIn("ps2.bool2", container)
+        self.assertIn("bool2", container["ps2"])
         with self.assertRaises(KeyError):
-            self.ps["RANDOM"]
+            container["RANDOM"]
         with self.assertRaises(KeyError):
-            del self.ps["RANDOM"]
+            del container["RANDOM"]
 
         # Compare dict-like interface to pure dict version
-        d = self.ps.toDict()
-        self.assertEqual(len(d), len(self.ps))
-        for k, v in self.ps.items():
+        d = container.toDict()
+        self.assertEqual(len(d), len(container))
+        for k, v in container.items():
             if isinstance(v, lsst.daf.base.PropertySet):
                 # We do not allow __eq__ to compare dict to PropertySet
                 # at the moment
@@ -105,19 +111,68 @@ class DictTestCase(unittest.TestCase):
                 self.assertEqual(v, d[k])
 
         # Set some values
-        self.ps["new"] = "string"
-        self.ps["array"] = [1, 2, 3]
+        container["new"] = "string"
+        container["array"] = [1, 2, 3]
+        container["dot.delimited"] = "delimited"
+        self.assertIn("dot", container)
 
         # Assign a PropertySet
         ps2 = lsst.daf.base.PropertySet()
         ps2.setString("newstring", "stringValue")
-        self.ps["newps2"] = ps2
+        container["newps2"] = ps2
         ps2["newint"] = 5
-        self.assertEqual(self.ps["newps2"]["newint"], ps2["newint"])
+        self.assertEqual(container["newps2"]["newint"], ps2["newint"])
 
         # Dict should be converted to a PropertySet
-        self.ps["dict"] = {"a": 1, "b": 2}
-        self.assertEqual(self.ps["dict"]["b"], 2)
+        container["dict"] = {"a": 1, "b": 2}
+        self.assertEqual(container["dict"]["b"], 2)
+
+        container["a_property_list"] = self.pl
+        import yaml
+        print("YAML RELOAD: ", yaml.load(yaml.dump(container)))
+        print(yaml.dump(container))
+
+    def testDictPropertyList(self):
+        container = self.pl
+        self.assertIn("string", container)
+        # self.assertIn("ps2", container)
+        self.assertIn("ps2.bool2", container)
+        # self.assertIn("bool2", container["ps2"])
+        with self.assertRaises(KeyError):
+            container["RANDOM"]
+        with self.assertRaises(KeyError):
+            del container["RANDOM"]
+
+        # Compare dict-like interface to pure dict version
+        d = container.toDict()
+        self.assertEqual(len(d), len(container))
+        for k, v in container.items():
+            print(f"Key: {k}  Value: {v}")
+            if isinstance(v, lsst.daf.base.PropertySet):
+                # We do not allow __eq__ to compare dict to PropertySet
+                # at the moment
+                self.assertIsInstance(d[k], dict)
+            else:
+                self.assertEqual(v, d[k])
+
+        # Set some values
+        container["new"] = "string"
+        container["array"] = [1, 2, 3]
+        container["dot.delimited"] = "delimited"
+
+        # Assign a PropertySet
+        ps2 = lsst.daf.base.PropertySet()
+        ps2.setString("newstring", "stringValue")
+        container["newps2"] = ps2
+        ps2["newint"] = 5
+        print("CONTAINER: ", container)
+        self.assertEqual(container["newps2.newstring"], ps2["newstring"])
+
+        # Dict should be converted to a PropertySet
+        container["dict"] = {"a": 1, "b": 2}
+        self.assertEqual(container["dict.b"], 2)
+
+        print(container.toOrderedDict())
 
 
 if __name__ == '__main__':
