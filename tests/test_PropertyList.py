@@ -43,6 +43,7 @@ class PropertyListTestCase(unittest.TestCase):
     def checkPickle(self, original):
         new = pickle.loads(pickle.dumps(original, 2))
         self.assertEqual(new, original)
+        return new
 
     def testScalar(self):
         apl = dafBase.PropertyList()
@@ -336,6 +337,16 @@ class PropertyListTestCase(unittest.TestCase):
                          'top.sibling = 42\ntop.bottom = "x"\n')
 
         self.checkPickle(apl)
+
+        # Check that a PropertyList (with comment) can go in a PropertySet
+        apl.set("INT", 45, "an integer")
+        aps = dafBase.PropertySet()
+        aps.set("bottom", "x")
+        aps.set("apl", apl)
+        new = self.checkPickle(aps)
+        self.assertIsInstance(new, dafBase.PropertySet)
+        self.assertIsInstance(new.getScalar("apl"), dafBase.PropertyList)
+        self.assertEqual(new.getScalar("apl").getComment("INT"), "an integer")
 
     def testCombineHierarchical(self):
         # Test that we can perform a deep copy of a PropertyList containing a
