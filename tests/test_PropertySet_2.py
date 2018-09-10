@@ -454,6 +454,65 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getScalar("b.c"), 20)
         self.assertEqual(ps.exists("b"), False)
 
+    def testCombine(self):
+        ps = dafBase.PropertySet()
+        ps.set("ps1.pre", 1)
+        ps.set("ps1.pre", 1)
+        ps.set("ps1.post", 2)
+        ps.set("int", 42)
+        ps.set("double", 3.14)
+        ps.set("ps2.plus", 10.24)
+        ps.set("ps2.minus", -10.24)
+        ps.set("ps3.sub.subsub", "foo")
+
+        psp = dafBase.PropertySet()
+        psp.set("ps1.pre", 3)
+        psp.add("ps1.pre", 4)
+        psp.set("int", 2008)
+        psp.set("ps2.foo", "bar")
+        psp.set("ps4.top", "bottom")
+
+        ps.combine(psp)
+
+        self.assertIsInstance(ps.getScalar("ps1"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps2"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps3"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps3.sub"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps4"), dafBase.PropertySet)
+
+        self.assertFalse(ps.isArray("ps1"))
+        self.assertTrue(ps.isArray("ps1.pre"))
+        self.assertFalse(ps.isArray("ps1.post"))
+        self.assertFalse(ps.isArray("ps2"))
+        self.assertFalse(ps.isArray("ps2.plus"))
+        self.assertFalse(ps.isArray("ps2.minus"))
+        self.assertFalse(ps.isArray("ps2.foo"))
+        self.assertFalse(ps.isArray("ps3"))
+        self.assertFalse(ps.isArray("ps3.sub"))
+        self.assertFalse(ps.isArray("ps3.subsub"))
+        self.assertFalse(ps.isArray("ps4"))
+        self.assertFalse(ps.isArray("ps4.top"))
+        self.assertTrue(ps.isArray("int"))
+        self.assertFalse(ps.isArray("double"))
+
+        self.assertEqual(ps.valueCount("ps1.pre"), 3)
+        self.assertEqual(ps.valueCount("int"), 2)
+
+        v = ps.getArray("ps1.pre")
+        self.assertEqual(v, [1, 3, 4])
+        v = ps.getArray("int")
+        self.assertEqual(v, [42, 2008])
+
+    def testCombineThrow(self):
+        ps = dafBase.PropertySet()
+        ps.set("int", 42)
+
+        psp = dafBase.PropertySet()
+        psp.set("int", 3.14159)
+
+        with self.assertRaises(TypeError):
+            ps.combine(psp)
+
     def testToDict(self):
         ps = dafBase.PropertySet()
         ps.setBool("bool", True)
@@ -809,66 +868,6 @@ if __name__ == "__main__":
 #     BOOST_CHECK_EQUAL(ps.getAsPropertySetPtr("top"), psp);
 #     BOOST_CHECK_THROW(ps.getAsPropertySetPtr("top.bottom"),
 #                       boost::bad_any_cast);
-# }
-#
-# BOOST_AUTO_TEST_CASE(combine) {
-#     dafBase::PropertySet ps;
-#     ps.set("ps1.pre", 1);
-#     ps.set("ps1.post", 2);
-#     ps.set("int", 42);
-#     ps.set("double", 3.14);
-#     ps.set("ps2.plus", 10.24);
-#     ps.set("ps2.minus", -10.24);
-#     ps.set("ps3.sub.subsub", "foo");
-#
-#     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
-#     psp->set("ps1.pre", 3);
-#     psp->add("ps1.pre", 4);
-#     psp->set("int", 2008);
-#     psp->set("ps2.foo", "bar");
-#     psp->set("ps4.top", "bottom");
-#
-#     ps.combine(psp);
-#
-#     BOOST_CHECK(ps.isPropertySetPtr("ps1"));
-#     BOOST_CHECK(ps.isPropertySetPtr("ps2"));
-#     BOOST_CHECK(ps.isPropertySetPtr("ps3"));
-#     BOOST_CHECK(ps.isPropertySetPtr("ps3.sub"));
-#     BOOST_CHECK(ps.isPropertySetPtr("ps4"));
-#     BOOST_CHECK(!ps.isArray("ps1"));
-#     BOOST_CHECK(ps.isArray("ps1.pre"));
-#     BOOST_CHECK(!ps.isArray("ps1.post"));
-#     BOOST_CHECK(!ps.isArray("ps2"));
-#     BOOST_CHECK(!ps.isArray("ps2.plus"));
-#     BOOST_CHECK(!ps.isArray("ps2.minus"));
-#     BOOST_CHECK(!ps.isArray("ps2.foo"));
-#     BOOST_CHECK(!ps.isArray("ps3"));
-#     BOOST_CHECK(!ps.isArray("ps3.sub"));
-#     BOOST_CHECK(!ps.isArray("ps3.subsub"));
-#     BOOST_CHECK(!ps.isArray("ps4"));
-#     BOOST_CHECK(!ps.isArray("ps4.top"));
-#     BOOST_CHECK(ps.isArray("int"));
-#     BOOST_CHECK(!ps.isArray("double"));
-#     BOOST_CHECK_EQUAL(ps.valueCount("ps1.pre"), 3U);
-#     BOOST_CHECK_EQUAL(ps.valueCount("int"), 2U);
-#     std::vector<int> v = ps.getArray<int>("ps1.pre");
-#     BOOST_CHECK_EQUAL(v[0], 1);
-#     BOOST_CHECK_EQUAL(v[1], 3);
-#     BOOST_CHECK_EQUAL(v[2], 4);
-#     v = ps.getArray<int>("int");
-#     BOOST_CHECK_EQUAL(v[0], 42);
-#     BOOST_CHECK_EQUAL(v[1], 2008);
-# }
-#
-# BOOST_AUTO_TEST_CASE(combineThrow) {
-#     dafBase::PropertySet ps;
-#     ps.set("int", 42);
-#
-#     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
-#     psp->set("int", 3.14159);
-#
-#     BOOST_CHECK_THROW(ps.combine(psp),
-#                       lsst::pex::exceptions::DomainError);
 # }
 #
 # BOOST_AUTO_TEST_CASE(remove) {
