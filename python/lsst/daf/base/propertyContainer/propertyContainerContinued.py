@@ -548,6 +548,8 @@ class PropertyList:
                  PropertyList: "PropertySet",
                  }
 
+    COMMENTSUFFIX = "#COMMENT"
+
     def get(self, name):
         """Return an item as a scalar or array
 
@@ -653,6 +655,25 @@ class PropertyList:
             args.append(comment)
         return _propertyContainerAdd(self, name, value, self._typeMenu, *args)
 
+    def setComment(self, name, comment):
+        """Set the comment for an existing entry.
+
+        Parameters
+        ----------
+        name : `str`
+            Name of the key to receive updated comment.
+        comment : `comment`
+            New comment string.
+        """
+        # The only way to do this is to replace the existing entry with
+        # one that has the new comment
+        containerType = _propertyContainerElementTypeName(self, name)
+        if self.isArray(name):
+            value = self.getArray(name)
+        else:
+            value = self.getScalar(name)
+        getattr(self, f"set{containerType}")(name, value, comment)
+
     def toList(self):
         """Return a list of tuples of name, value, comment for each property
         in the order that they were inserted.
@@ -714,6 +735,28 @@ class PropertyList:
             yield n
 
     keys = __iter__
+
+    def __setitem__(self, name, value):
+        print(f"Processing setitem: {name}: {value}")
+        if name.endswith(self.COMMENTSUFFIX):
+            name = name[:-len(self.COMMENTSUFFIX)]
+            self.setComment(name, value)
+            return
+        if isinstance(value, Mapping):
+            # Create a property set instead
+            ps = PropertySet()
+            for k, v in value.items():
+                ps[k] = v
+            value = ps
+        self.set(name, value)
+
+    def __getitem__(self, name):
+        if name.endswith(self.COMMENTSUFFIX):
+            name = name[:-len(self.COMMENTSUFFIX)]
+            return self.getComment(name)
+
+        # Always return SCALAR? (ie disallow retrieval of COMMENT/HISTORY)
+        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.

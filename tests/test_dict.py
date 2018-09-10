@@ -143,6 +143,12 @@ class DictTestCase(unittest.TestCase):
         with self.assertRaises(KeyError):
             del container["RANDOM"]
 
+        # Get a comment
+        c = container["int2#COMMENT"]
+        self.assertEqual(c, container.getComment("int2"))
+        container["int2#COMMENT"] = "new comment"
+        self.assertEqual(container["int2#COMMENT"], "new comment")
+
         # Compare dict-like interface to pure dict version
         d = container.toDict()
         self.assertEqual(len(d), len(container))
