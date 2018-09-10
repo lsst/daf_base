@@ -63,8 +63,11 @@ def getPropertySetState(container, asLists=False, names=None):
             with the set method named by ``elementTypeName``
     """
     if names is None:
-        # All names, including dot-delimiter subproperties
-        names = container.paramNames(False)
+        # All top level names: this allows hierarchical PropertySet and
+        # PropertyList to be represented as their own entities. Without
+        # this a PropertyList inside a PropertySet loses all comments
+        # and becomes a PropertySet.
+        names = container.names(topLevelOnly=True)
     sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
