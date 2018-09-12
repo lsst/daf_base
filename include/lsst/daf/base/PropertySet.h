@@ -51,6 +51,7 @@
 
 #include "boost/any.hpp"
 
+#include "lsst/base.h"
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/pex/exceptions.h"
@@ -69,7 +70,7 @@ namespace base {
 #pragma warning(disable : 444)
 #endif
 
-class PropertySet : public Persistable, public Citizen {
+class LSST_EXPORT PropertySet : public Persistable, public Citizen {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;
@@ -171,6 +172,14 @@ public:
      * @throws NotFoundError Property does not exist.
      */
     std::type_info const& typeOf(std::string const& name) const;
+
+    /**
+     * Get type info for the specified class
+     */
+     // Implemented in the .cc file to work around symbol visiblity issues on macOS
+     // e.g. https://github.com/pybind/pybind11/issues/1503
+    template <typename T>
+    static std::type_info const& typeOfT();
 
     // The following throw an exception if the type does not match exactly.
 

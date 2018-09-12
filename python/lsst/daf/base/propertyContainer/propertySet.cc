@@ -42,7 +42,7 @@ void declareAccessors(C& cls, std::string const& name) {
             "name"_a, "value"_a);
 
     const std::string typeName = "TYPE_" + name;
-    cls.attr(typeName.c_str()) = py::cast(typeid(T), py::return_value_policy::reference);
+    cls.attr(typeName.c_str()) = py::cast(PropertySet::typeOfT<T>(), py::return_value_policy::reference);
 }
 
 }  // <anonymous>
@@ -54,7 +54,9 @@ PYBIND11_MODULE(propertySet, mod) {
             .def("__eq__",
                  [](std::type_info const& self, std::type_info const& other) { return self == other; })
             .def("__ne__",
-                 [](std::type_info const& self, std::type_info const& other) { return self != other; });
+                 [](std::type_info const& self, std::type_info const& other) { return self != other; })
+            .def("name", &std::type_info::name)
+            .def("__hash__", &std::type_info::hash_code);
 
     py::class_<PropertySet, std::shared_ptr<PropertySet>, Persistable, Citizen> cls(mod, "PropertySet");
 

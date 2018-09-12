@@ -53,6 +53,7 @@
 
 #include "boost/any.hpp"
 
+#include "lsst/base.h"
 #include "lsst/daf/base/PropertySet.h"
 
 namespace lsst {
@@ -69,7 +70,7 @@ namespace base {
 #pragma warning(disable : 444)
 #endif
 
-class PropertyList : public PropertySet {
+class LSST_EXPORT PropertyList : public PropertySet {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertyList> Ptr;

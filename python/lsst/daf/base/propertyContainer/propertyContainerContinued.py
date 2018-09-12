@@ -178,12 +178,11 @@ def _propertyContainerGet(container, name, returnStyle):
             return value
         return value[-1]
 
-    try:
-        return container.getAsPropertyListPtr(name)
-    except Exception:
-        pass
-    if container.typeOf(name) == container.TYPE_PropertySet:
-        return container.getAsPropertySetPtr(name)
+    if container.isPropertySetPtr(name):
+        try:
+            return container.getAsPropertyListPtr(name)
+        except Exception:
+            return container.getAsPropertySetPtr(name)
     try:
         return container.getAsPersistablePtr(name)
     except Exception:
