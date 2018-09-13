@@ -462,14 +462,6 @@ class PropertySet:
                 d[name] = v
         return d
 
-    def items(self):
-        for name in self:
-            yield name, _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
-
-    def values(self):
-        for name in self:
-            yield _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
-
     def __eq__(self, other):
         if type(self) != type(other):
             return False
@@ -505,9 +497,6 @@ class PropertySet:
                 ps[k] = v
             value = ps
         self.set(name, value)
-
-    def __getitem__(self, name):
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
 
     def __delitem__(self, name):
         if name in self:
@@ -737,7 +726,6 @@ class PropertyList:
     keys = __iter__
 
     def __setitem__(self, name, value):
-        print(f"Processing setitem: {name}: {value}")
         if name.endswith(self.COMMENTSUFFIX):
             name = name[:-len(self.COMMENTSUFFIX)]
             self.setComment(name, value)
@@ -749,14 +737,6 @@ class PropertyList:
                 ps[k] = v
             value = ps
         self.set(name, value)
-
-    def __getitem__(self, name):
-        if name.endswith(self.COMMENTSUFFIX):
-            name = name[:-len(self.COMMENTSUFFIX)]
-            return self.getComment(name)
-
-        # Always return SCALAR? (ie disallow retrieval of COMMENT/HISTORY)
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
