@@ -27,7 +27,7 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 import enum
 import numbers
 import warnings
-from collections.abc import Mapping
+from collections.abc import Mapping, KeysView
 
 from lsst.utils import continueClass
 
@@ -514,7 +514,8 @@ class PropertySet:
         for n in self.names(topLevelOnly=True):
             yield n
 
-    keys = __iter__
+    def keys(self):
+        return KeysView(self)
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
@@ -722,8 +723,6 @@ class PropertyList:
     def __iter__(self):
         for n in self.getOrderedNames():
             yield n
-
-    keys = __iter__
 
     def __setitem__(self, name, value):
         if name.endswith(self.COMMENTSUFFIX):

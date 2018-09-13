@@ -101,6 +101,11 @@ class DictTestCase(unittest.TestCase):
         container["dot.delimited"] = "delimited"
         self.assertIn("dot", container)
 
+        keys = container.keys()
+        self.assertEqual(len(keys), 16)
+        for k in keys:
+            self.assertIn(k, container)
+
         # Assign a PropertySet
         ps2 = lsst.daf.base.PropertySet()
         ps2.setString("newstring", "stringValue")
@@ -131,6 +136,11 @@ class DictTestCase(unittest.TestCase):
         container["new"] = "string"
         container["array"] = [1, 2, 3]
         container["dot.delimited"] = "delimited"
+
+        keys = container.keys()
+        self.assertEqual(len(keys), 16)
+        for k in keys:
+            self.assertIn(k, container)
 
         # Assign a PropertySet
         ps2 = lsst.daf.base.PropertySet()
