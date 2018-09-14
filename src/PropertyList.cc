@@ -37,17 +37,17 @@ namespace base {
 
 /** Constructor.
  */
-PropertyList::PropertyList(void) : PropertySet(true) {}
+PropertyList::PropertyList() : PropertySet(true) {}
 
 /** Destructor.
  */
-PropertyList::~PropertyList(void) {}
+PropertyList::~PropertyList() noexcept = default;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertyList::deepCopy(void) const {
+PropertySet::Ptr PropertyList::deepCopy() const {
     Ptr n(new PropertyList);
     n->PropertySet::combine(this->PropertySet::deepCopy());
     n->_order = _order;
@@ -78,7 +78,7 @@ std::string const& PropertyList::getComment(std::string const& name) const {
     return _comments.find(name)->second;
 }
 
-std::vector<std::string> PropertyList::getOrderedNames(void) const {
+std::vector<std::string> PropertyList::getOrderedNames() const {
     std::vector<std::string> v;
     for (auto const& name : _order) {
         v.push_back(name);
@@ -86,9 +86,9 @@ std::vector<std::string> PropertyList::getOrderedNames(void) const {
     return v;
 }
 
-std::list<std::string>::const_iterator PropertyList::begin(void) const { return _order.begin(); }
+std::list<std::string>::const_iterator PropertyList::begin() const { return _order.begin(); }
 
-std::list<std::string>::const_iterator PropertyList::end(void) const { return _order.end(); }
+std::list<std::string>::const_iterator PropertyList::end() const { return _order.end(); }
 
 std::string PropertyList::toString(bool topLevelOnly, std::string const& indent) const {
     std::ostringstream s;

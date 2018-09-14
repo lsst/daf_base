@@ -79,7 +79,7 @@ public:
     explicit PropertySet(bool flat = false);
 
     /// Destructor
-    virtual ~PropertySet(void);
+    virtual ~PropertySet() noexcept;
 
     // No copying
     PropertySet(const PropertySet&) = delete;
@@ -96,7 +96,7 @@ public:
      *
      * @return PropertySet::Ptr pointing to the new copy.
      */
-    virtual Ptr deepCopy(void) const;
+    virtual Ptr deepCopy() const;
 
     /**
      * Get the number of names in the PropertySet, optionally including those in subproperties.
