@@ -27,16 +27,16 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 import enum
 import numbers
 import warnings
+from collections.abc import Mapping, KeysView
 
 from lsst.utils import continueClass
 
 from .propertySet import PropertySet
 from .propertyList import PropertyList
-import lsst.pex.exceptions
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container, asLists=False):
+def getPropertySetState(container, asLists=False, names=None):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
@@ -46,6 +46,8 @@ def getPropertySetState(container, asLists=False):
     asLists : `bool`, optional
         If False, the default, `tuple` will be used for the contents. If true
         a `list` will be used.
+    names : `list` or `tuple`
+        Override the default list of names with this subset.
 
     Returns
     -------
@@ -60,10 +62,16 @@ def getPropertySetState(container, asLists=False):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
+    if names is None:
+        # All top level names: this allows hierarchical PropertySet and
+        # PropertyList to be represented as their own entities. Without
+        # this a PropertyList inside a PropertySet loses all comments
+        # and becomes a PropertySet.
+        names = container.names(topLevelOnly=True)
     sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
-            for name in container.paramNames(False)]
+            for name in names]
 
 
 def getPropertyListState(container, asLists=False):
@@ -108,10 +116,13 @@ def setPropertySetState(container, state):
         The property container whose state is to be restored.
         It should be empty to start with and is updated in place.
     state : `list`
-        The state, as returned by ``getPropertySetState``
+        The state, as returned by `getPropertySetState`
     """
     for name, elemType, value in state:
-        getattr(container, "set" + elemType)(name, value)
+        if elemType is not None:
+            getattr(container, "set" + elemType)(name, value)
+        else:
+            raise ValueError(f"Unrecognized values for state restoration: ({name}, {elemType}, {value})")
 
 
 def setPropertyListState(container, state):
@@ -137,8 +148,14 @@ class ReturnStyle(enum.Enum):
 
 def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
-    t = container.typeOf(name)
-    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime"):
+    try:
+        t = container.typeOf(name)
+    except LookupError:
+        # KeyError is more commonly expected when asking for an element
+        # from a mapping.
+        raise KeyError
+    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
+                      "PropertySet"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
     return None
@@ -165,14 +182,23 @@ def _propertyContainerGet(container, name, returnStyle):
         - ReturnStyle.AUTO: (deprecated) return numeric or string data
             as a scalar if there is just one item, or as an array
             otherwise.
+
+    Raises
+    ------
+    KeyError
+        The specified key does not exist in the container.
+    TypeError
+        The value retrieved is of an unexpected type.
+    ValueError
+        The value for ``returnStyle`` is not correct.
     """
     if not container.exists(name):
-        raise lsst.pex.exceptions.NotFoundError(name + " not found")
+        raise KeyError(name + " not found")
     if returnStyle not in ReturnStyle:
         raise ValueError("returnStyle {} must be a ReturnStyle".format(returnStyle))
 
     elemType = _propertyContainerElementTypeName(container, name)
-    if elemType:
+    if elemType and elemType != "PropertySet":
         value = getattr(container, "getArray" + elemType)(name)
         if returnStyle == ReturnStyle.ARRAY or (returnStyle == ReturnStyle.AUTO and len(value) > 1):
             return value
@@ -187,7 +213,7 @@ def _propertyContainerGet(container, name, returnStyle):
         return container.getAsPersistablePtr(name)
     except Exception:
         pass
-    raise lsst.pex.exceptions.TypeError('Unknown PropertySet value type for ' + name)
+    raise TypeError('Unknown PropertySet value type for ' + name)
 
 
 def _guessIntegerType(container, name, value):
@@ -216,7 +242,7 @@ def _guessIntegerType(container, name, value):
     if isinstance(value, numbers.Integral):
         try:
             containerType = _propertyContainerElementTypeName(container, name)
-        except lsst.pex.exceptions.NotFoundError:
+        except LookupError:
             # nothing in the container so choose based on size. Safe option is to
             # always use LongLong
             if value <= maxInt and value >= minInt:
@@ -237,7 +263,7 @@ def _guessIntegerType(container, name, value):
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type"""
-    if hasattr(value, "__iter__") and not isinstance(value, str):
+    if hasattr(value, "__iter__") and not isinstance(value, (str, PropertySet, PropertyList)):
         exemplar = value[0]
     else:
         exemplar = value
@@ -253,7 +279,7 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for %s: %s" % (name, t))
 
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
@@ -274,7 +300,7 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     for checkType in typeMenu:
         if isinstance(exemplar, checkType):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
-    raise lsst.pex.exceptions.TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for %s: %s" % (name, t))
 
 
 def _makePropertySet(state):
@@ -316,13 +342,6 @@ class PropertySet:
                  PropertyList: "PropertySet",
                  }
 
-    # Map unicode to String, but this only works on Python 2
-    # so catch the error and do nothing on Python 3.
-    try:
-        _typeMenu[unicode] = "String"  # noqa F821
-    except Exception:
-        pass
-
     def get(self, name):
         """Return an item as a scalar or array
 
@@ -339,7 +358,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
@@ -349,7 +368,7 @@ class PropertySet:
         """Return an item as an array if the item is numeric or string
 
         If the item is a `PropertySet`, `PropertyList` or
-        ``lsst.daf.base.PersistablePtr`` then return the item as a scalar.
+        `lsst.daf.base.PersistablePtr` then return the item as a scalar.
 
         Parameters
         ----------
@@ -358,7 +377,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
@@ -375,7 +394,7 @@ class PropertySet:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
@@ -443,6 +462,61 @@ class PropertySet:
                 d[name] = v
         return d
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        if len(self) != len(other):
+            return False
+
+        for name in self:
+            if _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO) != \
+                    _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO):
+                return False
+            if self.typeOf(name) != other.typeOf(name):
+                return False
+
+        return True
+
+    def __copy__(self):
+        # Provide a copy because by default __reduce__ is used and that
+        # will not shallow copy properly, we therefore use the same
+        # pickling code but restrict the names
+        state = getPropertySetState(self, names=self.names(topLevelOnly=True))
+        return _makePropertySet(state)
+
+    def __contains__(self, name):
+        # Do not use exists() because that includes "."-delimited names
+        return name in self.names(topLevelOnly=True)
+
+    def __setitem__(self, name, value):
+        if isinstance(value, Mapping):
+            # Create a property set instead
+            ps = PropertySet()
+            for k, v in value.items():
+                ps[k] = v
+            value = ps
+        self.set(name, value)
+
+    def __delitem__(self, name):
+        if name in self:
+            self.remove(name)
+        else:
+            raise KeyError(f"{name} not present in dict")
+
+    def __str__(self):
+        return self.toString()
+
+    def __len__(self):
+        return self.nameCount(topLevelOnly=True)
+
+    def __iter__(self):
+        for n in self.names(topLevelOnly=True):
+            yield n
+
+    def keys(self):
+        return KeysView(self)
+
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
         # However, implementing __setstate__ in Python causes segfaults
@@ -464,12 +538,7 @@ class PropertyList:
                  PropertyList: "PropertySet",
                  }
 
-    # Map unicode to String, but this only works on Python 2
-    # so catch the error and do nothing on Python 3.
-    try:
-        _typeMenu[unicode] = "String"  # noqa F821
-    except Exception:
-        pass
+    COMMENTSUFFIX = "#COMMENT"
 
     def get(self, name):
         """Return an item as a scalar or array
@@ -487,7 +556,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
@@ -503,7 +572,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
@@ -520,7 +589,7 @@ class PropertyList:
 
         Raises
         ------
-        lsst.pex.exceptions.NotFoundError
+        KeyError
             If the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
@@ -576,6 +645,25 @@ class PropertyList:
             args.append(comment)
         return _propertyContainerAdd(self, name, value, self._typeMenu, *args)
 
+    def setComment(self, name, comment):
+        """Set the comment for an existing entry.
+
+        Parameters
+        ----------
+        name : `str`
+            Name of the key to receive updated comment.
+        comment : `comment`
+            New comment string.
+        """
+        # The only way to do this is to replace the existing entry with
+        # one that has the new comment
+        containerType = _propertyContainerElementTypeName(self, name)
+        if self.isArray(name):
+            value = self.getArray(name)
+        else:
+            value = self.getScalar(name)
+        getattr(self, f"set{containerType}")(name, value, comment)
+
     def toList(self):
         """Return a list of tuples of name, value, comment for each property
         in the order that they were inserted.
@@ -614,6 +702,40 @@ class PropertyList:
         for name in self.getOrderedNames():
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
+
+    def __eq__(self, other):
+        if not super(PropertySet, self).__eq__(other):
+            return False
+
+        for name in self:
+            if self.getComment(name) != other.getComment(name):
+                return False
+
+        return True
+
+    def __copy__(self):
+        # Provide a copy because by default __reduce__ is used and that
+        # will not shallow copy properly, we therefore use the same
+        # pickling code but restrict the names
+        state = getPropertyListState(self, names=self.getOrderedNames())
+        return _makePropertyList(state)
+
+    def __iter__(self):
+        for n in self.getOrderedNames():
+            yield n
+
+    def __setitem__(self, name, value):
+        if name.endswith(self.COMMENTSUFFIX):
+            name = name[:-len(self.COMMENTSUFFIX)]
+            self.setComment(name, value)
+            return
+        if isinstance(value, Mapping):
+            # Create a property set instead
+            ps = PropertySet()
+            for k, v in value.items():
+                ps[k] = v
+            value = ps
+        self.set(name, value)
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.

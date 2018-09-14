@@ -272,15 +272,15 @@ class DateTimeTestCase(unittest.TestCase):
         for scale in self.timeScales:
             self.assertEqual(ts.nsecs(scale), DateTime.invalid_nsecs)
             for system in self.dateSystems:
-                with self.assertRaises(pexExcept.RuntimeError):
+                with self.assertRaises(RuntimeError):
                     ts.get(system, scale)
-            with self.assertRaises(pexExcept.RuntimeError):
+            with self.assertRaises(RuntimeError):
                 ts.gmtime(scale)
-            with self.assertRaises(pexExcept.RuntimeError):
+            with self.assertRaises(RuntimeError):
                 ts.timespec(scale)
-            with self.assertRaises(pexExcept.RuntimeError):
+            with self.assertRaises(RuntimeError):
                 ts.timeval(scale)
-            with self.assertRaises(pexExcept.RuntimeError):
+            with self.assertRaises(RuntimeError):
                 ts.toString(scale)
         self.assertEqual(repr(ts), "DateTime()")
 
