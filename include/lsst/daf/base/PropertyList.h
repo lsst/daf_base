@@ -72,9 +72,10 @@ public:
     typedef std::shared_ptr<PropertyList const> ConstPtr;
 
     /// Construct an empty PropertyList
-    PropertyList(void);
+    PropertyList();
+
     /// Destructor
-    virtual ~PropertyList(void);
+    virtual ~PropertyList() noexcept;
 
     // Accessors
 
@@ -83,7 +84,7 @@ public:
      *
      * @return PropertyList::Ptr pointing to the new copy.
      */
-    virtual PropertySet::Ptr deepCopy(void) const;
+    virtual PropertySet::Ptr deepCopy() const;
 
     // I can't make copydoc work for this so...
     /**
@@ -130,13 +131,13 @@ public:
     std::string const& getComment(std::string const& name) const;
 
     /// Get the list of property names, in the order they were added
-    std::vector<std::string> getOrderedNames(void) const;
+    std::vector<std::string> getOrderedNames() const;
 
     /// Begin iterator over the list of property names, in the order they were added
-    std::list<std::string>::const_iterator begin(void) const;
+    std::list<std::string>::const_iterator begin() const;
 
     /// End iterator over the list of property names, in the order they were added
-    std::list<std::string>::const_iterator end(void) const;
+    std::list<std::string>::const_iterator end() const;
 
     /// @copydoc PropertySet::toString()
     virtual std::string toString(bool topLevelOnly = false, std::string const& indent = "") const;
