@@ -58,11 +58,6 @@
 
 namespace lsst {
 namespace daf {
-
-namespace persistence {
-class PropertyListFormatter;
-}  // namespace persistence
-
 namespace base {
 
 #if defined(__ICC)
@@ -288,7 +283,6 @@ public:
     virtual void remove(std::string const& name);
 
 private:
-    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertyListFormatter)
 
     typedef std::unordered_map<std::string, std::string> CommentMap;
 
