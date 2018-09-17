@@ -47,9 +47,9 @@ PropertyList::~PropertyList() noexcept = default;
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertyList::deepCopy() const {
+std::shared_ptr<PropertySet> PropertyList::_deepCopy() const {
     Ptr n(new PropertyList);
-    n->PropertySet::combine(this->PropertySet::deepCopy());
+    n->PropertySet::combine(this->PropertySet::_deepCopy());
     n->_order = _order;
     n->_comments = _comments;
     return n;

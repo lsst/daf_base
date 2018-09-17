@@ -62,7 +62,7 @@ PropertySet::~PropertySet() noexcept = default;
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertySet::deepCopy() const {
+std::shared_ptr<PropertySet> PropertySet::_deepCopy() const {
     Ptr n(new PropertySet(_flat));
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {

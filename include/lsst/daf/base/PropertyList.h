@@ -84,7 +84,9 @@ public:
      *
      * @return PropertyList::Ptr pointing to the new copy.
      */
-    virtual PropertySet::Ptr deepCopy() const;
+    std::shared_ptr<PropertyList> deepCopy() const {
+        return std::static_pointer_cast<PropertyList>(_deepCopy());
+    }
 
     // I can't make copydoc work for this so...
     /**
@@ -282,6 +284,10 @@ public:
 
     /// @copydoc PropertySet::remove
     virtual void remove(std::string const& name);
+
+protected:
+
+    std::shared_ptr<PropertySet> _deepCopy() const override;
 
 private:
 

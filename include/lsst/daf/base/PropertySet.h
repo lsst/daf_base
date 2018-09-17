@@ -96,7 +96,7 @@ public:
      *
      * @return PropertySet::Ptr pointing to the new copy.
      */
-    virtual Ptr deepCopy() const;
+    std::shared_ptr<PropertySet> deepCopy() const { return _deepCopy(); }
 
     /**
      * Get the number of names in the PropertySet, optionally including those in subproperties.
@@ -448,6 +448,10 @@ protected:
 
     // Format a value in human-readable form; called by toString
     virtual std::string _format(std::string const& name) const;
+
+protected:
+
+    virtual std::shared_ptr<PropertySet> _deepCopy() const;
 
 private:
 
