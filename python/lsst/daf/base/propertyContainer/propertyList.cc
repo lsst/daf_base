@@ -60,14 +60,41 @@ void declareAccessors(C& cls, std::string const& name) {
 PYBIND11_MODULE(propertyList, mod) {
     py::module::import("lsst.daf.base.persistable");
 
-    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet, Citizen> cls(mod, "PropertyList");
+    py::class_<PropertyList, std::shared_ptr<PropertyList>> cls(mod, "PropertyList");
 
     cls.def(py::init<>());
 
+    cls.def("nameCount", &PropertyList::nameCount);
+    cls.def("names", &PropertyList::names);
     cls.def("getComment", &PropertyList::getComment);
     cls.def("getOrderedNames", &PropertyList::getOrderedNames);
-    cls.def("deepCopy",
-            [](PropertyList const& self) { return std::static_pointer_cast<PropertySet>(self.deepCopy()); });
+    cls.def("deepCopy", &PropertyList::deepCopy);
+
+    cls.def("exists", &PropertyList::exists);
+    cls.def("isArray", &PropertyList::isArray);
+    cls.def("valueCount", &PropertyList::valueCount);
+    cls.def("typeOf", &PropertyList::typeOf, py::return_value_policy::reference);
+    cls.def("toString", &PropertyList::toString, "indent"_a = "");
+    cls.def("copy",
+            py::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
+                &PropertyList::copy
+            ),
+            "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
+    cls.def("copy",
+            py::overload_cast<std::string const &, PropertyList const &, std::string const &, bool>(
+                &PropertyList::copy
+            ),
+            "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
+    cls.def("combine", py::overload_cast<PropertySet const &>(&PropertyList::combine));
+    cls.def("combine", py::overload_cast<PropertyList const &>(&PropertyList::combine));
+    cls.def("remove", &PropertyList::remove);
+    cls.def("getAsBool", &PropertyList::getAsBool);
+    cls.def("getAsInt", &PropertyList::getAsInt);
+    cls.def("getAsInt64", &PropertyList::getAsInt64);
+    cls.def("getAsDouble", &PropertyList::getAsDouble);
+    cls.def("getAsString", &PropertyList::getAsString);
+    cls.def("getAsPersistablePtr", &PropertyList::getAsPersistablePtr);
+
     declareAccessors<bool>(cls, "Bool");
     declareAccessors<short>(cls, "Short");
     declareAccessors<int>(cls, "Int");
@@ -78,8 +105,11 @@ PYBIND11_MODULE(propertyList, mod) {
     declareAccessors<std::string>(cls, "String");
     declareAccessors<DateTime>(cls, "DateTime");
 
+    // unclear why overload_cast doesn't work here, but lambda does
     cls.def("setPropertySet",
-            (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&)) & PropertyList::set);
+            [](PropertyList & self, std::string const & name, PropertySet const & p) { self.set(name, p); });
+    cls.def("setPropertyList",
+            [](PropertyList & self, std::string const & name, PropertyList const & p) { self.set(name, p); });
 }
 
 }  // base

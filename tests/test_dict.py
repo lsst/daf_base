@@ -117,8 +117,6 @@ class DictTestCase(unittest.TestCase):
         container["dict"] = {"a": 1, "b": 2}
         self.assertEqual(container.getScalar("dict.b"), 2)
 
-        container["a_property_list"] = self.pl
-
     def testDictPropertyList(self):
         container = self.pl
         self.assertIn("string", container)

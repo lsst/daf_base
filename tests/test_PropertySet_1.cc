@@ -49,14 +49,6 @@ BOOST_AUTO_TEST_CASE(construct) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     BOOST_CHECK_EQUAL(!psp, false);
 }
 
-BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test
-                                 harness macros" */
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
-    std::shared_ptr<dafBase::Citizen> cp =
-            std::dynamic_pointer_cast<dafBase::Citizen, dafBase::PropertySet>(psp);
-    BOOST_CHECK_EQUAL(!cp, false);
-}
-
 BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
                                      test harness macros" */
     dafBase::PropertySet ps;

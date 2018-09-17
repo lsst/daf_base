@@ -54,15 +54,13 @@ void _append(std::vector<boost::any>& dest, std::vector<T> const& src) {
 
 }  // namespace
 
-PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {}
-
-PropertySet::~PropertySet() noexcept = default;
+PropertySet::PropertySet(bool flat) : _flat(flat) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<PropertySet> PropertySet::_deepCopy() const {
+std::shared_ptr<PropertySet> PropertySet::deepCopy() const {
     Ptr n(new PropertySet(_flat));
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {
@@ -352,13 +350,13 @@ std::string PropertySet::toString(bool topLevelOnly, std::string const& indent) 
             }
             s << std::endl;
         } else {
-            s << indent << _format(i);
+            s << indent << format(i);
         }
     }
     return s.str();
 }
 
-std::string PropertySet::_format(std::string const& name) const {
+std::string PropertySet::format(std::string const& name) const {
     std::ostringstream s;
     s << std::showpoint;  // Always show a decimal point for floats
     auto const j = _map.find(name);
@@ -502,12 +500,10 @@ void PropertySet::add<PropertySet::Ptr>(std::string const& name, std::vector<Ptr
 
 void PropertySet::add(std::string const& name, char const* value) { add(name, std::string(value)); }
 
-void PropertySet::copy(std::string const& dest, ConstPtr source, std::string const& name, bool asScalar) {
-    if (source.get() == 0) {
-        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
-    }
-    auto const sj = source->_find(name);
-    if (sj == source->_map.end()) {
+void PropertySet::copy(std::string const& dest, PropertySet const & source, std::string const& name,
+                       bool asScalar) {
+    auto const sj = source._find(name);
+    if (sj == source._map.end()) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, name + " not in source");
     }
     remove(dest);
@@ -521,15 +517,25 @@ void PropertySet::copy(std::string const& dest, ConstPtr source, std::string con
     }
 }
 
-void PropertySet::combine(ConstPtr source) {
-    if (source.get() == 0) {
-        return;
+void PropertySet::copy(std::string const& dest, std::shared_ptr<PropertySet const> const & source,
+                       std::string const& name, bool asScalar) {
+    if (!source) {
+        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
     }
-    std::vector<std::string> names = source->paramNames(false);
+    copy(dest, *source, name, asScalar);
+}
+
+void PropertySet::combine(PropertySet const & source) {
+    std::vector<std::string> names = source.paramNames(false);
     for (auto const& name : names) {
-        auto const sp = source->_find(name);
+        auto const sp = source._find(name);
         _add(name, sp->second);
     }
+}
+
+void PropertySet::combine(std::shared_ptr<PropertySet const> const & source) {
+    if (!source) return;
+    combine(*source);
 }
 
 void PropertySet::remove(std::string const& name) {

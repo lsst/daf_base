@@ -332,21 +332,12 @@ class PropertyListTestCase(unittest.TestCase):
         with self.assertWarns(DeprecationWarning):
             with self.assertRaises(KeyError):
                 apl.get("top")
+
         self.assertEqual(apl.toString(),
                          'CURRENT = 49.500000000000\nCURRENT.foo = -32\nCURRENT.bar = 2\n'
                          'top.sibling = 42\ntop.bottom = "x"\n')
 
         self.checkPickle(apl)
-
-        # Check that a PropertyList (with comment) can go in a PropertySet
-        apl.set("INT", 45, "an integer")
-        aps = dafBase.PropertySet()
-        aps.set("bottom", "x")
-        aps.set("apl", apl)
-        new = self.checkPickle(aps)
-        self.assertIsInstance(new, dafBase.PropertySet)
-        self.assertIsInstance(new.getScalar("apl"), dafBase.PropertyList)
-        self.assertEqual(new.getScalar("apl").getComment("INT"), "an integer")
 
     def testCombineHierarchical(self):
         # Test that we can perform a deep copy of a PropertyList containing a
@@ -483,41 +474,11 @@ class PropertyListTestCase(unittest.TestCase):
 
         # Hierarchy is always flat
         self.assertEqual(apl.nameCount(), 6)
-        self.assertEqual(apl.nameCount(False), 6)
 
         v = set(apl.names())
         self.assertEqual(len(v), 6)
         self.assertEqual(v, {"double", "int", "apl1.post",
                              "apl1.pre", "apl2.minus", "apl2.plus"})
-
-    def testParamNames(self):
-        apl = dafBase.PropertyList()
-        apl.set("apl1.pre", 1)
-        apl.set("apl1.post", 2)
-        apl.set("int", 42)
-        apl.set("double", 3.14)
-        apl.set("apl2.plus", 10.24)
-        apl.set("apl2.minus", -10.24)
-
-        v = set(apl.paramNames())
-        self.assertEqual(len(v), 6)
-        self.assertEqual(v, {"double", "int", "apl1.post", "apl1.pre",
-                             "apl2.minus", "apl2.plus"})
-
-    def testPropertySetNames(self):
-        apl = dafBase.PropertyList()
-        apl.set("apl1.pre", 1)
-        apl.set("apl1.post", 2)
-        apl.set("int", 42)
-        apl.set("double", 3.14)
-        apl.set("apl2.plus", 10.24)
-        apl.set("apl2.minus", -10.24)
-        apl.set("apl3.sub.subsub", "foo")
-
-        # There are no PropertySets inside flattened PropertyList
-        v = set(apl.propertySetNames())
-        print(v)
-        self.assertEqual(len(v), 0)
 
     def testGetAs(self):
         apl = dafBase.PropertyList()
@@ -621,7 +582,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("apl1.plus", 1)
         apl.set("apl1.minus", -1)
         apl.set("apl1.zero", 0)
-        self.assertEqual(apl.nameCount(False), 5)
+        self.assertEqual(apl.nameCount(), 5)
 
         apl.remove("int")
         self.assertFalse(apl.exists("int"))
@@ -629,7 +590,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.getAsInt("apl1.plus"), 1)
         self.assertEqual(apl.getAsInt("apl1.minus"), -1)
         self.assertEqual(apl.getAsInt("apl1.zero"), 0)
-        self.assertEqual(apl.nameCount(False), 4)
+        self.assertEqual(apl.nameCount(), 4)
 
         apl.remove("apl1.zero")
         self.assertFalse(apl.exists("int"))
@@ -637,7 +598,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertFalse(apl.exists("apl1.zero"))
         self.assertEqual(apl.getAsInt("apl1.plus"), 1)
         self.assertEqual(apl.getAsInt("apl1.minus"), -1)
-        self.assertEqual(apl.nameCount(False), 3)
+        self.assertEqual(apl.nameCount(), 3)
 
         # Removing a non-existent key (flattened) has no effect
         self.assertFalse(apl.exists("apl1"))
@@ -648,7 +609,7 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertTrue(apl.exists("apl1.plus"))
         self.assertTrue(apl.exists("apl1.minus"))
         self.assertFalse(apl.exists("apl1.zero"))
-        self.assertEqual(apl.nameCount(False), 3)
+        self.assertEqual(apl.nameCount(), 3)
 
         apl.remove("double")
         self.assertFalse(apl.exists("int"))
@@ -657,11 +618,11 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertTrue(apl.exists("apl1.plus"))
         self.assertTrue(apl.exists("apl1.minus"))
         self.assertFalse(apl.exists("apl1.zero"))
-        self.assertEqual(apl.nameCount(False), 2)
+        self.assertEqual(apl.nameCount(), 2)
 
         apl.remove("apl1.plus")
         apl.remove("apl1.minus")
-        self.assertEqual(apl.nameCount(False), 0)
+        self.assertEqual(apl.nameCount(), 0)
 
     def testdeepCopy(self):
         apl = dafBase.PropertyList()
@@ -712,25 +673,7 @@ class PropertyListTestCase(unittest.TestCase):
                  'string', 'apl1.pre', 'apl1.post', 'apl2.plus', 'apl2.minus', 'apl3.sub.subsub', 'v']
         self.assertEqual(apl.getOrderedNames(), order)
 
-        # Argument to toString has no effect for flattened hierarchy
         self.assertEqual(apl.toString(),
-                         "bool = 1\n"
-                         "short = 42\n"
-                         "int = 2008\n"
-                         "int64_t = 280297596632815\n"
-                         "float = 3.141590\n"
-                         "double = 2.7182818284590\n"
-                         "char* = \"foo\"\n"
-                         "char*2 = \"foo2\"\n"
-                         "string = \"bar\"\n"
-                         "apl1.pre = 1\n"
-                         "apl1.post = 2\n"
-                         "apl2.plus = 10.240000000000\n"
-                         "apl2.minus = -10.240000000000\n"
-                         "apl3.sub.subsub = \"foo\"\n"
-                         "v = [ 10, 9, 8 ]\n"
-                         )
-        self.assertEqual(apl.toString(True),
                          "bool = 1\n"
                          "short = 42\n"
                          "int = 2008\n"

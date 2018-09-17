@@ -7,6 +7,7 @@
 #include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/PropertySet.h"
 #include "lsst/daf/base/DateTime.h"
+#include "lsst/daf/base/PropertyList.h"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -58,9 +59,10 @@ PYBIND11_MODULE(propertySet, mod) {
             .def("name", &std::type_info::name)
             .def("__hash__", &std::type_info::hash_code);
 
-    py::class_<PropertySet, std::shared_ptr<PropertySet>, Citizen> cls(mod, "PropertySet");
+    py::class_<PropertySet, std::shared_ptr<PropertySet>> cls(mod, "PropertySet");
 
     cls.def(py::init<bool>(), "flat"_a = false);
+    cls.def(py::init<PropertyList const &>());  // n.b. implemented as conversion operator on PropertyList
 
     cls.def("deepCopy", &PropertySet::deepCopy);
     cls.def("nameCount", &PropertySet::nameCount, "topLevelOnly"_a = true);
@@ -73,8 +75,12 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("valueCount", &PropertySet::valueCount);
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
     cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
-    cls.def("copy", &PropertySet::copy, "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
-    cls.def("combine", &PropertySet::combine);
+    cls.def("copy",
+            py::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
+                &PropertySet::copy
+            ),
+            "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
+    cls.def("combine", py::overload_cast<PropertySet const &>(&PropertySet::combine));
     cls.def("remove", &PropertySet::remove);
     cls.def("getAsBool", &PropertySet::getAsBool);
     cls.def("getAsInt", &PropertySet::getAsInt);

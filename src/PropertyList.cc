@@ -37,41 +37,36 @@ namespace base {
 
 /** Constructor.
  */
-PropertyList::PropertyList() : PropertySet(true) {}
-
-/** Destructor.
- */
-PropertyList::~PropertyList() noexcept = default;
+PropertyList::PropertyList() : _properties(true) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<PropertySet> PropertyList::_deepCopy() const {
-    Ptr n(new PropertyList);
-    n->PropertySet::combine(this->PropertySet::_deepCopy());
+std::shared_ptr<PropertyList> PropertyList::deepCopy() const {
+    auto n = std::make_shared<PropertyList>();
+    n->_properties.combine(*_properties.deepCopy());
     n->_order = _order;
     n->_comments = _comments;
     return n;
 }
 
+
 // The following throw an exception if the type does not match exactly.
 
 template <typename T>
-T PropertyList::get(std::string const& name)
-        const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
-    return PropertySet::get<T>(name);
+T PropertyList::get(std::string const& name) const {
+    return _properties.get<T>(name);
 }
 
 template <typename T>
-T PropertyList::get(std::string const& name, T const& defaultValue)
-        const { /* parasoft-suppress LsstDm-3-4a LsstDm-4-6 "allow template over bool" */
-    return PropertySet::get<T>(name, defaultValue);
+T PropertyList::get(std::string const& name, T const& defaultValue) const {
+    return _properties.get<T>(name, defaultValue);
 }
 
 template <typename T>
 std::vector<T> PropertyList::getArray(std::string const& name) const {
-    return PropertySet::getArray<T>(name);
+    return _properties.getArray<T>(name);
 }
 
 std::string const& PropertyList::getComment(std::string const& name) const {
@@ -90,10 +85,10 @@ std::list<std::string>::const_iterator PropertyList::begin() const { return _ord
 
 std::list<std::string>::const_iterator PropertyList::end() const { return _order.end(); }
 
-std::string PropertyList::toString(bool topLevelOnly, std::string const& indent) const {
+std::string PropertyList::toString(std::string const& indent) const {
     std::ostringstream s;
     for (auto const& name : _order) {
-        s << _format(name);
+        s << _properties.format(name);
         std::string const& comment = _comments.find(name)->second;
         if (comment.size()) {
             s << "// " << comment << std::endl;
@@ -106,44 +101,70 @@ std::string PropertyList::toString(bool topLevelOnly, std::string const& indent)
 // Modifiers
 ///////////////////////////////////////////////////////////////////////////////
 
+#define LSST_PROPERTYLIST_CHECK_INVARIANTS() \
+    assert(_properties.nameCount(true) == _order.size()); \
+    assert(_properties.nameCount(true) == _comments.size()); \
+    assert(_properties.nameCount(true) == _properties.nameCount(false))
+
 ///////////////////////////////////////////////////////////////////////////////
 // Normal versions of set/add with placement control
 
 template <typename T>
 void PropertyList::set(std::string const& name, T const& value) {
-    PropertySet::set(name, value);
+    _properties.set(name, value);
+    _addDefaultCommentAndOrder(name);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
-void PropertyList::set(std::string const& name, PropertySet::Ptr const& value) {
-    Ptr pl = std::dynamic_pointer_cast<PropertyList, PropertySet>(value);
-    PropertySet::set(name, value);
+void PropertyList::set(std::string const& name, PropertySet const& value) {
+    _properties.set(name, value.deepCopy());
     _comments.erase(name);
     _order.remove(name);
-    std::vector<std::string> paramNames = value->paramNames(false);
-    if (pl) {
-        for (auto const& paramName : paramNames) {
-            _commentOrderFix(name + "." + paramName, pl->getComment(paramName));
-        }
+    for (auto const & k : value.paramNames(false)) {
+        _addDefaultCommentAndOrder(name + "." + k);
     }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
+}
+
+void PropertyList::set(std::string const& name, PropertyList const& value) {
+    _properties.set(name, value._properties.deepCopy());
+    _comments.erase(name);
+    _order.remove(name);
+    for (auto const& k : value._properties.paramNames(false)) {
+        _commentOrderFix(name + "." + k, value.getComment(k));
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 void PropertyList::set(std::string const& name, char const* value) { set(name, std::string(value)); }
 
 template <typename T>
 void PropertyList::set(std::string const& name, std::vector<T> const& value) {
-    PropertySet::set(name, value);
+    _properties.set(name, value);
+    _addDefaultCommentAndOrder(name);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 template <typename T>
 void PropertyList::add(std::string const& name, T const& value) {
-    PropertySet::add(name, value);
+    if (_properties.exists(name)) {
+        _properties.add(name, value);
+    } else {
+        set(name, value);
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 void PropertyList::add(std::string const& name, char const* value) { add(name, std::string(value)); }
 
 template <typename T>
 void PropertyList::add(std::string const& name, std::vector<T> const& value) {
-    PropertySet::add(name, value);
+    if (_properties.exists(name)) {
+        _properties.add(name, value);
+    } else {
+        set(name, value);
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -151,23 +172,31 @@ void PropertyList::add(std::string const& name, std::vector<T> const& value) {
 
 template <typename T>
 void PropertyList::set(std::string const& name, T const& value, std::string const& comment) {
-    PropertySet::set(name, value);
+    _properties.set(name, value);
     _commentOrderFix(name, comment);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 void PropertyList::set(std::string const& name, char const* value, std::string const& comment) {
     set(name, std::string(value), comment);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 template <typename T>
 void PropertyList::set(std::string const& name, std::vector<T> const& value, std::string const& comment) {
-    PropertySet::set(name, value);
+    _properties.set(name, value);
     _commentOrderFix(name, comment);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 template <typename T>
 void PropertyList::add(std::string const& name, T const& value, std::string const& comment) {
-    PropertySet::add(name, value);
-    _commentOrderFix(name, comment);
+    if (_properties.exists(name)) {
+        _properties.add(name, value);
+        _commentOrderFix(name, comment);
+    } else {
+        set(name, value, comment);
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 void PropertyList::add(std::string const& name, char const* value, std::string const& comment) {
@@ -176,69 +205,98 @@ void PropertyList::add(std::string const& name, char const* value, std::string c
 
 template <typename T>
 void PropertyList::add(std::string const& name, std::vector<T> const& value, std::string const& comment) {
-    PropertySet::add(name, value);
-    _commentOrderFix(name, comment);
+    if (_properties.exists(name)) {
+        _properties.add(name, value);
+        _commentOrderFix(name, comment);
+    } else {
+        set(name, value, comment);
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Other modifiers
 
-void PropertyList::copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
-                        bool asScalar) {
-    PropertySet::copy(dest, source, name, asScalar);
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
-    if (pl) {
-        _comments[name] = pl->_comments.find(name)->second;
-    }
+void PropertyList::copy(std::string const& dest, PropertySet const & source,
+                        std::string const& name, bool asScalar) {
+    _properties.copy(dest, source, name, asScalar);
+    _addDefaultCommentAndOrder(dest);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
-void PropertyList::combine(PropertySet::ConstPtr source) {
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
+void PropertyList::copy(std::string const& dest, PropertyList const & source,
+                        std::string const& name, bool asScalar) {
+    copy(dest, source._properties, name, asScalar);
+    _commentOrderFix(dest, source._comments.find(name)->second);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
+}
+
+void PropertyList::combine(PropertySet const & source) {
     std::list<std::string> newOrder;
-    if (pl) {
-        newOrder = _order;
-        for (auto const& name : *pl) {
-            bool present = _comments.find(name) != _comments.end();
-            if (!present) {
-                newOrder.push_back(name);
-            }
+    auto const paramNames = source.paramNames(false);
+    for (auto const& name : paramNames) {
+        bool present = _comments.find(name) != _comments.end();
+        if (!present) {
+            newOrder.push_back(name);
         }
     }
-    PropertySet::combine(source);
-    if (pl) {
-        _order = newOrder;
-        for (auto const& name : *pl) {
-            _comments[name] = pl->_comments.find(name)->second;
+    _properties.combine(source);
+    _order.swap(newOrder);
+    for (auto const& name : paramNames) {
+        auto iter = _comments.find(name);
+        if (iter == _comments.end()) {
+            _comments[name] = std::string();
         }
     }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
+}
+
+void PropertyList::combine(PropertyList const & source) {
+    std::list<std::string> newOrder(_order);
+    for (auto const& name : source) {
+        bool present = _comments.find(name) != _comments.end();
+        if (!present) {
+            newOrder.push_back(name);
+        }
+    }
+    _properties.combine(source._properties);
+    _order.swap(newOrder);
+    for (auto const& name : source) {
+        _comments[name] = source._comments.find(name)->second;
+    }
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 void PropertyList::remove(std::string const& name) {
-    PropertySet::remove(name);
+    _properties.remove(name);
     _comments.erase(name);
     _order.remove(name);
+    LSST_PROPERTYLIST_CHECK_INVARIANTS();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Private member functions
 ///////////////////////////////////////////////////////////////////////////////
 
-void PropertyList::_set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp) {
-    PropertySet::_set(name, vp);
+void PropertyList::_commentOrderFix(std::string const& name, std::string const& comment) {
+    auto i = _comments.find(name);
+    if (i == _comments.end()) {
+        _comments[name] = comment;
+        _order.push_back(name);
+    } else {
+        i->second = comment;
+    }
+}
+
+void PropertyList::_addDefaultCommentAndOrder(std::string const & name) {
     if (_comments.find(name) == _comments.end()) {
-        _comments.insert(std::make_pair(name, std::string()));
+        _comments[name] = std::string();
         _order.push_back(name);
     }
 }
 
-void PropertyList::_moveToEnd(std::string const& name) {
-    _order.remove(name);
-    _order.push_back(name);
-}
 
-void PropertyList::_commentOrderFix(std::string const& name, std::string const& comment) {
-    _comments[name] = comment;
-}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Explicit template instantiations

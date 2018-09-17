@@ -52,7 +52,6 @@
 #include "boost/any.hpp"
 
 #include "lsst/base.h"
-#include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/Persistable.h"
 #include "lsst/pex/exceptions.h"
 
@@ -60,12 +59,14 @@ namespace lsst {
 namespace daf {
 namespace base {
 
+class PropertyList;
+
 #if defined(__ICC)
 #pragma warning(push)
 #pragma warning(disable : 444)
 #endif
 
-class LSST_EXPORT PropertySet : public Citizen {
+class LSST_EXPORT PropertySet final {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;
@@ -78,16 +79,25 @@ public:
      */
     explicit PropertySet(bool flat = false);
 
-    /// Destructor
-    virtual ~PropertySet() noexcept;
+    ///@{
+    /**
+     * Copy construction and assignment.
+     *
+     * This is a shallow copy; nested PropertySets will not be copied.
+     */
+    PropertySet(PropertySet const &) = default;
+    PropertySet& operator=(PropertySet const &) = default;
+    ///@}
 
-    // No copying
-    PropertySet(const PropertySet&) = delete;
-    PropertySet& operator=(const PropertySet&) = delete;
+    ///@{
+    /**
+     * Move construction and assignment.
+     */
+    PropertySet(PropertySet&&) noexcept = default;
+    PropertySet& operator=(PropertySet&&) noexcept = default;
+    //@}
 
-    // No moving
-    PropertySet(PropertySet&&) = delete;
-    PropertySet& operator=(PropertySet&&) = delete;
+    ~PropertySet() noexcept = default;
 
     // Accessors
 
@@ -96,7 +106,7 @@ public:
      *
      * @return PropertySet::Ptr pointing to the new copy.
      */
-    std::shared_ptr<PropertySet> deepCopy() const { return _deepCopy(); }
+    std::shared_ptr<PropertySet> deepCopy() const;
 
     /**
      * Get the number of names in the PropertySet, optionally including those in subproperties.
@@ -312,7 +322,7 @@ public:
      * @param[in] indent String to indent lines by (default none).
      * @return String representation of the PropertySet.
      */
-    virtual std::string toString(bool topLevelOnly = false, std::string const& indent = "") const;
+    std::string toString(bool topLevelOnly = false, std::string const& indent = "") const;
 
     // Modifiers
 
@@ -390,7 +400,7 @@ public:
      * \a source.
      *
      * @param[in] dest Destination property name.
-     * @param[in] source PropertySet::Ptr for the source PropertySet.
+     * @param[in] source the source PropertySet.
      * @param[in] name Property name to extract.
      * @param[in] asScalar If true copy the item as a scalar by ignoring all but the last value
      *                     (which is the value returned by get<T>(name))
@@ -398,8 +408,13 @@ public:
      * @throws InvalidParameterError Name does not exist in source.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void copy(std::string const& dest, ConstPtr source, std::string const& name,
-                      bool asScalar = false);
+    void copy(std::string const& dest, PropertySet const & source, std::string const& name,
+              bool asScalar = false);
+
+    /// Deprecated shared_ptr version of copy().
+    [[deprecated("Pass by const reference instead of shared_ptr.")]]
+    void copy(std::string const& dest, std::shared_ptr<PropertySet const> const & source,
+              std::string const& name, bool asScalar = false);
 
     /**
      * Append all value vectors from the \a source to their corresponding
@@ -408,13 +423,17 @@ public:
      * If a property already exists then the types of the existing value(s)
      * must match the type of the value(s) in \a source.
      *
-     * @param[in] source PropertySet::Ptr for the source PropertySet.
+     * @param[in] source the source PropertySet.
      * @throws TypeError Type does not match existing values for an item.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      *
      * @warning May only partially combine the PropertySets if an exception occurs.
      */
-    virtual void combine(ConstPtr source);
+    void combine(PropertySet const & source);
+
+    /// Deprecated shared_ptr version of combine().
+    [[deprecated("Pass by const reference instead of shared_ptr.")]]
+    void combine(std::shared_ptr<PropertySet const> const & source);
 
     /**
      * Remove all values for a property name (possibly hierarchical).  Does
@@ -422,9 +441,15 @@ public:
      *
      * @param[in] name Property name to remove, possibly hierarchical.
      */
-    virtual void remove(std::string const& name);
+    void remove(std::string const& name);
 
-protected:
+    // Format a single key-value pair in human-readable form.
+    std::string format(std::string const& name) const;
+
+private:
+
+    typedef std::unordered_map<std::string, std::shared_ptr<std::vector<boost::any> > > AnyMap;
+
     /*
      * Find the property name (possibly hierarchical) and set or replace its
      * value with the given vector of values.  Hook for subclass overrides of
@@ -434,7 +459,7 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
 
     /*
      * Find the property name (possibly hierarchical) and append or set its
@@ -444,18 +469,7 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _add(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
-
-    // Format a value in human-readable form; called by toString
-    virtual std::string _format(std::string const& name) const;
-
-protected:
-
-    virtual std::shared_ptr<PropertySet> _deepCopy() const;
-
-private:
-
-    typedef std::unordered_map<std::string, std::shared_ptr<std::vector<boost::any> > > AnyMap;
+    void _add(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
 
     /*
      * Find the property name (possibly hierarchical).
@@ -481,7 +495,7 @@ private:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
     void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
     void _cycleCheckAnyVec(std::vector<boost::any> const& v, std::string const& name);
     void _cycleCheckPtr(Ptr const& v, std::string const& name);

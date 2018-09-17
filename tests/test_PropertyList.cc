@@ -47,17 +47,6 @@ BOOST_AUTO_TEST_CASE(construct) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     dafBase::PropertyList pl;
     dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
     BOOST_CHECK_EQUAL(!plp, false);
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertyList);
-    BOOST_CHECK_EQUAL(!psp, false);
-}
-
-BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test
-                                 harness macros" */
-    dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
-    dafBase::PropertySet::Ptr psp = plp;
-    BOOST_CHECK_EQUAL(!plp, false);
-    std::shared_ptr<dafBase::Citizen> cp = plp;
-    BOOST_CHECK_EQUAL(!cp, false);
 }
 
 BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
@@ -91,31 +80,31 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
 
 BOOST_AUTO_TEST_CASE(getScalarPSP) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
                                         test harness macros" */
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertyList);
-    psp->set("bool", true);
-    psp->set("char", '*');
+    auto plp = std::make_shared<dafBase::PropertyList>();
+    plp->set("bool", true);
+    plp->set("char", '*');
     short s = 42;
-    psp->set("short", s);
-    psp->set("int", 2008);
-    psp->set("int64_t", INT64CONST(0xfeeddeadbeef));
+    plp->set("short", s);
+    plp->set("int", 2008);
+    plp->set("int64_t", INT64CONST(0xfeeddeadbeef));
     float f = 3.14159;
-    psp->set("float", f);
+    plp->set("float", f);
     double d = 2.718281828459045;
-    psp->set("double", d);
-    psp->set<std::string>("char*", "foo");
-    psp->set("char*2", "foo2");
-    psp->set("string", std::string("bar"));
+    plp->set("double", d);
+    plp->set<std::string>("char*", "foo");
+    plp->set("char*2", "foo2");
+    plp->set("string", std::string("bar"));
 
-    BOOST_CHECK_EQUAL(psp->get<bool>("bool"), true);
-    BOOST_CHECK_EQUAL(psp->get<char>("char"), '*');
-    BOOST_CHECK_EQUAL(psp->get<short>("short"), 42);
-    BOOST_CHECK_EQUAL(psp->get<int>("int"), 2008);
-    BOOST_CHECK_EQUAL(psp->get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
-    BOOST_CHECK_EQUAL(psp->get<float>("float"), 3.14159f);
-    BOOST_CHECK_EQUAL(psp->get<double>("double"), 2.718281828459045);
-    BOOST_CHECK_EQUAL(psp->get<std::string>("char*"), "foo");
-    BOOST_CHECK_EQUAL(psp->get<std::string>("char*2"), "foo2");
-    BOOST_CHECK_EQUAL(psp->get<std::string>("string"), "bar");
+    BOOST_CHECK_EQUAL(plp->get<bool>("bool"), true);
+    BOOST_CHECK_EQUAL(plp->get<char>("char"), '*');
+    BOOST_CHECK_EQUAL(plp->get<short>("short"), 42);
+    BOOST_CHECK_EQUAL(plp->get<int>("int"), 2008);
+    BOOST_CHECK_EQUAL(plp->get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
+    BOOST_CHECK_EQUAL(plp->get<float>("float"), 3.14159f);
+    BOOST_CHECK_EQUAL(plp->get<double>("double"), 2.718281828459045);
+    BOOST_CHECK_EQUAL(plp->get<std::string>("char*"), "foo");
+    BOOST_CHECK_EQUAL(plp->get<std::string>("char*2"), "foo2");
+    BOOST_CHECK_EQUAL(plp->get<std::string>("string"), "bar");
 }
 
 BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
@@ -207,12 +196,7 @@ BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
     dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
     plp->set("int", 31, "test");
     BOOST_CHECK_EQUAL(plp->get<int>("int"), 31);
-    dafBase::PropertySet::Ptr psp = plp;
-    dafBase::PropertySet::Ptr psp2 = psp->deepCopy();
-    BOOST_CHECK_EQUAL(psp2->get<int>("int"), 31);
-    dafBase::PropertyList::Ptr plp2 =
-            std::dynamic_pointer_cast<dafBase::PropertyList, dafBase::PropertySet>(psp2);
-    BOOST_CHECK_EQUAL(!plp2, false);
+    dafBase::PropertyList::Ptr plp2 = plp->deepCopy();
     BOOST_CHECK_EQUAL(plp2->get<int>("int"), 31);
     BOOST_CHECK_EQUAL(plp2->getComment("int"), "test");
 }
@@ -381,7 +365,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     pl.set("string", std::string("bar"));
     dafBase::PropertySet::Ptr plp(new dafBase::PropertySet);
     plp->set("bottom", "x");
-    pl.set("top", plp);
+    pl.set("top", *plp);
 
     BOOST_CHECK_EQUAL(pl.getAsBool("bool"), true);
     BOOST_CHECK_THROW(pl.getAsBool("char"), pexExcept::TypeError);
@@ -410,7 +394,6 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     BOOST_CHECK_EQUAL(pl.getAsString("string"), "bar");
     BOOST_CHECK_THROW(pl.getAsString("int"), pexExcept::TypeError);
     BOOST_CHECK_EQUAL(pl.getAsString("top.bottom"), "x");
-    BOOST_CHECK_THROW(pl.getAsPropertySetPtr("top"), pexExcept::NotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
@@ -421,7 +404,7 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(pl.combine(psp), pexExcept::TypeError);
+    BOOST_CHECK_THROW(pl.combine(*psp), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(combineHierarchical) {
@@ -430,30 +413,10 @@ BOOST_AUTO_TEST_CASE(combineHierarchical) {
     dafBase::PropertyList pl;
     pl.set("a.b", 1);
 
-    dafBase::PropertySet::Ptr plp;
+    std::shared_ptr<dafBase::PropertyList> plp;
     BOOST_CHECK_NO_THROW(plp = pl.deepCopy());
 
     BOOST_CHECK_EQUAL(pl.getAsInt("a.b"), plp->getAsInt("a.b"));
-}
-
-BOOST_AUTO_TEST_CASE(combineAsPS) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
-                                       test harness macros" */
-    dafBase::PropertyList::Ptr plp1(new dafBase::PropertyList);
-    dafBase::PropertyList::Ptr plp2(new dafBase::PropertyList);
-    plp1->set("int", 42, "comment");
-    plp2->set("float", 3.14159, "stuff");
-    dafBase::PropertySet::Ptr psp =
-            std::static_pointer_cast<dafBase::PropertySet, dafBase::PropertyList>(plp1);
-    psp.get()->set("foo", 36);
-    psp.get()->combine(plp2);
-    dafBase::PropertyList::Ptr newPlp =
-            std::dynamic_pointer_cast<dafBase::PropertyList, dafBase::PropertySet>(psp);
-    BOOST_CHECK_EQUAL(!newPlp, false);
-    BOOST_CHECK_EQUAL(newPlp->get<int>("int"), 42);
-    BOOST_CHECK_EQUAL(newPlp->get<int>("foo"), 36);
-    BOOST_CHECK_EQUAL(newPlp->get<double>("float"), 3.14159);
-    BOOST_CHECK_EQUAL(newPlp->getComment("int"), "comment");
-    BOOST_CHECK_EQUAL(newPlp->getComment("float"), "stuff");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -105,12 +105,6 @@ class YAMLTestCase(unittest.TestCase):
         apl2 = yaml.load(yaml.dump(apl))
         self.assertEqual(apl2, apl)
 
-        # Add the PropertyList to the PropertySet to ensure that the
-        # correct type is returned and no loss of comments
-        ps.setPropertySet("newpl", apl)
-        apl3 = yaml.load(yaml.dump(ps))
-        self.assertEqual(apl3, ps)
-
     def testYamlDateTime(self):
         ts = lsst.daf.base.DateTime("2004-03-01T12:39:45.1Z", lsst.daf.base.DateTime.UTC)
         ts2 = yaml.load(yaml.dump(ts))

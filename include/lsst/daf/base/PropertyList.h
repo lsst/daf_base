@@ -65,7 +65,7 @@ namespace base {
 #pragma warning(disable : 444)
 #endif
 
-class LSST_EXPORT PropertyList : public PropertySet {
+class LSST_EXPORT PropertyList final {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertyList> Ptr;
@@ -74,19 +74,57 @@ public:
     /// Construct an empty PropertyList
     PropertyList();
 
-    /// Destructor
-    virtual ~PropertyList() noexcept;
+    ///@{
+    /**
+     * Copy construction and assignment.
+     */
+    PropertyList(PropertyList const &) = default;
+    PropertyList& operator=(PropertyList const &) = default;
+    ///@}
+
+    ///@{
+    /**
+     * Move construction and assignment.
+     */
+    PropertyList(PropertyList&&) noexcept = default;
+    PropertyList& operator=(PropertyList&&) noexcept = default;
+    //@}
+
+    /**
+     * Convert to a PropertySet.
+     *
+     * The returned object will have been constructed with flat=True.
+     */
+    explicit operator PropertySet () const { return _properties; }
+
+    ~PropertyList() noexcept = default;
 
     // Accessors
+
+    /// Get the number of names in the PropertyList,
+    size_t nameCount() const { return _properties.nameCount(); }
+
+    /// Get the number of names in the PropertyList.
+    std::vector<std::string> names() const { return _properties.names(); }
 
     /**
      * Make a deep copy of the PropertyList and all of its contents.
      *
-     * @return PropertyList::Ptr pointing to the new copy.
+     * @return shared_ptr pointing to the new copy.
      */
-    std::shared_ptr<PropertyList> deepCopy() const {
-        return std::static_pointer_cast<PropertyList>(_deepCopy());
-    }
+    std::shared_ptr<PropertyList> deepCopy() const;
+
+    /// @copydoc PropertySet::exists
+    bool exists(std::string const& name) const { return _properties.exists(name); }
+
+    /// @copydoc PropertySet::isArray
+    bool isArray(std::string const& name) const { return _properties.isArray(name); }
+
+    /// @copydoc PropertySet::valueCount
+    size_t valueCount(std::string const& name) const { return _properties.valueCount(name); }
+
+    /// @copydoc PropertySet::typeOf
+    std::type_info const& typeOf(std::string const& name) const { return _properties.typeOf(name); }
 
     // I can't make copydoc work for this so...
     /**
@@ -123,6 +161,26 @@ public:
     template <typename T>
     std::vector<T> getArray(std::string const& name) const;
 
+    /// @copydoc PropertySet::getAsBool
+    bool getAsBool(std::string const& name) const { return _properties.getAsBool(name); }
+
+    /// @copydoc PropertySet::getAsInt
+    int getAsInt(std::string const& name) const { return _properties.getAsInt(name); }
+
+    /// @copydoc PropertySet::getAsInt64
+    int64_t getAsInt64(std::string const& name) const { return _properties.getAsInt64(name); }
+
+    /// @copydoc PropertySet::getAsDouble
+    double getAsDouble(std::string const& name) const { return _properties.getAsDouble(name); }
+
+    /// @copydoc PropertySet::getAsString
+    std::string getAsString(std::string const& name) const { return _properties.getAsString(name); }
+
+    /// @copydoc PropertySet::getAsPersistablePtr
+    Persistable::Ptr getAsPersistablePtr(std::string const& name) const {
+        return _properties.getAsPersistablePtr(name);
+    }
+
     /**
      * Get the comment for a string property name (possibly hierarchical).
      *
@@ -141,8 +199,15 @@ public:
     /// End iterator over the list of property names, in the order they were added
     std::list<std::string>::const_iterator end() const;
 
-    /// @copydoc PropertySet::toString()
-    virtual std::string toString(bool topLevelOnly = false, std::string const& indent = "") const;
+    /**
+     * Generate a string representation of the PropertyList.
+     *
+     * Use this for debugging, not for serialization/persistence.
+     *
+     * @param[in] indent String to indent lines by (default none).
+     * @return String representation of the PropertySet.
+     */
+    std::string toString(std::string const& indent = "") const;
 
     // Modifiers
 
@@ -158,7 +223,41 @@ public:
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    void set(std::string const& name, PropertySet::Ptr const& value);
+    void set(std::string const& name, PropertySet const& value);
+
+    /// Deprecated shared_ptr overload of set().
+    [[deprecated("Pass by const reference, not by shared_ptr.")]]
+    void set(std::string const& name, std::shared_ptr<PropertySet> const & value) {
+        set(name, *value);
+    }
+
+    /// Deprecated shared_ptr overload of set().
+    [[deprecated("Pass by const reference, not by shared_ptr.")]]
+    void set(std::string const& name, std::shared_ptr<PropertySet const> const & value) {
+        set(name, *value);
+    }
+
+    /**
+     * Replace all values for a property name (possibly hierarchical) with a new
+     * PropertyList.
+     *
+     * @param[in] name Property name to set, possibly hierarchical.
+     * @param[in] value Value to set.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     */
+    void set(std::string const& name, PropertyList const& value);
+
+    /// Deprecated shared_ptr overload of set().
+    [[deprecated("Pass by const reference, not by shared_ptr.")]]
+    void set(std::string const& name, std::shared_ptr<PropertyList> const & value) {
+        set(name, *value);
+    }
+
+    /// Deprecated shared_ptr overload of set().
+    [[deprecated("Pass by const reference, not by shared_ptr.")]]
+    void set(std::string const& name, std::shared_ptr<PropertyList const> const & value) {
+        set(name, *value);
+    }
 
     /// @copydoc PropertySet::set(std::string const&, std::vector<T> const&)
     template <typename T>
@@ -275,28 +374,80 @@ public:
         add(name, value, std::string(comment));
     }
 
-    /// @copydoc PropertySet::copy
-    virtual void copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
-                      bool asScalar = false);
+    /**
+     * Replace a single value vector in the destination with one from the
+     * \a source.
+     *
+     * @param[in] dest Destination property name.
+     * @param[in] source the source PropertySet.
+     * @param[in] name Property name to extract.
+     * @param[in] asScalar If true copy the item as a scalar by ignoring all but the last value
+     *                     (which is the value returned by get<T>(name))
+     * @throws TypeError Type does not match existing values.
+     * @throws InvalidParameterError Name does not exist in source.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet or PropertyList.
+     */
+    void copy(std::string const& dest, PropertySet const & source, std::string const& name,
+              bool asScalar = false);
 
-    /// @copydoc PropertySet::combine
-    virtual void combine(PropertySet::ConstPtr source);
+    /**
+     * Replace a single value vector in the destination with one from the
+     * \a source.
+     *
+     * @param[in] dest Destination property name.
+     * @param[in] source the source PropertyList.
+     * @param[in] name Property name to extract.
+     * @param[in] asScalar If true copy the item as a scalar by ignoring all but the last value
+     *                     (which is the value returned by get<T>(name))
+     * @throws TypeError Type does not match existing values.
+     * @throws InvalidParameterError Name does not exist in source.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet or PropertyList.
+     */
+    void copy(std::string const& dest, PropertyList const & source, std::string const& name,
+              bool asScalar = false);
+
+    /**
+     * Append all value vectors from the \a source to their corresponding
+     * properties.  Sets values if a property does not exist.
+     *
+     * If a property already exists then the types of the existing value(s)
+     * must match the type of the value(s) in \a source.
+     *
+     * @param[in] source the source PropertyList.
+     * @throws TypeError Type does not match existing values for an item.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * @warning May only partially combine the PropertySets if an exception occurs.
+     */
+    void combine(PropertySet const & source);
+
+    /**
+     * Append all value vectors from the \a source to their corresponding
+     * properties.  Sets values if a property does not exist.
+     *
+     * If a property already exists then the types of the existing value(s)
+     * must match the type of the value(s) in \a source.
+     *
+     * @param[in] source the source PropertyList.
+     * @throws TypeError Type does not match existing values for an item.
+     * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * @warning May only partially combine the PropertySets if an exception occurs.
+     */
+    void combine(PropertyList const & source);
 
     /// @copydoc PropertySet::remove
-    virtual void remove(std::string const& name);
-
-protected:
-
-    std::shared_ptr<PropertySet> _deepCopy() const override;
+    void remove(std::string const& name);
 
 private:
 
     typedef std::unordered_map<std::string, std::string> CommentMap;
 
-    virtual void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
-    virtual void _moveToEnd(std::string const& name);
-    virtual void _commentOrderFix(std::string const& name, std::string const& comment);
+    void _commentOrderFix(std::string const& name, std::string const& comment);
 
+    void _addDefaultCommentAndOrder(std::string const & name);
+
+    PropertySet _properties;
     CommentMap _comments;
     std::list<std::string> _order;
 };

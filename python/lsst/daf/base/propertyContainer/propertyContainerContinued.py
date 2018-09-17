@@ -303,6 +303,25 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
     raise TypeError("Unknown value type for %s: %s" % (name, t))
 
 
+def _propertySetEq(self, other):
+    """Compare the PropertySet-like aspects of two PropertySet or PropertyLists.
+    """
+    if type(self) != type(other):
+        return False
+
+    if len(self) != len(other):
+        return False
+
+    for name in self:
+        if _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO) != \
+                _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO):
+            return False
+        if self.typeOf(name) != other.typeOf(name):
+            return False
+
+    return True
+
+
 def _makePropertySet(state):
     """Make a `PropertySet` from the state returned by `getPropertySetState`
 
@@ -463,20 +482,7 @@ class PropertySet:
         return d
 
     def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-
-        if len(self) != len(other):
-            return False
-
-        for name in self:
-            if _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO) != \
-                    _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO):
-                return False
-            if self.typeOf(name) != other.typeOf(name):
-                return False
-
-        return True
+        return _propertySetEq(self, other)
 
     def __copy__(self):
         # Provide a copy because by default __reduce__ is used and that
@@ -535,7 +541,7 @@ class PropertyList:
                  str: "String",
                  DateTime: "DateTime",
                  PropertySet: "PropertySet",
-                 PropertyList: "PropertySet",
+                 PropertyList: "PropertyList",
                  }
 
     COMMENTSUFFIX = "#COMMENT"
@@ -686,6 +692,17 @@ class PropertyList:
                             self.getComment(name)))
         return ret
 
+    def toDict(self):
+        """Return a mapping with all properties.
+
+        Returns
+        -------
+        d : `~collections.Mapping`
+            Dictionary-like objects with all properties.  Comments are not
+            included.
+        """
+        return self.toOrderedDict()
+
     def toOrderedDict(self):
         """Return an ordered dictionary with all properties in the order that
         they were inserted.
@@ -703,8 +720,11 @@ class PropertyList:
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
 
+    def keys(self):
+        return KeysView(self)
+
     def __eq__(self, other):
-        if not super(PropertySet, self).__eq__(other):
+        if not _propertySetEq(self, other):
             return False
 
         for name in self:
@@ -719,6 +739,9 @@ class PropertyList:
         # pickling code but restrict the names
         state = getPropertyListState(self, names=self.getOrderedNames())
         return _makePropertyList(state)
+
+    def __len__(self):
+        return self.nameCount()
 
     def __iter__(self):
         for n in self.getOrderedNames():
