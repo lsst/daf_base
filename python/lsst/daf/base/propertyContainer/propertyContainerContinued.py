@@ -702,7 +702,10 @@ class PropertyList:
         return d
 
     def __eq__(self, other):
-        if not super(PropertySet, self).__eq__(other):
+        # super() doesn't seem to work properly in @continueClass;
+        # note that super with arguments seems to work at first, but actually
+        # doesn't either.
+        if not PropertySet.__eq__(self, other):
             return False
 
         for name in self:
