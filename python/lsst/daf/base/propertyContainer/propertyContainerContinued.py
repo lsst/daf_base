@@ -36,7 +36,7 @@ from .propertyList import PropertyList
 from ..dateTime import DateTime
 
 
-def getPropertySetState(container, asLists=False, names=None):
+def getPropertySetState(container, asLists=False):
     """Get the state of a PropertySet in a form that can be pickled.
 
     Parameters
@@ -46,8 +46,6 @@ def getPropertySetState(container, asLists=False, names=None):
     asLists : `bool`, optional
         If False, the default, `tuple` will be used for the contents. If true
         a `list` will be used.
-    names : `list` or `tuple`
-        Override the default list of names with this subset.
 
     Returns
     -------
@@ -62,12 +60,7 @@ def getPropertySetState(container, asLists=False, names=None):
         - value: the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
-    if names is None:
-        # All top level names: this allows hierarchical PropertySet and
-        # PropertyList to be represented as their own entities. Without
-        # this a PropertyList inside a PropertySet loses all comments
-        # and becomes a PropertySet.
-        names = container.names(topLevelOnly=True)
+    names = container.names(topLevelOnly=True)
     sequence = list if asLists else tuple
     return [sequence((name, _propertyContainerElementTypeName(container, name),
             _propertyContainerGet(container, name, returnStyle=ReturnStyle.AUTO)))
@@ -479,11 +472,16 @@ class PropertySet:
         return True
 
     def __copy__(self):
-        # Provide a copy because by default __reduce__ is used and that
-        # will not shallow copy properly, we therefore use the same
-        # pickling code but restrict the names
-        state = getPropertySetState(self, names=self.names(topLevelOnly=True))
-        return _makePropertySet(state)
+        # Copy without having to go through pickle state
+        ps = PropertySet()
+        for itemName in self:
+            ps.copy(itemName, self, itemName)
+        return ps
+
+    def __deepcopy__(self, memo):
+        result = self.deepCopy()
+        memo[id(self)] = result
+        return result
 
     def __contains__(self, name):
         # Do not use exists() because that includes "."-delimited names
@@ -714,11 +712,16 @@ class PropertyList:
         return True
 
     def __copy__(self):
-        # Provide a copy because by default __reduce__ is used and that
-        # will not shallow copy properly, we therefore use the same
-        # pickling code but restrict the names
-        state = getPropertyListState(self, names=self.getOrderedNames())
-        return _makePropertyList(state)
+        # Copy without having to go through pickle state
+        pl = PropertyList()
+        for itemName in self:
+            pl.copy(itemName, self, itemName)
+        return pl
+
+    def __deepcopy__(self, memo):
+        result = self.deepCopy()
+        memo[id(self)] = result
+        return result
 
     def __iter__(self):
         for n in self.getOrderedNames():
