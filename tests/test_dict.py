@@ -71,18 +71,32 @@ class DictTestCase(unittest.TestCase):
         self.ps = ps
         self.pl = pl
 
-    def testCopyPropertySet(self):
+    def testShallowCopyPropertySet(self):
         shallow = copy.copy(self.ps)
         self.assertIsInstance(shallow, lsst.daf.base.PropertySet)
         self.assertIn("ps2", shallow)
         self.assertEqual(shallow, self.ps)
 
+        # Modifying the attached property set should change both views
+        ps2 = self.ps.getScalar("ps2")
+        ps2s = shallow.getScalar("ps2")
+        self.assertEqual(ps2, ps2s)
+
+        ps2["int2"] = 2017
+        self.assertEqual(ps2, ps2s)
+
+    def testDeepCopyPropertySet(self):
         deep = copy.deepcopy(self.ps)
         self.assertIsInstance(deep, lsst.daf.base.PropertySet)
         self.assertEqual(deep, self.ps)
-        del deep["ps2"]
-        self.assertNotIn("ps2", deep)
-        self.assertIn("ps2", self.ps)
+
+        # Modifying the contents of ps2 should not affect the original
+        ps2 = self.ps.getScalar("ps2")
+        ps2d = deep.getScalar("ps2")
+        self.assertEqual(ps2, ps2d)
+
+        ps2["int2"] = 2017
+        self.assertNotEqual(ps2, ps2d)
 
     def testDictPropertySet(self):
         container = self.ps
@@ -154,6 +168,24 @@ class DictTestCase(unittest.TestCase):
         # Dict should be converted to a PropertySet
         container["dict"] = {"a": 1, "b": 2}
         self.assertEqual(container.getScalar("dict.b"), 2)
+
+    def testCopyPropertyList(self):
+        # For PropertyList shallow copy and deep copy are identical
+        shallow = copy.copy(self.pl)
+        self.assertIsInstance(shallow, lsst.daf.base.PropertyList)
+        self.assertIn("dt", shallow)
+        self.assertIn("int", shallow)
+        self.assertEqual(shallow, self.pl)
+        del shallow["dt"]
+        self.assertNotIn("dt", shallow)
+        self.assertIn("dt", self.pl)
+
+        deep = copy.deepcopy(self.pl)
+        self.assertIsInstance(deep, lsst.daf.base.PropertyList)
+        self.assertEqual(deep, self.pl)
+        del deep["dt"]
+        self.assertNotIn("dt", deep)
+        self.assertIn("dt", self.pl)
 
 
 if __name__ == '__main__':
