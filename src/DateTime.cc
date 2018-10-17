@@ -512,6 +512,8 @@ std::string DateTime::toString(Timescale scale) const {
 
 bool DateTime::operator==(DateTime const& rhs) const { return _nsecs == rhs._nsecs; }
 
+std::size_t DateTime::hash_value() const noexcept { return std::hash<long long>()(_nsecs); }
+
 DateTime DateTime::now(void) {
     struct timeval tv;
     int ret = gettimeofday(&tv, 0);

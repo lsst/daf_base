@@ -203,6 +203,9 @@ public:
 
     bool operator==(DateTime const& rhs) const;
 
+    /// Return a hash of this object.
+    std::size_t hash_value() const noexcept;
+
     /** Return current time as a DateTime
      *
      * Assumes the system clock keeps UTC, as almost all computers do.
@@ -300,5 +303,14 @@ private:
 }  // namespace base
 }  // namespace daf
 }  // namespace lsst
+
+namespace std {
+template <>
+struct hash<lsst::daf::base::DateTime> {
+    using argument_type = lsst::daf::base::DateTime;
+    using result_type = size_t;
+    size_t operator()(argument_type const& obj) const noexcept { return obj.hash_value(); }
+};
+}  // namespace std
 
 #endif
