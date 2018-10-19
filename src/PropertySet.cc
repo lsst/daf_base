@@ -56,13 +56,13 @@ void _append(std::vector<boost::any>& dest, std::vector<T> const& src) {
 
 PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {}
 
-PropertySet::~PropertySet(void) {}
+PropertySet::~PropertySet() noexcept = default;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertySet::deepCopy(void) const {
+PropertySet::Ptr PropertySet::deepCopy() const {
     Ptr n(new PropertySet(_flat));
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {

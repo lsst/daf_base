@@ -58,11 +58,6 @@
 
 namespace lsst {
 namespace daf {
-
-namespace persistence {
-class PropertySetFormatter;
-}  // namespace persistence
-
 namespace base {
 
 #if defined(__ICC)
@@ -70,7 +65,7 @@ namespace base {
 #pragma warning(disable : 444)
 #endif
 
-class LSST_EXPORT PropertySet : public Persistable, public Citizen {
+class LSST_EXPORT PropertySet : public Citizen {
 public:
     // Typedefs
     typedef std::shared_ptr<PropertySet> Ptr;
@@ -84,7 +79,7 @@ public:
     explicit PropertySet(bool flat = false);
 
     /// Destructor
-    virtual ~PropertySet(void);
+    virtual ~PropertySet() noexcept;
 
     // No copying
     PropertySet(const PropertySet&) = delete;
@@ -101,7 +96,7 @@ public:
      *
      * @return PropertySet::Ptr pointing to the new copy.
      */
-    virtual Ptr deepCopy(void) const;
+    virtual Ptr deepCopy() const;
 
     /**
      * Get the number of names in the PropertySet, optionally including those in subproperties.
@@ -455,7 +450,6 @@ protected:
     virtual std::string _format(std::string const& name) const;
 
 private:
-    LSST_PERSIST_FORMATTER(lsst::daf::persistence::PropertySetFormatter)
 
     typedef std::unordered_map<std::string, std::shared_ptr<std::vector<boost::any> > > AnyMap;
 
