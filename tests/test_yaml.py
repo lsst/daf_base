@@ -38,7 +38,11 @@ class YAMLTestCase(unittest.TestCase):
 
     @unittest.skipIf(yaml is None, "yaml module not installed")
     def setUp(self):
-        pass
+        # In pyyaml >= 5.1 we prefer to use FullLoader
+        try:
+            self.yamlLoader = yaml.FullLoader
+        except AttributeError:
+            self.yamlLoader = yaml.Loader
 
     def testYamlPS(self):
         ps = lsst.daf.base.PropertySet()
@@ -56,7 +60,7 @@ class YAMLTestCase(unittest.TestCase):
         ps.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
         ps.set("blank", "")
 
-        ps2 = yaml.load(yaml.dump(ps))
+        ps2 = yaml.load(yaml.dump(ps), Loader=self.yamlLoader)
         self.assertIsInstance(ps2, lsst.daf.base.PropertySet)
         self.assertEqual(ps, ps2)
 
@@ -73,7 +77,7 @@ class YAMLTestCase(unittest.TestCase):
         apl.set("int2", 2009)
         apl.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
 
-        apl2 = yaml.load(yaml.dump(apl))
+        apl2 = yaml.load(yaml.dump(apl), Loader=self.yamlLoader)
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)
         self.assertEqual(apl, apl2)
 
@@ -90,7 +94,7 @@ class YAMLTestCase(unittest.TestCase):
 
         ps.setPropertySet("ps", ps2)
 
-        ps3 = yaml.load(yaml.dump(ps))
+        ps3 = yaml.load(yaml.dump(ps), Loader=self.yamlLoader)
         self.assertEqual(ps3, ps)
         self.assertEqual(ps3.getPropertySet("ps"), ps.getPropertySet("ps"))
 
@@ -102,18 +106,18 @@ class YAMLTestCase(unittest.TestCase):
         apl.add("withcom", "string", "a comment")
         apl.setPropertySet("ps", ps3)
 
-        apl2 = yaml.load(yaml.dump(apl))
+        apl2 = yaml.load(yaml.dump(apl), Loader=self.yamlLoader)
         self.assertEqual(apl2, apl)
 
         # Add the PropertyList to the PropertySet to ensure that the
         # correct type is returned and no loss of comments
         ps.setPropertySet("newpl", apl)
-        apl3 = yaml.load(yaml.dump(ps))
+        apl3 = yaml.load(yaml.dump(ps), Loader=self.yamlLoader)
         self.assertEqual(apl3, ps)
 
     def testYamlDateTime(self):
         ts = lsst.daf.base.DateTime("2004-03-01T12:39:45.1Z", lsst.daf.base.DateTime.UTC)
-        ts2 = yaml.load(yaml.dump(ts))
+        ts2 = yaml.load(yaml.dump(ts), Loader=self.yamlLoader)
         self.assertIsInstance(ts2, lsst.daf.base.DateTime)
         self.assertEqual(ts, ts2)
 
@@ -121,9 +125,9 @@ class YAMLTestCase(unittest.TestCase):
         """Test loading of reference YAML files"""
         # Old and new serialization of a propertyList
         with open(os.path.join(TESTDIR, "data", "fitsheader-tuple.yaml")) as fd:
-            old = yaml.load(fd)
+            old = yaml.load(fd, Loader=self.yamlLoader)
         with open(os.path.join(TESTDIR, "data", "fitsheader.yaml")) as fd:
-            new = yaml.load(fd)
+            new = yaml.load(fd, Loader=self.yamlLoader)
         self.assertIsInstance(new, lsst.daf.base.PropertyList)
         self.assertIsInstance(old, lsst.daf.base.PropertyList)
         self.assertEqual(old, new)
