@@ -31,6 +31,19 @@ from .dateTime import DateTime
 from .propertyContainer import PropertyList, getPropertyListState, setPropertyListState, \
     getPropertySetState, setPropertySetState, PropertySet
 
+# For YAML >= 5.1 need a different Loader for the constructor
+loaderList = []
+if yaml:
+    loaderList = [yaml.Loader, yaml.CLoader]
+    try:
+        loaderList.append(yaml.FullLoader)
+    except AttributeError:
+        pass
+    try:
+        loaderList.append(yaml.UnsafeLoader)
+    except AttributeError:
+        pass
+
 
 # YAML representers for key lsst.daf.base classes
 
@@ -83,20 +96,12 @@ def dt_constructor(loader, node):
     return DateTime(str(dt), DateTime.TAI)
 
 
-if yaml:
-    yaml.add_constructor('lsst.daf.base.DateTime', dt_constructor)
-
-
 def pl_constructor(loader, node):
     """Construct an lsst.daf.base.PropertyList from a YAML pickle-like structure."""
     pl = PropertyList()
     yield pl
     state = loader.construct_sequence(node, deep=True)
     setPropertyListState(pl, state)
-
-
-if yaml:
-    yaml.add_constructor('lsst.daf.base.PropertyList', pl_constructor)
 
 
 def ps_constructor(loader, node):
@@ -108,4 +113,7 @@ def ps_constructor(loader, node):
 
 
 if yaml:
-    yaml.add_constructor('lsst.daf.base.PropertySet', ps_constructor)
+    for loader in loaderList:
+        yaml.add_constructor('lsst.daf.base.PropertyList', pl_constructor, Loader=loader)
+        yaml.add_constructor('lsst.daf.base.PropertySet', ps_constructor, Loader=loader)
+        yaml.add_constructor('lsst.daf.base.DateTime', dt_constructor, Loader=loader)
