@@ -143,10 +143,10 @@ def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
     try:
         t = container.typeOf(name)
-    except LookupError:
+    except (LookupError, RuntimeError) as e:
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
-        raise KeyError
+        raise KeyError(str(e))
     for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
                       "PropertySet"):
         if t == getattr(container, "TYPE_" + checkType):
