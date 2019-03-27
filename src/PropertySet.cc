@@ -54,7 +54,7 @@ void _append(std::vector<boost::any>& dest, std::vector<T> const& src) {
 
 }  // namespace
 
-PropertySet::PropertySet(bool flat) : Citizen(typeid(*this)), _flat(flat) {}
+PropertySet::PropertySet(bool flat) : _flat(flat) {}
 
 PropertySet::~PropertySet() noexcept = default;
 
