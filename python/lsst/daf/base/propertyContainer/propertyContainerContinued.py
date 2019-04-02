@@ -29,6 +29,8 @@ import numbers
 import warnings
 from collections.abc import Mapping, KeysView
 
+# Ensure that C++ exceptions are properly translated to Python
+import lsst.pex.exceptions  # noqa: F401
 from lsst.utils import continueClass
 
 from .propertySet import PropertySet
@@ -143,7 +145,7 @@ def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
     try:
         t = container.typeOf(name)
-    except (LookupError, RuntimeError) as e:
+    except LookupError as e:
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
         raise KeyError(str(e))
