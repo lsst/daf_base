@@ -58,7 +58,10 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("int2", 2009)
         apl.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         apl.set("subclass", FloatSubClass(1.23456789))
+        apl.set("undef", None)
 
+        self.assertTrue(apl.isUndefined("undef"))
+        self.assertFalse(apl.isUndefined("string"))
         self.assertEqual(apl.typeOf("bool"), dafBase.PropertyList.TYPE_Bool)
         self.assertEqual(apl.getBool("bool"), True)
         self.assertEqual(apl.typeOf("short"), dafBase.PropertyList.TYPE_Short)
@@ -85,7 +88,18 @@ class PropertyListTestCase(unittest.TestCase):
         self.assertEqual(apl.typeOf("dt"), dafBase.PropertyList.TYPE_DateTime)
         self.assertEqual(apl.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(apl.getDouble("subclass"), 1.23456789)
+
+        self.assertIsNone(apl.getScalar("undef"))
+        self.assertEqual(apl.typeOf("undef"), dafBase.PropertyList.TYPE_Undef)
+        with self.assertWarns(DeprecationWarning):
+            self.assertIsNone(apl.get("undef"))
         self.checkPickle(apl)
+
+        # Now replace the undef value with a defined value
+        apl.set("undef", "not undefined")
+        self.assertEqual(apl.getScalar("undef"), "not undefined")
+        self.assertFalse(apl.isUndefined("undef"))
+        self.assertEqual(apl.typeOf("undef"), dafBase.PropertyList.TYPE_String)
 
     def testGetDefault(self):
         apl = dafBase.PropertyList()
@@ -176,6 +190,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.setFloat("float", 3.14159)
         apl.setDouble("double", 2.718281828459045)
         apl.setString("string", "bar")
+
         with self.assertWarns(DeprecationWarning):
             with self.assertRaises(KeyError):
                 apl.get("foo")
@@ -271,6 +286,7 @@ class PropertyListTestCase(unittest.TestCase):
         apl.set("NAXIS", 2)
         apl.set("RA", 3.14159)
         apl.set("DEC", 2.71828)
+        apl.set("FILTER", None)
         apl.set("COMMENT", "This is a test")
         apl.add("COMMENT", "This is a test line 2")
         correct = OrderedDict([
@@ -279,6 +295,7 @@ class PropertyListTestCase(unittest.TestCase):
             ("NAXIS", 2),
             ("RA", 3.14159),
             ("DEC", 2.71828),
+            ("FILTER", None),
             ("COMMENT", ["This is a test", "This is a test line 2"])
         ])
         self.assertEqual(apl.toOrderedDict(), correct)
@@ -516,7 +533,6 @@ class PropertyListTestCase(unittest.TestCase):
 
         # There are no PropertySets inside flattened PropertyList
         v = set(apl.propertySetNames())
-        print(v)
         self.assertEqual(len(v), 0)
 
     def testGetAs(self):

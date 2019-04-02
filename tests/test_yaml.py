@@ -59,6 +59,7 @@ class YAMLTestCase(unittest.TestCase):
         ps.set("int2", 2009)
         ps.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
         ps.set("blank", "")
+        ps.set("undef", None)
 
         ps2 = yaml.load(yaml.dump(ps), Loader=self.yamlLoader)
         self.assertIsInstance(ps2, lsst.daf.base.PropertySet)
@@ -76,6 +77,7 @@ class YAMLTestCase(unittest.TestCase):
         apl.setString("string", "bar")
         apl.set("int2", 2009)
         apl.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
+        apl.set("undef", None)
 
         apl2 = yaml.load(yaml.dump(apl), Loader=self.yamlLoader)
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)

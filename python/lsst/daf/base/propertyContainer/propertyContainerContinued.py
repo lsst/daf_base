@@ -150,7 +150,7 @@ def _propertyContainerElementTypeName(container, name):
         # from a mapping.
         raise KeyError(str(e))
     for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
-                      "PropertySet"):
+                      "PropertySet", "Undef"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
     return None
@@ -272,9 +272,10 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
         return getattr(container, "set" + setType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
-        if isinstance(exemplar, checkType):
+        if (checkType is None and exemplar is None) or \
+                (checkType is not None and isinstance(exemplar, checkType)):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
-    raise TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for key '%s': %s" % (name, t))
 
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
@@ -293,9 +294,10 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
         return getattr(container, "add" + addType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
-        if isinstance(exemplar, checkType):
+        if (checkType is None and exemplar is None) or \
+                (checkType is not None and isinstance(exemplar, checkType)):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
-    raise TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for key '%s': %s" % (name, t))
 
 
 def _makePropertySet(state):
@@ -335,6 +337,7 @@ class PropertySet:
                  DateTime: "DateTime",
                  PropertySet: "PropertySet",
                  PropertyList: "PropertySet",
+                 None: "Undef",
                  }
 
     def get(self, name):
@@ -536,6 +539,7 @@ class PropertyList:
                  DateTime: "DateTime",
                  PropertySet: "PropertySet",
                  PropertyList: "PropertySet",
+                 None: "Undef",
                  }
 
     COMMENTSUFFIX = "#COMMENT"

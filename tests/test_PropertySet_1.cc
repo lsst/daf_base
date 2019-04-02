@@ -73,6 +73,7 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     ps.set<std::string>("char*", "foo");
     ps.set("char*2", "foo2");
     ps.set("string", std::string("bar"));
+    ps.set("undef", nullptr);
 
     BOOST_CHECK_EQUAL(ps.get<bool>("bool"), true);
     BOOST_CHECK_EQUAL(ps.get<char>("char"), '*');
@@ -84,6 +85,9 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*2"), "foo2");
     BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "bar");
+    BOOST_CHECK_EQUAL(ps.get<nullptr_t>("undef"), nullptr);
+    BOOST_CHECK_EQUAL(ps.isUndefined("string"), false);
+    BOOST_CHECK_EQUAL(ps.isUndefined("undef"), true);
 }
 
 BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost

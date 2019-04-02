@@ -69,6 +69,7 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("propertySetNames", &PropertySet::propertySetNames, "topLevelOnly"_a = true);
     cls.def("exists", &PropertySet::exists);
     cls.def("isArray", &PropertySet::isArray);
+    cls.def("isUndefined", &PropertySet::isUndefined);
     cls.def("isPropertySetPtr", &PropertySet::isPropertySetPtr);
     cls.def("valueCount", &PropertySet::valueCount);
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
@@ -91,6 +92,7 @@ PYBIND11_MODULE(propertySet, mod) {
     declareAccessors<long long>(cls, "LongLong");
     declareAccessors<float>(cls, "Float");
     declareAccessors<double>(cls, "Double");
+    declareAccessors<nullptr_t>(cls, "Undef");
     declareAccessors<std::string>(cls, "String");
     declareAccessors<DateTime>(cls, "DateTime");
     declareAccessors<std::shared_ptr<PropertySet>>(cls, "PropertySet");
