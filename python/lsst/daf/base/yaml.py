@@ -43,6 +43,10 @@ if yaml:
         loaderList.append(yaml.UnsafeLoader)
     except AttributeError:
         pass
+    try:
+        loaderList.append(yaml.SafeLoader)
+    except AttributeError:
+        pass
 
 
 # YAML representers for key lsst.daf.base classes

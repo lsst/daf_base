@@ -40,7 +40,7 @@ class YAMLTestCase(unittest.TestCase):
     def setUp(self):
         # In pyyaml >= 5.1 we prefer to use FullLoader
         try:
-            self.yamlLoader = yaml.FullLoader
+            self.yamlLoader = yaml.SafeLoader
         except AttributeError:
             self.yamlLoader = yaml.Loader
 
@@ -127,7 +127,7 @@ class YAMLTestCase(unittest.TestCase):
         """Test loading of reference YAML files"""
         # Old and new serialization of a propertyList
         with open(os.path.join(TESTDIR, "data", "fitsheader-tuple.yaml")) as fd:
-            old = yaml.load(fd, Loader=self.yamlLoader)
+            old = yaml.load(fd, Loader=yaml.Loader)
         with open(os.path.join(TESTDIR, "data", "fitsheader.yaml")) as fd:
             new = yaml.load(fd, Loader=self.yamlLoader)
         self.assertIsInstance(new, lsst.daf.base.PropertyList)
