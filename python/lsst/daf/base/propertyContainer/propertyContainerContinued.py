@@ -696,16 +696,21 @@ class PropertyList:
 
         Returns
         -------
-        d : `~collections.OrderedDict`
+        d : `dict`
             Ordered dictionary with all properties in the order that they
             were inserted. Comments are not included.
-        """
-        from collections import OrderedDict
 
-        d = OrderedDict()
-        for name in self.getOrderedNames():
+        Notes
+        -----
+        As of Python 3.6 dicts retain their insertion order.
+        """
+        d = {}
+        for name in self:
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
+
+    # For PropertyList the two are equivalent
+    toDict = toOrderedDict
 
     def __eq__(self, other):
         # super() doesn't seem to work properly in @continueClass;
