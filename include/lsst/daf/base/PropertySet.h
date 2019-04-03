@@ -150,6 +150,14 @@ public:
     bool isPropertySetPtr(std::string const& name) const;
 
     /**
+     * Determine if a name (possibly hierarchical) has a defined value.
+     *
+     * @param[in] name Property name to examine, possibly hierarchical.
+     * @return true if property exists and its values are undefined.
+     */
+    bool isUndefined(std::string const& name) const;
+
+    /**
      * Get the number of values for a property name (possibly hierarchical).
      *
      * @param[in] name Property name to examine, possibly hierarchical.

@@ -57,6 +57,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.set("int2", 2009)
         ps.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
         ps.set("blank", "")
+        ps.set("undef", None)
 
         self.assertEqual(ps.typeOf("bool"), dafBase.PropertySet.TYPE_Bool)
         self.assertEqual(ps.getBool("bool"), True)
@@ -84,7 +85,19 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.getString("blank"), "")
+
+        self.assertIsNone(ps.getScalar("undef"))
+        self.assertEqual(ps.typeOf("undef"), dafBase.PropertyList.TYPE_Undef)
+        with self.assertWarns(DeprecationWarning):
+            self.assertIsNone(ps.get("undef"))
+
         self.checkPickle(ps)
+
+        # Now replace the undef value with a defined value
+        ps.set("undef", "not undefined")
+        self.assertEqual(ps.getScalar("undef"), "not undefined")
+        self.assertFalse(ps.isUndefined("undef"))
+        self.assertEqual(ps.typeOf("undef"), dafBase.PropertyList.TYPE_String)
 
     def testNumPyScalars(self):
         """Test that we can also pass NumPy array scalars to PropertySet setters.
@@ -526,6 +539,7 @@ class FlatTestCase(unittest.TestCase):
         ps2.set("char*", "foo")
         ps2.setString("string", "bar")
         ps2.set("dt", dafBase.DateTime("20090402T072639.314159265Z", dafBase.DateTime.UTC))
+        ps2.set("undef", None)
 
         d = ps2.toDict()
         self.assertIsInstance(d, dict)
@@ -534,6 +548,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertAlmostEqual(d["float"], 3.14159, 6)
         self.assertIsInstance(d["double"], float)
         self.assertEqual(d["double"], 2.718281828459045)
+        self.assertIsNone(d["undef"])
 
         self.assertIsInstance(d["char*"], str)
         self.assertEqual(d["char*"], "foo")

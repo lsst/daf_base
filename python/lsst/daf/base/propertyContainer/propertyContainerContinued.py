@@ -29,6 +29,8 @@ import numbers
 import warnings
 from collections.abc import Mapping, KeysView
 
+# Ensure that C++ exceptions are properly translated to Python
+import lsst.pex.exceptions  # noqa: F401
 from lsst.utils import continueClass
 
 from .propertySet import PropertySet
@@ -143,12 +145,12 @@ def _propertyContainerElementTypeName(container, name):
     """Return name of the type of a particular element"""
     try:
         t = container.typeOf(name)
-    except (LookupError, RuntimeError) as e:
+    except LookupError as e:
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
         raise KeyError(str(e))
     for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
-                      "PropertySet"):
+                      "PropertySet", "Undef"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
     return None
@@ -270,9 +272,10 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
         return getattr(container, "set" + setType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
-        if isinstance(exemplar, checkType):
+        if (checkType is None and exemplar is None) or \
+                (checkType is not None and isinstance(exemplar, checkType)):
             return getattr(container, "set" + typeMenu[checkType])(name, value, *args)
-    raise TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for key '%s': %s" % (name, t))
 
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
@@ -291,9 +294,10 @@ def _propertyContainerAdd(container, name, value, typeMenu, *args):
         return getattr(container, "add" + addType)(name, value, *args)
     # Allow for subclasses
     for checkType in typeMenu:
-        if isinstance(exemplar, checkType):
+        if (checkType is None and exemplar is None) or \
+                (checkType is not None and isinstance(exemplar, checkType)):
             return getattr(container, "add" + typeMenu[checkType])(name, value, *args)
-    raise TypeError("Unknown value type for %s: %s" % (name, t))
+    raise TypeError("Unknown value type for key '%s': %s" % (name, t))
 
 
 def _makePropertySet(state):
@@ -333,6 +337,7 @@ class PropertySet:
                  DateTime: "DateTime",
                  PropertySet: "PropertySet",
                  PropertyList: "PropertySet",
+                 None: "Undef",
                  }
 
     def get(self, name):
@@ -534,6 +539,7 @@ class PropertyList:
                  DateTime: "DateTime",
                  PropertySet: "PropertySet",
                  PropertyList: "PropertySet",
+                 None: "Undef",
                  }
 
     COMMENTSUFFIX = "#COMMENT"
@@ -690,16 +696,21 @@ class PropertyList:
 
         Returns
         -------
-        d : `~collections.OrderedDict`
+        d : `dict`
             Ordered dictionary with all properties in the order that they
             were inserted. Comments are not included.
-        """
-        from collections import OrderedDict
 
-        d = OrderedDict()
-        for name in self.getOrderedNames():
+        Notes
+        -----
+        As of Python 3.6 dicts retain their insertion order.
+        """
+        d = {}
+        for name in self:
             d[name] = _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
         return d
+
+    # For PropertyList the two are equivalent
+    toDict = toOrderedDict
 
     def __eq__(self, other):
         # super() doesn't seem to work properly in @continueClass;

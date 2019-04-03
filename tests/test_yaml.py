@@ -40,7 +40,7 @@ class YAMLTestCase(unittest.TestCase):
     def setUp(self):
         # In pyyaml >= 5.1 we prefer to use FullLoader
         try:
-            self.yamlLoader = yaml.FullLoader
+            self.yamlLoader = yaml.SafeLoader
         except AttributeError:
             self.yamlLoader = yaml.Loader
 
@@ -59,6 +59,7 @@ class YAMLTestCase(unittest.TestCase):
         ps.set("int2", 2009)
         ps.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
         ps.set("blank", "")
+        ps.set("undef", None)
 
         ps2 = yaml.load(yaml.dump(ps), Loader=self.yamlLoader)
         self.assertIsInstance(ps2, lsst.daf.base.PropertySet)
@@ -76,6 +77,7 @@ class YAMLTestCase(unittest.TestCase):
         apl.setString("string", "bar")
         apl.set("int2", 2009)
         apl.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
+        apl.set("undef", None)
 
         apl2 = yaml.load(yaml.dump(apl), Loader=self.yamlLoader)
         self.assertIsInstance(apl2, lsst.daf.base.PropertyList)
@@ -125,7 +127,7 @@ class YAMLTestCase(unittest.TestCase):
         """Test loading of reference YAML files"""
         # Old and new serialization of a propertyList
         with open(os.path.join(TESTDIR, "data", "fitsheader-tuple.yaml")) as fd:
-            old = yaml.load(fd, Loader=self.yamlLoader)
+            old = yaml.load(fd, Loader=yaml.Loader)
         with open(os.path.join(TESTDIR, "data", "fitsheader.yaml")) as fd:
             new = yaml.load(fd, Loader=self.yamlLoader)
         self.assertIsInstance(new, lsst.daf.base.PropertyList)

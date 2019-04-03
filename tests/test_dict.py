@@ -42,6 +42,7 @@ class DictTestCase(unittest.TestCase):
         pl.setString("string", "bar")
         pl.set("int2", 2009, "int comment")
         pl.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
+        pl.set("undef", None)
 
         ps = lsst.daf.base.PropertySet()
         ps.setBool("bool", True)
@@ -59,6 +60,7 @@ class DictTestCase(unittest.TestCase):
         ps.set("dt", lsst.daf.base.DateTime("20090402T072639.314159265Z", lsst.daf.base.DateTime.UTC))
         ps.set("blank", "")
         ps.addInt("int", 2009)
+        ps.set("undef", None)
 
         ps2 = lsst.daf.base.PropertySet()
         ps2.setBool("bool2", False)
@@ -108,6 +110,7 @@ class DictTestCase(unittest.TestCase):
         # Compare dict-like interface to pure dict version
         d = container.toDict()
         self.assertEqual(len(d), len(container))
+        self.assertIsNone(d["undef"])
 
         # Set some values
         container["new"] = "string"
@@ -116,7 +119,7 @@ class DictTestCase(unittest.TestCase):
         self.assertIn("dot", container)
 
         keys = container.keys()
-        self.assertEqual(len(keys), 16)
+        self.assertEqual(len(keys), 17)
         for k in keys:
             self.assertIn(k, container)
 
@@ -126,6 +129,9 @@ class DictTestCase(unittest.TestCase):
         container["newps2"] = ps2
         ps2["newint"] = 5
         self.assertEqual(container.getScalar("newps2.newint"), ps2.getScalar("newint"))
+
+        ps2["undef2"] = None
+        self.assertIn("undef2", ps2)
 
         # Dict should be converted to a PropertySet
         container["dict"] = {"a": 1, "b": 2}
@@ -145,6 +151,7 @@ class DictTestCase(unittest.TestCase):
         # Compare dict-like interface to pure dict version
         d = container.toDict()
         self.assertEqual(len(d), len(container))
+        self.assertIsNone(d["undef"])
 
         # Set some values
         container["new"] = "string"
@@ -152,7 +159,7 @@ class DictTestCase(unittest.TestCase):
         container["dot.delimited"] = "delimited"
 
         keys = container.keys()
-        self.assertEqual(len(keys), 16)
+        self.assertEqual(len(keys), 17)
         for k in keys:
             self.assertIn(k, container)
 
@@ -164,6 +171,9 @@ class DictTestCase(unittest.TestCase):
         self.assertEqual(container.getScalar("newps2.newstring"), ps2.getScalar("newstring"))
         self.assertNotIn("newps2.newinst", container)
         self.assertIn("newint", ps2)
+
+        ps2["undef2"] = None
+        self.assertIn("undef2", ps2)
 
         # Dict should be converted to a PropertySet
         container["dict"] = {"a": 1, "b": 2}

@@ -160,6 +160,11 @@ bool PropertySet::isPropertySetPtr(std::string const& name) const {
     return i != _map.end() && i->second->back().type() == typeid(Ptr);
 }
 
+bool PropertySet::isUndefined(std::string const& name) const {
+    auto const i = _find(name);
+    return i != _map.end() && i->second->back().type() == typeid(nullptr);
+}
+
 size_t PropertySet::valueCount(std::string const& name) const {
     auto const i = _find(name);
     if (i == _map.end()) return 0;
@@ -724,6 +729,7 @@ INSTANTIATE(long long)
 INSTANTIATE(unsigned long long)
 INSTANTIATE(float)
 INSTANTIATE(double)
+INSTANTIATE(std::nullptr_t)
 INSTANTIATE(std::string)
 INSTANTIATE_PROPERTY_SET(PropertySet::Ptr)
 INSTANTIATE(Persistable::Ptr)
