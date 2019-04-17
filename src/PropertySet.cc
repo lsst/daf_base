@@ -690,15 +690,15 @@ void PropertySet::_cycleCheckPtr(Ptr const& v, std::string const& name) {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Explicit template instantiations
-///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // Explicit template instantiations
+    ///////////////////////////////////////////////////////////////////////////////
 
-/// @cond
-// Explicit template instantiations are not well understood by doxygen.
+    /// @cond
+    // Explicit template instantiations are not well understood by doxygen.
 
 #define INSTANTIATE(t)                                                                       \
-    template std::type_info const& PropertySet::typeOfT<t>();                                                       \
+    template std::type_info const& PropertySet::typeOfT<t>();                                \
     template t PropertySet::get<t>(std::string const& name) const;                           \
     template t PropertySet::get<t>(std::string const& name, t const& defaultValue) const;    \
     template std::vector<t> PropertySet::getArray<t>(std::string const& name) const;         \
@@ -708,7 +708,7 @@ void PropertySet::_cycleCheckPtr(Ptr const& v, std::string const& name) {
     template void PropertySet::add<t>(std::string const& name, std::vector<t> const& value);
 
 #define INSTANTIATE_PROPERTY_SET(t)                                                       \
-    template std::type_info const& PropertySet::typeOfT<t>();                                                    \
+    template std::type_info const& PropertySet::typeOfT<t>();                             \
     template t PropertySet::get<t>(std::string const& name) const;                        \
     template t PropertySet::get<t>(std::string const& name, t const& defaultValue) const; \
     template std::vector<t> PropertySet::getArray<t>(std::string const& name) const;      \
