@@ -453,6 +453,27 @@ class PropertySet:
         """
         return _propertyContainerAdd(self, name, value, self._typeMenu)
 
+    def update(self, addition):
+        """Update the current container with the supplied additions.
+
+        Parameters
+        ----------
+        addition : `collections.abc.Mapping` or `PropertySet`
+            The content to merge into the current container.
+
+        Notes
+        -----
+        If the supplied parameter is a `PropertySet` then the
+        `PropertySet.combine` method will be used.  If the supplied parameter
+        is a `collections.abc.Mapping` each item will be copied out of the
+        mapping and value assigned.
+        """
+        if isinstance(addition, PropertySet):
+            self.combine(addition)
+        else:
+            for k, v in addition.items():
+                self[k] = v
+
     def toDict(self):
         """Returns a (possibly nested) dictionary with all properties.
 

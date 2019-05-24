@@ -498,6 +498,62 @@ class FlatTestCase(unittest.TestCase):
         v = ps.getArray("int")
         self.assertEqual(v, [42, 2008])
 
+    def testUpdate(self):
+        ps = dafBase.PropertySet()
+        ps.set("ps1.pre", 1)
+        ps.set("ps1.pre", 1)
+        ps.set("ps1.post", 2)
+        ps.set("int", 42)
+        ps.set("double", 3.14)
+        ps.set("ps2.plus", 10.24)
+        ps.set("ps2.minus", -10.24)
+        ps.set("ps3.sub.subsub", "foo")
+
+        psp = dafBase.PropertySet()
+        psp.set("ps1.pre", 3)
+        psp.add("ps1.pre", 4)
+        psp.set("int", 2008)
+        psp.set("ps2.foo", "bar")
+        psp.set("ps4.top", "bottom")
+
+        ps.update(psp)
+
+        self.assertIsInstance(ps.getScalar("ps1"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps2"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps3"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps3.sub"), dafBase.PropertySet)
+        self.assertIsInstance(ps.getScalar("ps4"), dafBase.PropertySet)
+
+        self.assertFalse(ps.isArray("ps1"))
+        self.assertTrue(ps.isArray("ps1.pre"))
+        self.assertFalse(ps.isArray("ps1.post"))
+        self.assertFalse(ps.isArray("ps2"))
+        self.assertFalse(ps.isArray("ps2.plus"))
+        self.assertFalse(ps.isArray("ps2.minus"))
+        self.assertFalse(ps.isArray("ps2.foo"))
+        self.assertFalse(ps.isArray("ps3"))
+        self.assertFalse(ps.isArray("ps3.sub"))
+        self.assertFalse(ps.isArray("ps3.subsub"))
+        self.assertFalse(ps.isArray("ps4"))
+        self.assertFalse(ps.isArray("ps4.top"))
+        self.assertTrue(ps.isArray("int"))
+        self.assertFalse(ps.isArray("double"))
+
+        self.assertEqual(ps.valueCount("ps1.pre"), 3)
+        self.assertEqual(ps.valueCount("int"), 2)
+
+        v = ps.getArray("ps1.pre")
+        self.assertEqual(v, [1, 3, 4])
+        v = ps.getArray("int")
+        self.assertEqual(v, [42, 2008])
+
+        psd = {"int": 100, "str": "String", "apl1.foo": 10.5}
+        ps.update(psd)
+        self.assertEqual(ps["int"], psd["int"])
+        self.assertEqual(ps["str"], psd["str"])
+        self.assertEqual(ps["apl1.foo"], psd["apl1.foo"])
+        self.assertEqual(ps["double"], 3.14)
+
     def testCombineThrow(self):
         ps = dafBase.PropertySet()
         ps.set("int", 42)
@@ -507,6 +563,10 @@ class FlatTestCase(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             ps.combine(psp)
+
+        psd = {"bool": True}
+        with self.assertRaises(TypeError):
+            ps.combine(psd)
 
     def testToDict(self):
         ps = dafBase.PropertySet()

@@ -610,6 +610,53 @@ class PropertyListTestCase(unittest.TestCase):
         v = apl.getArray("int")
         self.assertEqual(v, [42, 2008])
 
+    def testUpdate(self):
+        apl = dafBase.PropertyList()
+        apl.set("apl1.pre", 1)
+        apl.set("apl1.post", 2)
+        apl.set("int", 42)
+        apl.set("double", 3.14)
+        apl.set("apl2.plus", 10.24)
+        apl.set("apl2.minus", -10.24)
+        apl.set("apl3.sub.subsub", "foo")
+
+        aplp = dafBase.PropertyList()
+        aplp.set("apl1.pre", 3)
+        aplp.add("apl1.pre", 4)
+        aplp.set("int", 2008)
+        aplp.set("apl2.foo", "bar")
+        aplp.set("apl4.top", "bottom")
+
+        apl.update(aplp)
+
+        self.assertFalse(apl.isArray("apl1"))
+        self.assertTrue(apl.isArray("apl1.pre"))
+        self.assertFalse(apl.isArray("apl1.post"))
+        self.assertFalse(apl.isArray("apl2"))
+        self.assertFalse(apl.isArray("apl2.plus"))
+        self.assertFalse(apl.isArray("apl2.minus"))
+        self.assertFalse(apl.isArray("apl2.foo"))
+        self.assertFalse(apl.isArray("apl3"))
+        self.assertFalse(apl.isArray("apl3.sub"))
+        self.assertFalse(apl.isArray("apl3.subsub"))
+        self.assertFalse(apl.isArray("apl4"))
+        self.assertFalse(apl.isArray("apl4.top"))
+        self.assertTrue(apl.isArray("int"))
+        self.assertFalse(apl.isArray("double"))
+        self.assertEqual(apl.valueCount("apl1.pre"), 3)
+        self.assertEqual(apl.valueCount("int"), 2)
+        v = apl.getArray("apl1.pre")
+        self.assertEqual(v, [1, 3, 4])
+        v = apl.getArray("int")
+        self.assertEqual(v, [42, 2008])
+
+        apld = {"int": 100, "str": "String", "apl1.foo": 10.5}
+        apl.update(apld)
+        self.assertEqual(apl["int"], apld["int"])
+        self.assertEqual(apl["str"], apld["str"])
+        self.assertEqual(apl["apl1.foo"], apld["apl1.foo"])
+        self.assertEqual(apl["double"], 3.14)
+
     def testCombineThrow(self):
         apl = dafBase.PropertyList()
         apl.set("int", 42)
@@ -619,6 +666,10 @@ class PropertyListTestCase(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             apl.combine(aplp)
+
+        psd = {"bool": True}
+        with self.assertRaises(TypeError):
+            apl.combine(psd)
 
     def testremove(self):
         apl = dafBase.PropertyList()
