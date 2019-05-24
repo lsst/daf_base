@@ -26,7 +26,6 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 
 import enum
 import numbers
-import warnings
 from collections.abc import Mapping, KeysView
 
 # Ensure that C++ exceptions are properly translated to Python
@@ -340,27 +339,30 @@ class PropertySet:
                  None: "Undef",
                  }
 
-    def get(self, name):
-        """Return an item as a scalar or array
+    def get(self, name, default=None):
+        """Return an item as a scalar, else default.
 
-        Return an array if the item is of numeric or string type and has
-        more than one value, otherwise return a scalar.
-
-        .. deprecated:: 20180-06
-                  `get` is superseded by `getArray` or `getScalar`
+        Identical to `getScalar` except that a default value is returned
+        if the requested key is not present.
 
         Parameters
         ----------
         name : ``str``
             Name of item
+        default : `object`, optional
+            Default value to use if the named item is not present.
 
-        Raises
-        ------
-        KeyError
-            If the item does not exist.
+        Returns
+        -------
+        value : any type supported by container
+            Single value of any type supported by the container, else the
+            default value if the requested item is not present in the
+            container.
         """
-        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+        try:
+            return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
+        except KeyError:
+            return default
 
     def getArray(self, name):
         """Return an item as an array if the item is numeric or string
@@ -372,6 +374,11 @@ class PropertySet:
         ----------
         name : `str`
             Name of item
+
+        Returns
+        -------
+        values : `list` of any type supported by container
+            List of values of any type supported by the container.
 
         Raises
         ------
@@ -389,6 +396,11 @@ class PropertySet:
         ----------
         name : `str`
             Name of item
+
+        Returns
+        -------
+        value : any type supported by container
+            Single value of any type supported by the container.
 
         Raises
         ------
@@ -501,6 +513,9 @@ class PropertySet:
             value = ps
         self.set(name, value)
 
+    def __getitem__(self, name):
+        return self.getScalar(name)
+
     def __delitem__(self, name):
         if name in self:
             self.remove(name)
@@ -544,27 +559,30 @@ class PropertyList:
 
     COMMENTSUFFIX = "#COMMENT"
 
-    def get(self, name):
-        """Return an item as a scalar or array
+    def get(self, name, default=None):
+        """Return an item as a scalar, else default.
 
-        Return an array if the item has more than one value,
-        otherwise return a scalar.
-
-        .. deprecated:: 20180-06
-                  `get` is superseded by `getArray` or `getScalar`
+        Identical to `getScalar` except that a default value is returned
+        if the requested key is not present.
 
         Parameters
         ----------
-        name : `str`
+        name : ``str``
             Name of item
+        default : `object`, optional
+            Default value to use if the named item is not present.
 
-        Raises
-        ------
-        KeyError
-            If the item does not exist.
+        Returns
+        -------
+        value : any type supported by container
+            Single value of any type supported by the container, else the
+            default value if the requested item is not present in the
+            container.
         """
-        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+        try:
+            return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
+        except KeyError:
+            return default
 
     def getArray(self, name):
         """Return an item as an array
