@@ -30,15 +30,16 @@ from .citizen import Citizen
 
 
 def setCallbacks(new=None, delete=None, both=False):
-    """Set the callback IDs for the Citizen; if both is true, set both new and delete to the same value
+    """Set the callback IDs for the Citizen; if both is true, set both new and
+    delete to the same value.
 
     You probably want to chant the following to gdb:
-       break defaultNewCallback
-       break defaultDeleteCallback
+    * break defaultNewCallback
+    * break defaultDeleteCallback
 
-    You might want to put this in your .gdbinit file.
+    You might want to put this in your ``.gdbinit`` file.
 
-    You can retrieve a citizen's signature from python with obj.repr()
+    You can retrieve a citizen's signature from python with ``obj.repr()``.
     """
 
     if both:
@@ -60,8 +61,10 @@ def mortal(memId0=0, nleakPrintMax=20, first=True, showTypes=None):
 
     @param memId0 Only consider blocks allocated after this memId
     @param nleakPrintMax Maximum number of leaks to print; <= 0 means unlimited
-    @param first Print the first nleakPrintMax blocks; if False print the last blocks.
-    @param showTypes Only print objects matching this regex (if starts with !, print objects that don't match)
+    @param first Print the first nleakPrintMax blocks; if False print the last
+           blocks.
+    @param showTypes Only print objects matching this regex (if starts with !,
+           print objects that don't match)
 
     If you want finer control than nleakPrintMax/first provide, use
     Citizen.census() to get the entire list

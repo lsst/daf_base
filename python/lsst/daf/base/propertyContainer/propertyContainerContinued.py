@@ -26,7 +26,6 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 
 import enum
 import numbers
-import warnings
 from collections.abc import Mapping, KeysView
 
 # Ensure that C++ exceptions are properly translated to Python
@@ -181,11 +180,11 @@ def _propertyContainerGet(container, name, returnStyle):
     Raises
     ------
     KeyError
-        The specified key does not exist in the container.
+        Raised if the specified key does not exist in the container.
     TypeError
-        The value retrieved is of an unexpected type.
+        Raised if the value retrieved is of an unexpected type.
     ValueError
-        The value for ``returnStyle`` is not correct.
+        Raised if the value for ``returnStyle`` is not correct.
     """
     if not container.exists(name):
         raise KeyError(name + " not found")
@@ -238,8 +237,8 @@ def _guessIntegerType(container, name, value):
         try:
             containerType = _propertyContainerElementTypeName(container, name)
         except LookupError:
-            # nothing in the container so choose based on size. Safe option is to
-            # always use LongLong
+            # nothing in the container so choose based on size. Safe option is
+            # to always use LongLong
             if value <= maxInt and value >= minInt:
                 useType = "Int"
             else:
@@ -248,8 +247,8 @@ def _guessIntegerType(container, name, value):
             if containerType == "Int":
                 # Always use an Int even if we know it won't fit. The later
                 # code will trigger OverflowError if appropriate. Setting the
-                # type to LongLong here will trigger a TypeError instead so it's
-                # best to trigger a predictable OverflowError.
+                # type to LongLong here will trigger a TypeError instead so
+                # it's best to trigger a predictable OverflowError.
                 useType = "Int"
             elif containerType == "LongLong":
                 useType = "LongLong"
@@ -340,27 +339,32 @@ class PropertySet:
                  None: "Undef",
                  }
 
-    def get(self, name):
-        """Return an item as a scalar or array
+    def get(self, name, default=None):
+        """Return an item as a scalar, else default.
 
-        Return an array if the item is of numeric or string type and has
-        more than one value, otherwise return a scalar.
-
-        .. deprecated:: 20180-06
-                  `get` is superseded by `getArray` or `getScalar`
+        Identical to `getScalar` except that a default value is returned
+        if the requested key is not present.  If an array item is requested
+        the final value in the array will be returned.
 
         Parameters
         ----------
         name : ``str``
             Name of item
+        default : `object`, optional
+            Default value to use if the named item is not present.
 
-        Raises
-        ------
-        KeyError
-            If the item does not exist.
+        Returns
+        -------
+        value : any type supported by container
+            Single value of any type supported by the container, else the
+            default value if the requested item is not present in the
+            container.  For array items the most recently added value is
+            returned.
         """
-        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+        try:
+            return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
+        except KeyError:
+            return default
 
     def getArray(self, name):
         """Return an item as an array if the item is numeric or string
@@ -373,27 +377,38 @@ class PropertySet:
         name : `str`
             Name of item
 
+        Returns
+        -------
+        values : `list` of any type supported by container
+            The contents of the item, guaranteed to be returned as a `list.`
+
         Raises
         ------
         KeyError
-            If the item does not exist.
+            Raised if the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
         """Return an item as a scalar
 
-        If the item has more than one value then the last value is returned
+        If the item has more than one value then the last value is returned.
 
         Parameters
         ----------
         name : `str`
             Name of item
 
+        Returns
+        -------
+        value : scalar item
+            Value stored in the item.  If the item refers to an array the
+            most recently added value is returned.
+
         Raises
         ------
         KeyError
-            If the item does not exist.
+            Raised if the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
@@ -436,10 +451,32 @@ class PropertySet:
         Raises
         ------
         lsst::pex::exceptions::TypeError
-            If the type of `value` is incompatible with the existing value
-            of the item.
+            Raised if the type of `value` is incompatible with the existing
+            value of the item.
         """
         return _propertyContainerAdd(self, name, value, self._typeMenu)
+
+    def update(self, addition):
+        """Update the current container with the supplied additions.
+
+        Parameters
+        ----------
+        addition : `collections.abc.Mapping` or `PropertySet`
+            The content to merge into the current container.
+
+        Notes
+        -----
+        If the supplied parameter is a `PropertySet` then the
+        `PropertySet.combine` method will be used.  If the supplied parameter
+        is a `collections.abc.Mapping` each item will be copied out of the
+        mapping and value assigned using `PropertySet.set`, overwriting
+        any previous values.
+        """
+        if isinstance(addition, PropertySet):
+            self.combine(addition)
+        else:
+            for k, v in addition.items():
+                self[k] = v
 
     def toDict(self):
         """Returns a (possibly nested) dictionary with all properties.
@@ -489,10 +526,33 @@ class PropertySet:
         return result
 
     def __contains__(self, name):
-        # Do not use exists() because that includes "."-delimited names
+        """Determines if the name is found at the top level hierarchy
+        of the container.
+
+        Notes
+        ------
+        Does not use `PropertySet.exists()`` because that includes support
+        for "."-delimited names.  This method is consistent with the
+        items returned from ``__iter__``.
+        """
         return name in self.names(topLevelOnly=True)
 
     def __setitem__(self, name, value):
+        """Assigns the supplied value to the container.
+
+        Parameters
+        ----------
+        name : `str`
+            Name of item to update.
+        value : Value to assign
+            Can be any value supported by the container's ``set()``
+            method. `~collections.abc.Mapping` are converted to
+            `PropertySet` before assignment.
+
+        Notes
+        -----
+        Uses `PropertySet.set`, overwriting any previous value.
+        """
         if isinstance(value, Mapping):
             # Create a property set instead
             ps = PropertySet()
@@ -500,6 +560,16 @@ class PropertySet:
                 ps[k] = v
             value = ps
         self.set(name, value)
+
+    def __getitem__(self, name):
+        """Returns a scalar item from the container.
+
+        Notes
+        -----
+        Uses `PropertySet.getScalar` to guarantee that a single value
+        will be returned.
+        """
+        return self.getScalar(name)
 
     def __delitem__(self, name):
         if name in self:
@@ -543,58 +613,76 @@ class PropertyList:
                  }
 
     COMMENTSUFFIX = "#COMMENT"
+    """Special suffix used to indicate that a named item being assigned
+    using dict syntax is referring to a comment, not value."""
 
-    def get(self, name):
-        """Return an item as a scalar or array
+    def get(self, name, default=None):
+        """Return an item as a scalar, else default.
 
-        Return an array if the item has more than one value,
-        otherwise return a scalar.
-
-        .. deprecated:: 20180-06
-                  `get` is superseded by `getArray` or `getScalar`
+        Identical to `getScalar` except that a default value is returned
+        if the requested key is not present.  If an array item is requested
+        the final value in the array will be returned.
 
         Parameters
         ----------
-        name : `str`
+        name : ``str``
             Name of item
+        default : `object`, optional
+            Default value to use if the named item is not present.
 
-        Raises
-        ------
-        KeyError
-            If the item does not exist.
+        Returns
+        -------
+        value : any type supported by container
+            Single value of any type supported by the container, else the
+            default value if the requested item is not present in the
+            container.  For array items the most recently added value is
+            returned.
         """
-        warnings.warn("Use getArray or getScalar instead", DeprecationWarning, stacklevel=2)
-        return _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)
+        try:
+            return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
+        except KeyError:
+            return default
 
     def getArray(self, name):
-        """Return an item as an array
+        """Return an item as a list.
 
         Parameters
         ----------
         name : `str`
             Name of item
 
+        Returns
+        -------
+        values : `list` of values
+            The contents of the item, guaranteed to be returned as a `list.`
+
         Raises
         ------
         KeyError
-            If the item does not exist.
+            Raised if the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.ARRAY)
 
     def getScalar(self, name):
         """Return an item as a scalar
 
-        If the item has more than one value then the last value is returned
+        If the item has more than one value then the last value is returned.
 
         Parameters
         ----------
         name : `str`
-            Name of item
+            Name of item.
+
+        Returns
+        -------
+        value : scalar item
+            Value stored in the item.  If the item refers to an array the
+            most recently added value is returned.
 
         Raises
         ------
         KeyError
-            If the item does not exist.
+            Raised if the item does not exist.
         """
         return _propertyContainerGet(self, name, returnStyle=ReturnStyle.SCALAR)
 
@@ -641,8 +729,8 @@ class PropertyList:
         Raises
         ------
         lsst::pex::exceptions::TypeError
-            If the type of `value` is incompatible with the existing value
-            of the item.
+            Raise if the type of ``value`` is incompatible with the existing
+            value of the item.
         """
         args = []
         if comment is not None:
@@ -742,6 +830,23 @@ class PropertyList:
             yield n
 
     def __setitem__(self, name, value):
+        """Assigns the supplied value to the container.
+
+        Parameters
+        ----------
+        name : `str`
+            Name of item to update. If the name ends with
+            `PropertyList.COMMENTSUFFIX`, the comment is updated rather
+            than the value.
+        value : Value to assign
+            Can be any value supported by the container's ``set()``
+            method. `~collections.abc.Mapping` are converted to
+            `PropertySet` before assignment.
+
+        Notes
+        -----
+        Uses `PropertySet.set`, overwriting any previous value.
+        """
         if name.endswith(self.COMMENTSUFFIX):
             name = name[:-len(self.COMMENTSUFFIX)]
             self.setComment(name, value)
