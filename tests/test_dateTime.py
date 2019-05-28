@@ -177,7 +177,8 @@ class DateTimeTestCase(unittest.TestCase):
             with self.assertRaises(pexExcept.DomainError):
                 DateTime("09-04-01T23:36:05", DateTime.UTC)  # 2 digit year
 
-        # earliest allowed UTC date is the earliest date in the leap second table
+        # earliest allowed UTC date is the earliest date in the leap second
+        # table
         try:
             minLeapSecUTC = "1961-01-01T00:00:00Z"
             dt = DateTime(minLeapSecUTC, DateTime.UTC)
@@ -197,7 +198,8 @@ class DateTimeTestCase(unittest.TestCase):
             except Exception:
                 self.fail("{} system={} failed, but should be OK".format(earliestDate, timeSys))
 
-        # dates before the leap second table can be created using TAI or TT, but not viewed in UTC
+        # dates before the leap second table can be created using TAI or TT,
+        # but not viewed in UTC
         earlyDt = DateTime("1960-01-01T00:00:00", DateTime.TAI)
         with self.assertRaises(pexExcept.DomainError):
             earlyDt.toString(DateTime.UTC)
@@ -212,9 +214,11 @@ class DateTimeTestCase(unittest.TestCase):
             DateTime("3200-01-01T00:00:00Z", DateTime.TAI)  # way too late
 
     def testWraparound(self):
-        """Test that a date later than 2038-01-19, 03:14:07 does not wrap around
+        """Test that a date later than 2038-01-19, 03:14:07 does not wrap
+        around.
 
-        This will fail on old versions of unix, and indicates that DateTime is not safe
+        This will fail on old versions of unix, and indicates that DateTime
+        is not safe.
         """
         dateStr = "2040-01-01T00:00:00.000000000"
         self.assertEqual(str(DateTime(dateStr, DateTime.TAI)), "DateTime(\"{}\", TAI)".format(dateStr))

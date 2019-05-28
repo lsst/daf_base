@@ -101,7 +101,8 @@ def dt_constructor(loader, node):
 
 
 def pl_constructor(loader, node):
-    """Construct an lsst.daf.base.PropertyList from a YAML pickle-like structure."""
+    """Construct an lsst.daf.base.PropertyList from a YAML pickle-like
+    structure."""
     pl = PropertyList()
     yield pl
     state = loader.construct_sequence(node, deep=True)
@@ -109,7 +110,8 @@ def pl_constructor(loader, node):
 
 
 def ps_constructor(loader, node):
-    """Construct an lsst.daf.base.PropertyList from a YAML pickle-like structure."""
+    """Construct an lsst.daf.base.PropertyList from a YAML pickle-like
+    structure."""
     ps = PropertySet()
     yield ps
     state = loader.construct_sequence(node, deep=True)

@@ -29,7 +29,8 @@ import lsst.daf.base as dafBase
 
 
 class FloatSubClass(float):
-    """Intended to be something like numpy.float64, without introducing a dependency on numpy"""
+    """Intended to be something like numpy.float64, without introducing a
+    dependency on numpy"""
     pass
 
 

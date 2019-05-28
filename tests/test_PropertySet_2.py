@@ -99,7 +99,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("undef"), dafBase.PropertyList.TYPE_String)
 
     def testNumPyScalars(self):
-        """Test that we can also pass NumPy array scalars to PropertySet setters.
+        """Test that we can also pass NumPy array scalars to PropertySet
+        setters.
         """
         ps = dafBase.PropertySet()
         ps.setShort("short", np.int16(42))

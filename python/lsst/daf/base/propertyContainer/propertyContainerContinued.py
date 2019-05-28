@@ -237,8 +237,8 @@ def _guessIntegerType(container, name, value):
         try:
             containerType = _propertyContainerElementTypeName(container, name)
         except LookupError:
-            # nothing in the container so choose based on size. Safe option is to
-            # always use LongLong
+            # nothing in the container so choose based on size. Safe option is
+            # to always use LongLong
             if value <= maxInt and value >= minInt:
                 useType = "Int"
             else:
@@ -247,8 +247,8 @@ def _guessIntegerType(container, name, value):
             if containerType == "Int":
                 # Always use an Int even if we know it won't fit. The later
                 # code will trigger OverflowError if appropriate. Setting the
-                # type to LongLong here will trigger a TypeError instead so it's
-                # best to trigger a predictable OverflowError.
+                # type to LongLong here will trigger a TypeError instead so
+                # it's best to trigger a predictable OverflowError.
                 useType = "Int"
             elif containerType == "LongLong":
                 useType = "LongLong"
