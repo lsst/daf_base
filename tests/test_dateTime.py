@@ -57,6 +57,15 @@ class DateTimeTestCase(unittest.TestCase):
             ts = DateTime(mjd, DateTime.MJD, DateTime.UTC)
             delta = ts.nsecs(DateTime.TAI) - ts.nsecs(DateTime.UTC)
             self.assertEqual(delta/1E9, diff)
+        ts = DateTime(1483228835000000000)
+        self.assertEqual(ts, DateTime("2016-12-31T23:59:59Z", ts.UTC))
+        self.assertEqual(ts.toString(ts.UTC), "2016-12-31T23:59:59.000000000Z")
+        ts = DateTime(1483228836000000000)
+        self.assertEqual(ts, DateTime("2016-12-31T23:59:60Z", ts.UTC))
+        self.assertEqual(ts.toString(ts.UTC), "2016-12-31T23:59:60.000000000Z")
+        ts = DateTime(1483228837000000000)
+        self.assertEqual(ts, DateTime("2017-01-01T00:00:00Z", ts.UTC))
+        self.assertEqual(ts.toString(ts.UTC), "2017-01-01T00:00:00.000000000Z")
 
     def testNsecs(self):
         ts = DateTime(1192755473000000000, DateTime.UTC)

@@ -339,6 +339,8 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
     tm.tm_mday = day;
     tm.tm_hour = hr;
     tm.tm_min = min;
+    bool fix60 = sec == 60;
+    if (fix60) sec = 59;
     tm.tm_sec = sec;
     tm.tm_wday = 0;
     tm.tm_yday = 0;
@@ -380,6 +382,7 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
     }
 
     _nsecs = nsecAnyToTai(secs * LL_NSEC_PER_SEC, scale);
+    if (fix60) _nsecs += 1000000000;
 }
 
 DateTime::DateTime(std::string const& iso8601, Timescale scale) {
@@ -474,7 +477,23 @@ struct tm DateTime::gmtime(Timescale scale) const {
         nsecs -= frac;
     }
     time_t secs = static_cast<time_t>(nsecs / LL_NSEC_PER_SEC);
+
+    bool inLeap = false;
+    if (scale == UTC) {
+        for (size_t i = 0; i < leapSecTable.size(); ++i) {
+            if (_nsecs >= leapSecTable[i].whenTai - 1000000000 &&
+                _nsecs < leapSecTable[i].whenTai) {
+                inLeap = true;
+                break;
+            }
+        }
+        if (inLeap) --secs;
+    }
+
     gmtime_r(&secs, &gmt);
+
+    if (inLeap) gmt.tm_sec = 60;
+
     return gmt;
 }
 
