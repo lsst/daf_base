@@ -4,7 +4,6 @@
 #include <string>
 #include <typeinfo>
 
-#include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/PropertySet.h"
 #include "lsst/daf/base/DateTime.h"
 
@@ -58,7 +57,7 @@ PYBIND11_MODULE(propertySet, mod) {
             .def("name", &std::type_info::name)
             .def("__hash__", &std::type_info::hash_code);
 
-    py::class_<PropertySet, std::shared_ptr<PropertySet>, Citizen> cls(mod, "PropertySet");
+    py::class_<PropertySet, std::shared_ptr<PropertySet>> cls(mod, "PropertySet");
 
     cls.def(py::init<bool>(), "flat"_a = false);
 

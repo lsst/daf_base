@@ -1,7 +1,6 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "lsst/daf/base/Citizen.h"
 #include "lsst/daf/base/PropertyList.h"
 #include "lsst/daf/base/DateTime.h"
 
@@ -55,12 +54,12 @@ void declareAccessors(C& cls, std::string const& name) {
     cls.attr(typeName.c_str()) = py::cast(typeid(T), py::return_value_policy::reference);
 }
 
-}  // <anonymous>
+}  // namespace
 
 PYBIND11_MODULE(propertyList, mod) {
     py::module::import("lsst.daf.base.persistable");
 
-    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet, Citizen> cls(mod, "PropertyList");
+    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet> cls(mod, "PropertyList");
 
     cls.def(py::init<>());
 

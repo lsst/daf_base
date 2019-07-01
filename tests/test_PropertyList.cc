@@ -56,8 +56,6 @@ BOOST_AUTO_TEST_CASE(bases) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     dafBase::PropertyList::Ptr plp(new dafBase::PropertyList);
     dafBase::PropertySet::Ptr psp = plp;
     BOOST_CHECK_EQUAL(!plp, false);
-    std::shared_ptr<dafBase::Citizen> cp = plp;
-    BOOST_CHECK_EQUAL(!cp, false);
 }
 
 BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
