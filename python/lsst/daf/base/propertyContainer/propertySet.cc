@@ -80,6 +80,7 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("getAsBool", &PropertySet::getAsBool);
     cls.def("getAsInt", &PropertySet::getAsInt);
     cls.def("getAsInt64", &PropertySet::getAsInt64);
+    cls.def("getAsUInt64", &PropertySet::getAsUInt64);
     cls.def("getAsDouble", &PropertySet::getAsDouble);
     cls.def("getAsString", &PropertySet::getAsString);
     cls.def("getAsPropertySetPtr", &PropertySet::getAsPropertySetPtr);
@@ -90,6 +91,7 @@ PYBIND11_MODULE(propertySet, mod) {
     declareAccessors<int>(cls, "Int");
     declareAccessors<long>(cls, "Long");
     declareAccessors<long long>(cls, "LongLong");
+    declareAccessors<unsigned long long>(cls, "UnsignedLongLong");
     declareAccessors<float>(cls, "Float");
     declareAccessors<double>(cls, "Double");
     declareAccessors<nullptr_t>(cls, "Undef");
