@@ -34,6 +34,7 @@
 #include "lsst/pex/exceptions/Runtime.h"
 
 #define INT64CONST(x) static_cast<int64_t>(x##LL)
+#define UINT64CONST(x) static_cast<uint64_t>(x##ULL)
 
 namespace test = boost::test_tools;
 namespace dafBase = lsst::daf::base;
@@ -58,6 +59,7 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -72,6 +74,7 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
+    BOOST_CHECK_EQUAL(ps.get<uint64_t>("uint64_t"), UINT64CONST(0xFFFFFFFFFFFFFFFF));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 2.718281828459045);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
@@ -91,6 +94,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a 
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -104,6 +108,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a 
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 42);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xfeeddeadbeef));
+    BOOST_CHECK_EQUAL(ps.get<uint64_t>("uint64_t"), UINT64CONST(0xFFFFFFFFFFFFFFFF));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 2.718281828459045);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
@@ -116,6 +121,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a 
     ps.set("short", s);
     ps.set("int", 42);
     ps.set("int64_t", INT64CONST(0xcafefacade));
+    ps.set("uint64_t", UINT64CONST(0xEEEEEEEEEEEEEEEE));
     f = 2.71828;
     ps.set("float", f);
     d = 3.1415926535897932;
@@ -129,6 +135,7 @@ BOOST_AUTO_TEST_CASE(resetScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a 
     BOOST_CHECK_EQUAL(ps.get<short>("short"), 2008);
     BOOST_CHECK_EQUAL(ps.get<int>("int"), 42);
     BOOST_CHECK_EQUAL(ps.get<int64_t>("int64_t"), INT64CONST(0xcafefacade));
+    BOOST_CHECK_EQUAL(ps.get<uint64_t>("uint64_t"), UINT64CONST(0xEEEEEEEEEEEEEEEE));
     BOOST_CHECK_EQUAL(ps.get<float>("float"), 2.71828f);
     BOOST_CHECK_EQUAL(ps.get<double>("double"), 3.1415926535897932);
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "baz");
@@ -163,6 +170,7 @@ BOOST_AUTO_TEST_CASE(getScalarThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -251,6 +259,7 @@ BOOST_AUTO_TEST_CASE(
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -263,6 +272,7 @@ BOOST_AUTO_TEST_CASE(
     BOOST_CHECK(ps.typeOf("short") == typeid(short));
     BOOST_CHECK(ps.typeOf("int") == typeid(int));
     BOOST_CHECK(ps.typeOf("int64_t") == typeid(int64_t));
+    BOOST_CHECK(ps.typeOf("uint64_t") == typeid(uint64_t));
     BOOST_CHECK(ps.typeOf("float") == typeid(float));
     BOOST_CHECK(ps.typeOf("double") == typeid(double));
     BOOST_CHECK(ps.typeOf("char*") == typeid(std::string));
@@ -474,6 +484,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -503,6 +514,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     BOOST_CHECK_EQUAL(ps.getAsDouble("short"), 42.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int"), 2008.0);
     BOOST_CHECK_EQUAL(ps.getAsDouble("int64_t"), static_cast<double>(INT64CONST(0xfeeddeadbeef)));
+    BOOST_CHECK_EQUAL(ps.getAsDouble("uint64_t"), static_cast<double>(UINT64CONST(0xFFFFFFFFFFFFFFFF)));
     BOOST_CHECK_EQUAL(ps.getAsDouble("float"), 3.14159f);
     BOOST_CHECK_EQUAL(ps.getAsDouble("double"), 2.718281828459045);
     BOOST_CHECK_THROW(ps.getAsDouble("char*"), pexExcept::TypeError);
@@ -693,6 +705,7 @@ BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
     ps.set("short", s);
     ps.set("int", 2008);
     ps.set("int64_t", INT64CONST(0xfeeddeadbeef));
+    ps.set("uint64_t", UINT64CONST(0xFFFFFFFFFFFFFFFF));
     float f = 3.14159;
     ps.set("float", f);
     double d = 2.718281828459045;
@@ -733,6 +746,7 @@ BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
                       "}\n"
                       "short = 42\n"
                       "string = \"bar\"\n"
+                      "uint64_t = 18446744073709551615\n"
                       "v = [ 10, 9, 8 ]\n");
     BOOST_CHECK_EQUAL(ps.toString(true),
                       "bool = 1\n"
@@ -748,6 +762,7 @@ BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
                       "ps3 = { ... }\n"
                       "short = 42\n"
                       "string = \"bar\"\n"
+                      "uint64_t = 18446744073709551615\n"
                       "v = [ 10, 9, 8 ]\n");
 }
 

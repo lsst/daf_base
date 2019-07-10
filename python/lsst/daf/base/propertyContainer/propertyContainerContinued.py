@@ -148,7 +148,8 @@ def _propertyContainerElementTypeName(container, name):
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
         raise KeyError(str(e))
-    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "Float", "Double", "String", "DateTime",
+    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong",
+                      "Float", "Double", "String", "DateTime",
                       "PropertySet", "Undef"):
         if t == getattr(container, "TYPE_" + checkType):
             return checkType
@@ -227,6 +228,10 @@ def _guessIntegerType(container, name, value):
     useType = None
     maxInt = 2147483647
     minInt = -2147483648
+    maxLongLong = 2**63 - 1
+    minLongLong = -2**63
+    maxU64 = 2**64 - 1
+    minU64 = 0
 
     # We do not want to convert bool to int so let the system work that
     # out itself
@@ -237,12 +242,15 @@ def _guessIntegerType(container, name, value):
         try:
             containerType = _propertyContainerElementTypeName(container, name)
         except LookupError:
-            # nothing in the container so choose based on size. Safe option is
-            # to always use LongLong
+            # nothing in the container so choose based on size.
             if value <= maxInt and value >= minInt:
                 useType = "Int"
-            else:
+            elif value <= maxLongLong and value >= minLongLong:
                 useType = "LongLong"
+            elif value <= maxU64 and value >= minU64:
+                useType = "UnsignedLongLong"
+            else:
+                raise RuntimeError("Unable to guess integer type for storing value: %d" % (value,))
         else:
             if containerType == "Int":
                 # Always use an Int even if we know it won't fit. The later
@@ -252,6 +260,8 @@ def _guessIntegerType(container, name, value):
                 useType = "Int"
             elif containerType == "LongLong":
                 useType = "LongLong"
+            elif containerType == "UnsignedLongLong":
+                useType = "UnsignedLongLong"
     return useType
 
 
