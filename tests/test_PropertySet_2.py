@@ -48,6 +48,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         ps.setLongLong("int64_t", 0xfeeddeadbeef)
+        ps.setUnsignedLongLong("uint64_t", 0xFFFFFFFFFFFFFFFF)
         ps.setFloat("float", 3.14159)
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
@@ -68,6 +69,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
         self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
+        self.assertEqual(ps.typeOf("uint64_t"), dafBase.PropertySet.TYPE_UnsignedLongLong)
+        self.assertEqual(ps.getUnsignedLongLong("uint64_t"), 0xFFFFFFFFFFFFFFFF)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -106,6 +109,7 @@ class PropertySetTestCase(unittest.TestCase):
         ps.setShort("short", np.int16(42))
         ps.setInt("int", np.int32(2008))
         ps.setLongLong("int64_t", np.int64(0xfeeddeadbeef))
+        ps.setUnsignedLongLong("uint64_t", np.uint64(0xFFFFFFFFFFFFFFFF))
         ps.setFloat("float", np.float32(3.14159))
         ps.setDouble("double", np.float64(2.718281828459045))
         self.assertEqual(ps.typeOf("short"), dafBase.PropertySet.TYPE_Short)
@@ -115,6 +119,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
         self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
+        self.assertEqual(ps.typeOf("uint64_t"), dafBase.PropertySet.TYPE_UnsignedLongLong)
+        self.assertEqual(ps.getUnsignedLongLong("uint64_t"), 0xFFFFFFFFFFFFFFFF)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -314,6 +320,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         ps.setLongLong("int64_t", 0xfeeddeadbeef)
+        ps.setUnsignedLongLong("uint64_t", 0xFFFFFFFFFFFFFFFF)
         ps.setFloat("float", 3.14159)
         ps.setDouble("double", 2.718281828459045)
         ps.set("char*", "foo")
@@ -334,6 +341,8 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("int64_t"),
                          dafBase.PropertySet.TYPE_LongLong)
         self.assertEqual(ps.getLongLong("int64_t"), 0xfeeddeadbeef)
+        self.assertEqual(ps.typeOf("uint64_t"), dafBase.PropertySet.TYPE_UnsignedLongLong)
+        self.assertEqual(ps.getUnsignedLongLong("uint64_t"), 0xFFFFFFFFFFFFFFFF)
         self.assertEqual(ps.typeOf("float"), dafBase.PropertySet.TYPE_Float)
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
@@ -575,6 +584,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.setInt("int", 2008)
         ps.setLongLong("int64_t", 0xfeeddeadbeef)
+        ps.setUnsignedLongLong("uint64_t", 0xFFFFFFFFFFFFFFFF)
         ps.setInt("ints", [10, 9, 8])
 
         ps2 = dafBase.PropertySet()
@@ -613,6 +623,8 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(d2["int"], 2008)
         self.assertIsInstance(d2["int64_t"], (int, int))
         self.assertEqual(d2["int64_t"], 0xfeeddeadbeef)
+        self.assertIsInstance(d2["uint64_t"], (int, int))
+        self.assertEqual(d2["uint64_t"], 0xFFFFFFFFFFFFFFFF)
         self.assertIsInstance(d2["ints"], list)
         self.assertIsInstance(d2["ints"][0], (int, int))
         self.assertEqual(d2["ints"], [10, 9, 8])
@@ -737,6 +749,26 @@ class FlatTestCase(unittest.TestCase):
         ps.remove("foo.bar")
         ps.remove("int.sub")
 
+    def testIntegerRanges(self):
+        """Test that the ranges of the various integer types is as expected"""
+        ps = dafBase.PropertySet()
+        minI32 = -2**31
+        maxI32 = 2**31 - 1
+        minI64 = -2**63
+        maxI64 = 2**63 - 1
+        minU64 = 0
+        maxU64 = 2**64 - 1
+        # Out of range for the particular type
+        self.assertRaises(TypeError, ps.addInt, "int32", minI32 - 1)
+        self.assertRaises(TypeError, ps.addInt, "int32", maxI32 + 1)
+        self.assertRaises(TypeError, ps.addLongLong, "int64", minI64 - 1)
+        self.assertRaises(TypeError, ps.addLongLong, "int64", maxI64 + 1)
+        self.assertRaises(TypeError, ps.addUnsignedLongLong, "uint64", minU64 - 1)
+        self.assertRaises(TypeError, ps.addUnsignedLongLong, "uint64", maxU64 + 1)
+        # Out of all possible integer ranges
+        self.assertRaises(RuntimeError, ps.add, "number", minI64 - 1)
+        self.assertRaises(RuntimeError, ps.add, "number", maxU64 + 1)
+
     def testNames(self):
         ps = dafBase.PropertySet()
         ps.set("ps1.pre", 1)
@@ -797,6 +829,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", 42)
         ps.set("int", 2008)
         ps.set("int64_t", 0xfeeddeadbeef)
+        ps.set("uint64_t", 0xFFFFFFFFFFFFFFFF)
         f = 3.14159
         ps.setFloat("float", f)
         d = 2.718281828459045
@@ -814,17 +847,26 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.getAsInt("int"), 2008)
         with self.assertRaises(TypeError):
             ps.getAsInt("int64_t")
+        with self.assertRaises(TypeError):
+            ps.getAsInt("uint64_t")
+        with self.assertRaises(TypeError):
+            ps.getAsInt64("uint64_t")
         self.assertEqual(ps.getAsInt64("bool"), 1)
         self.assertEqual(ps.getAsInt64("short"), 42)
         self.assertEqual(ps.getAsInt64("int"), 2008)
         self.assertEqual(ps.getAsInt64("int64_t"), 0xfeeddeadbeef)
+        self.assertEqual(ps.getAsUInt64("uint64_t"), 0xFFFFFFFFFFFFFFFF)
         with self.assertRaises(TypeError):
             ps.getAsInt64("float")
+        with self.assertRaises(TypeError):
+            ps.getAsUInt64("float")
         self.assertEqual(ps.getAsDouble("bool"), 1.0)
         self.assertEqual(ps.getAsDouble("short"), 42.0)
         self.assertEqual(ps.getAsDouble("int"), 2008.0)
         self.assertEqual(ps.getAsDouble("int64_t"),
                          float(0xfeeddeadbeef))
+        self.assertEqual(ps.getAsDouble("uint64_t"),
+                         float(0xFFFFFFFFFFFFFFFF))
         self.assertAlmostEqual(ps.getAsDouble("float"), 3.14159, places=5)
         self.assertAlmostEqual(ps.getAsDouble("double"), 2.718281828459045, places=15)
         with self.assertRaises(TypeError):
@@ -910,6 +952,7 @@ class FlatTestCase(unittest.TestCase):
         ps.setShort("short", s)
         ps.set("int", 2008)
         ps.set("int64_t", 0xfeeddeadbeef)
+        ps.set("uint64_t", 0xFFFFFFFFFFFFFFFF)
         f = 3.14159
         ps.setFloat("float", f)
         d = 2.718281828459045
@@ -949,6 +992,7 @@ class FlatTestCase(unittest.TestCase):
                          "}\n"
                          "short = 42\n"
                          "string = \"bar\"\n"
+                         "uint64_t = 18446744073709551615\n"
                          "v = [ 10, 9, 8 ]\n"
                          )
         self.assertEqual(ps.toString(True),
@@ -964,6 +1008,7 @@ class FlatTestCase(unittest.TestCase):
                          "ps3 = { ... }\n"
                          "short = 42\n"
                          "string = \"bar\"\n"
+                         "uint64_t = 18446744073709551615\n"
                          "v = [ 10, 9, 8 ]\n"
                          )
 

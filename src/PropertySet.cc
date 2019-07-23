@@ -297,6 +297,33 @@ int64_t PropertySet::getAsInt64(std::string const& name) const {
     return boost::any_cast<int64_t>(v);
 }
 
+uint64_t PropertySet::getAsUInt64(std::string const& name) const {
+    auto const i = _find(name);
+    if (i == _map.end()) {
+        throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
+    }
+    boost::any v = i->second->back();
+    std::type_info const& t = v.type();
+    if (t == typeid(bool)) return boost::any_cast<bool>(v);
+    if (t == typeid(char)) return boost::any_cast<char>(v);
+    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
+    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
+    if (t == typeid(short)) return boost::any_cast<short>(v);
+    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
+    if (t == typeid(int)) return boost::any_cast<int>(v);
+    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
+    if (t == typeid(long)) return boost::any_cast<long>(v);
+    if (t == typeid(long long)) return boost::any_cast<long long>(v);
+    if (t == typeid(unsigned long long)) return boost::any_cast<unsigned long long>(v);
+    try {
+        return boost::any_cast<uint64_t>(v);
+    } catch (boost::bad_any_cast) {
+        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+    }
+    // not reached
+    return boost::any_cast<uint64_t>(v);
+}
+
 double PropertySet::getAsDouble(std::string const& name) const {
     auto const i = _find(name);
     if (i == _map.end()) {
