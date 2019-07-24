@@ -268,6 +268,17 @@ public:
     int64_t getAsInt64(std::string const& name) const;
 
     /**
+     * Get the last value for an bool/char/short/int/int64_t property name
+     * (possibly hierarchical).
+     *
+     * @param[in] name Property name to examine, possibly hierarchical.
+     * @return Value as an uint64_t.
+     * @throws NotFoundError Property does not exist.
+     * @throws TypeError Value cannot be converted to uint64_t.
+     */
+    uint64_t getAsUInt64(std::string const& name) const;
+
+    /**
      * Get the last value for any arithmetic property name (possibly
      * hierarchical).
      *
