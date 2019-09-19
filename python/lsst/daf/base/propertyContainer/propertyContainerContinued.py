@@ -476,14 +476,16 @@ class PropertySet:
 
         Notes
         -----
-        If the supplied parameter is a `PropertySet` then the
-        `PropertySet.combine` method will be used.  If the supplied parameter
-        is a `collections.abc.Mapping` each item will be copied out of the
-        mapping and value assigned using `PropertySet.set`, overwriting
-        any previous values.
+        This is not the same as calling `PropertySet.combine` since the
+        behavior differs when both mappings contain the same key.  This
+        method updates by overwriting existing values completely with
+        the new value.
         """
         if isinstance(addition, PropertySet):
-            self.combine(addition)
+            # To support array values we can not use the dict interface
+            # and instead use the copy() method which overwrites
+            for k in addition:
+                self.copy(k, addition, k)
         else:
             for k, v in addition.items():
                 self[k] = v
