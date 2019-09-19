@@ -123,6 +123,19 @@ class DictTestCase(unittest.TestCase):
         for k in keys:
             self.assertIn(k, container)
 
+        for k, v in container.items():
+            self.assertIn(k, container)
+            self.assertEqual(v, container[k])
+
+        # Check that string form of the non-PropertySet values are present
+        # when iterating over values.  This is a simple test to ensure
+        # that values() does do something useful
+        values = {str(container[k]) for k in container if not isinstance(container[k],
+                                                                         lsst.daf.base.PropertySet)}
+        for v in container.values():
+            if not isinstance(v, lsst.daf.base.PropertySet):
+                self.assertIn(str(v), values)
+
         # Assign a PropertySet
         ps2 = lsst.daf.base.PropertySet()
         ps2.setString("newstring", "stringValue")
@@ -162,6 +175,10 @@ class DictTestCase(unittest.TestCase):
         self.assertEqual(len(keys), 17)
         for k in keys:
             self.assertIn(k, container)
+
+        for k, v in container.items():
+            self.assertIn(k, container)
+            self.assertEqual(v, container[k])
 
         # Assign a PropertySet
         ps2 = lsst.daf.base.PropertySet()

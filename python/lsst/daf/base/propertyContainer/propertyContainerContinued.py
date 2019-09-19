@@ -26,7 +26,7 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 
 import enum
 import numbers
-from collections.abc import Mapping, KeysView
+from collections.abc import Mapping, KeysView, ValuesView, ItemsView
 
 # Ensure that C++ exceptions are properly translated to Python
 import lsst.pex.exceptions  # noqa: F401
@@ -599,6 +599,12 @@ class PropertySet:
 
     def keys(self):
         return KeysView(self)
+
+    def items(self):
+        return ItemsView(self)
+
+    def values(self):
+        return ValuesView(self)
 
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
