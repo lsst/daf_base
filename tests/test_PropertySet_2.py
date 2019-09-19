@@ -546,16 +546,16 @@ class FlatTestCase(unittest.TestCase):
         self.assertFalse(ps.isArray("ps3.subsub"))
         self.assertFalse(ps.isArray("ps4"))
         self.assertFalse(ps.isArray("ps4.top"))
-        self.assertTrue(ps.isArray("int"))
+        self.assertFalse(ps.isArray("int"))
         self.assertFalse(ps.isArray("double"))
 
-        self.assertEqual(ps.valueCount("ps1.pre"), 3)
-        self.assertEqual(ps.valueCount("int"), 2)
+        self.assertEqual(ps.valueCount("ps1.pre"), 2)
+        self.assertEqual(ps.valueCount("int"), 1)
 
         v = ps.getArray("ps1.pre")
-        self.assertEqual(v, [1, 3, 4])
+        self.assertEqual(v, [3, 4])
         v = ps.getArray("int")
-        self.assertEqual(v, [42, 2008])
+        self.assertEqual(v, [2008])
 
         psd = {"int": 100, "str": "String", "apl1.foo": 10.5}
         ps.update(psd)
