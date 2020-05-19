@@ -237,7 +237,7 @@ class DateTimeTestCase(unittest.TestCase):
             try:
                 dt = DateTime(dateStr, scale)
             except Exception:
-                self.fail("Date {} unusable; DM-7622 is still with us".format(dateStr, scale))
+                self.fail("Date {} in scale {} unusable".format(dateStr, scale))
             self.assertEqual(dt.nsecs(scale), int(-1e9))
 
     def testStr(self):
