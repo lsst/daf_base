@@ -65,7 +65,8 @@ if yaml:
 
 def pl_representer(dumper, data):
     """Represent an lsst.daf.base.PropertyList as an ordered sequence of
-    name/type/value/comment lists)"""
+    name/type/value/comment lists)
+    """
     # Turn the tuples into lists for cleaner representation in yaml
     result = getPropertyListState(data, asLists=True)
     return dumper.represent_sequence('lsst.daf.base.PropertyList', result,
@@ -78,7 +79,8 @@ if yaml:
 
 def ps_representer(dumper, data):
     """Represent an lsst.daf.base.PropertySet as a mapping from names to
-    type/value pairs."""
+    type/value pairs.
+    """
     # Turn the tuples into lists for cleaner representation in yaml
     result = getPropertySetState(data, asLists=True)
     return dumper.represent_sequence('lsst.daf.base.PropertySet', result,
@@ -95,14 +97,16 @@ if yaml:
 
 def dt_constructor(loader, node):
     """Construct an lsst.daf.base.DateTime from an ISO8601-formatted string in
-    TAI"""
+    TAI
+    """
     dt = loader.construct_scalar(node)
     return DateTime(str(dt), DateTime.TAI)
 
 
 def pl_constructor(loader, node):
     """Construct an lsst.daf.base.PropertyList from a YAML pickle-like
-    structure."""
+    structure.
+    """
     pl = PropertyList()
     yield pl
     state = loader.construct_sequence(node, deep=True)
@@ -111,7 +115,8 @@ def pl_constructor(loader, node):
 
 def ps_constructor(loader, node):
     """Construct an lsst.daf.base.PropertyList from a YAML pickle-like
-    structure."""
+    structure.
+    """
     ps = PropertySet()
     yield ps
     state = loader.construct_sequence(node, deep=True)

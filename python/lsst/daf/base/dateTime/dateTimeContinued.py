@@ -35,7 +35,15 @@ class DateTime:
     def toPython(self, timescale=None):
         """Convert a DateTime to Python's datetime
 
-        @param timescale  Timescale for resultant datetime
+        Parameters
+        ----------
+        timescale : `dateTime.DateTime.Timescale`, optional
+            Timescale for resultant datetime.
+
+        Returns
+        -------
+        datetime : `datetime.datetime`
+            The resultant Python `datetime.datetime` object.
         """
         import datetime
         nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()

@@ -31,7 +31,8 @@ import lsst.pex.exceptions as pexExcept
 
 
 class DateTimeTestCase(unittest.TestCase):
-    """A test case for DateTime."""
+    """A test case for DateTime.
+    """
 
     def setUp(self):
         self.timeScales = (DateTime.TAI, DateTime.TT, DateTime.UTC)
@@ -114,7 +115,8 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.toString(ts.UTC), "1970-01-01T00:00:00.000000000Z")
 
     def testIsoUTCBasic(self):
-        """Test basic ISO string input and output of UTC dates"""
+        """Test basic ISO string input and output of UTC dates
+        """
         for dateSep in ("-", ""):  # "-" date separator is optional
             for timeSep in (":", ""):  # ":" time separator is optional
                 for decPt in (".", ","):  # "." or "," may be used as decimal point
@@ -126,7 +128,8 @@ class DateTimeTestCase(unittest.TestCase):
                     self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.314159265Z")
 
     def testIsoNonUTCBasics(self):
-        """Test basic ISO string input and output of TAI and TT dates"""
+        """Test basic ISO string input and output of TAI and TT dates
+        """
         for scale in (DateTime.TAI, DateTime.TT):
             for dateSep in ("-", ""):  # "-" date separator is optional
                 for timeSep in (":", ""):  # ":" time separator is optional

@@ -30,12 +30,14 @@ import lsst.daf.base as dafBase
 
 class FloatSubClass(float):
     """Intended to be something like numpy.float64, without introducing a
-    dependency on numpy"""
+    dependency on numpy
+    """
     pass
 
 
 class PropertyListTestCase(unittest.TestCase):
-    """A test case for PropertyList."""
+    """A test case for PropertyList.
+    """
 
     def testConstruct(self):
         apl = dafBase.PropertyList()

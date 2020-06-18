@@ -53,12 +53,16 @@ def getPropertySetState(container, asLists=False):
     state : `list` of `tuple` or `list` of `list`
         The state, as a list of tuples (or lists), each of which contains
         the following 3 items:
-        - name (a `str`): the name of the item
-        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+
+        name (a `str`)
+            the name of the item
+        elementTypeName (a `str`)
+            the suffix of a ``setX`` method name
             which is appropriate for the data type. For example integer
             data has ``elementTypeName="Int"` which corresponds to
             the ``setInt`` method.
-        - value: the data for the item, in a form compatible
+        value
+            the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
     """
     names = container.names(topLevelOnly=True)
@@ -84,14 +88,18 @@ def getPropertyListState(container, asLists=False):
     state : `list` of `tuple` or `list` of `list`
         The state, as a list of tuples (or lists), each of which contains
         the following 4 items:
-        - name (a `str`): the name of the item
-        - elementTypeName (a `str`): the suffix of a ``setX`` method name
+
+        name (a `str`):
+            the name of the item
+        elementTypeName (a `str`):
+            the suffix of a ``setX`` method name
             which is appropriate for the data type. For example integer
             data has ``elementTypeName="Int"` which corresponds to
             the ``setInt`` method.
-        - value: the data for the item, in a form compatible
+        value
+            the data for the item, in a form compatible
             with the set method named by ``elementTypeName``
-        - comment (a `str`): the comment. This item is only present
+        comment (a `str`): the comment. This item is only present
             if ``container`` is a PropertyList.
     """
     sequence = list if asLists else tuple
@@ -141,7 +149,15 @@ class ReturnStyle(enum.Enum):
 
 
 def _propertyContainerElementTypeName(container, name):
-    """Return name of the type of a particular element"""
+    """Return name of the type of a particular element
+
+    Parameters
+    ----------
+    container : `lsst.daf.base.PropertySet` or `lsst.daf.base.PropertyList`
+        Container including the element
+    name : `str`
+        Name of element
+    """
     try:
         t = container.typeOf(name)
     except LookupError as e:
@@ -223,7 +239,22 @@ def _guessIntegerType(container, name, value):
     If there is no pre-existing value we have to decide what to do. For now
     we pick Int if the value is less than maxsize.
 
-    Returns None if the value supplied is a bool or not an integral value.
+    Parameters
+    ----------
+    container : `lsst.daf.base.PropertySet` or `lsst.daf.base.PropertyList`
+        Container from which to get the value
+
+    name : `str`
+        Name of item
+
+    value : `object`
+        Value to be assigned a type
+
+    Returns
+    -------
+    useType : `str` or none
+        Type to use for the supplied value. `None` if the input is
+        `bool` or a non-integral value.
     """
     useType = None
     maxInt = 2147483647
@@ -266,7 +297,8 @@ def _guessIntegerType(container, name, value):
 
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
-    """Set a single Python value of unknown type"""
+    """Set a single Python value of unknown type
+    """
     if hasattr(value, "__iter__") and not isinstance(value, (str, PropertySet, PropertyList)):
         exemplar = value[0]
     else:
@@ -288,7 +320,8 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
 
 
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
-    """Add a single Python value of unknown type"""
+    """Add a single Python value of unknown type
+    """
     if hasattr(value, "__iter__"):
         exemplar = value[0]
     else:
@@ -358,7 +391,7 @@ class PropertySet:
 
         Parameters
         ----------
-        name : ``str``
+        name : `str`
             Name of item
         default : `object`, optional
             Default value to use if the named item is not present.
