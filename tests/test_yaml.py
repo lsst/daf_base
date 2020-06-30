@@ -84,7 +84,8 @@ class YAMLTestCase(unittest.TestCase):
         self.assertEqual(apl, apl2)
 
     def testYamlNest(self):
-        """Test nested property sets"""
+        """Test nested property sets
+        """
         ps = lsst.daf.base.PropertySet()
         ps.setBool("bool", True)
         ps.setShort("short", 42)
@@ -124,7 +125,8 @@ class YAMLTestCase(unittest.TestCase):
         self.assertEqual(ts, ts2)
 
     def testLoader(self):
-        """Test loading of reference YAML files"""
+        """Test loading of reference YAML files
+        """
         # Old and new serialization of a propertyList
         with open(os.path.join(TESTDIR, "data", "fitsheader-tuple.yaml")) as fd:
             old = yaml.load(fd, Loader=yaml.Loader)

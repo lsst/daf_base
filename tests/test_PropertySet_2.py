@@ -32,7 +32,8 @@ import lsst.pex.exceptions as pexExcept
 
 
 class PropertySetTestCase(unittest.TestCase):
-    """A test case for PropertySet."""
+    """A test case for PropertySet.
+    """
 
     def testConstruct(self):
         ps = dafBase.PropertySet()
@@ -308,7 +309,8 @@ class PropertySetTestCase(unittest.TestCase):
 
 
 class FlatTestCase(unittest.TestCase):
-    """A test case for flattened PropertySets."""
+    """A test case for flattened PropertySets.
+    """
 
     def testConstruct(self):
         ps = dafBase.PropertySet(flat=True)
@@ -750,7 +752,8 @@ class FlatTestCase(unittest.TestCase):
         ps.remove("int.sub")
 
     def testIntegerRanges(self):
-        """Test that the ranges of the various integer types is as expected"""
+        """Test that the ranges of the various integer types is as expected
+        """
         ps = dafBase.PropertySet()
         minI32 = -2**31
         maxI32 = 2**31 - 1
