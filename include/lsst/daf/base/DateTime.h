@@ -63,7 +63,8 @@ namespace base {
 
 class LSST_EXPORT DateTime {
 public:
-    enum DateSystem { JD = 0, MJD, EPOCH };
+    enum DateSystem { JD = 0, MJD, EPOCH };  // EPOCH is Julian epoch year
+        // e.g. 2000.0 for J2000
     enum Timescale {
         TAI = 5,
         UTC,
@@ -93,7 +94,7 @@ public:
      * Construct a DateTime from a double in the specified system and scale
      *
      * @param[in] date  specified date
-     * @param[in] system  time system of input (JD, MJD, or EPOCH)
+     * @param[in] system  time system of input (JD, MJD, or [Julian] EPOCH)
      * @param[in] scale  time scale of input (TAI, TT or UTC, default TAI).
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the date is before 1961-01-01
      */
@@ -148,7 +149,7 @@ public:
      * Get date as a double in a specified representation, such as MJD
      *
      * @return the date in the required system, for the requested scale
-     * @param[in] system  desired time system (JD, MJD, or EPOCH)
+     * @param[in] system  desired time system (JD, MJD, or [Julian] EPOCH)
      * @param[in] scale  desired time scale (TAI, TT or UTC)
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      * @throw lsst.pex.exceptions.RuntimeError if DateTime is invalid
@@ -251,10 +252,11 @@ private:
     double _getJd(Timescale scale) const;
 
     /**
-     * Get date as an epoch (year) in the specified time scale
+     * Get date as a Julian epoch year in the specified time scale
+     * (e.g. J2000 is 2000.0)
      *
      * @param[in] scale  time scale (TAI, TT or UTC)
-     * @return date as an epoch
+     * @return date as a Julian epoch year
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */
     double _getEpoch(Timescale scale) const;
@@ -278,9 +280,9 @@ private:
     void setNsecsFromJd(double jd, Timescale scale);
 
     /**
-     * Set internal nanoseconds from an epoch (year) in the specified time scale
+     * Set internal nanoseconds from a Julian epoch year in the specified time scale
      *
-     * @param[in] epoch  date as an epoch
+     * @param[in] epoch  date as a Julian epoch year, e.g. 2000.0 for J2000
      * @param[in] scale  time scale of date (TAI, TT or UTC)
      * @throw lsst.pex.exceptions.DomainError if scale is UTC and the UTC date is before 1961-01-01
      */
