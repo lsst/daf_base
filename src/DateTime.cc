@@ -296,7 +296,7 @@ void DateTime::setNsecsFromJd(double jd, Timescale scale) { setNsecsFromMjd(jd -
 
 /**
  * @brief a function to convert epoch to internal nsecs
- * @param[in] epoch The Julian epoch
+ * @param[in] epoch The Julian epoch year (e.g. 2000.0 for J2000)
  * @param[in] scale The time scale (TAI, TT or UTC)
  */
 void DateTime::setNsecsFromEpoch(double epoch, Timescale scale) {
