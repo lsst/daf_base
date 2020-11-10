@@ -157,6 +157,14 @@ public:
     bool isUndefined(std::string const& name) const;
 
     /**
+     * Get the number of values in the entire PropertySet, counting each
+     * element of a vector.
+     *
+     * @return Number of values.
+     */
+    size_t valueCount() const;
+
+    /**
      * Get the number of values for a property name (possibly hierarchical).
      *
      * @param[in] name Property name to examine, possibly hierarchical.

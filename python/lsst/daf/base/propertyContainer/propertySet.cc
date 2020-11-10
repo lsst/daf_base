@@ -70,7 +70,11 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("isArray", &PropertySet::isArray);
     cls.def("isUndefined", &PropertySet::isUndefined);
     cls.def("isPropertySetPtr", &PropertySet::isPropertySetPtr);
-    cls.def("valueCount", &PropertySet::valueCount);
+    cls.def("valueCount",
+            py::overload_cast<>(&PropertySet::valueCount, py::const_));
+    cls.def("valueCount",
+            py::overload_cast<std::string const&>(&PropertySet::valueCount,
+                                                  py::const_));
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
     cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
     cls.def("copy", &PropertySet::copy, "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
