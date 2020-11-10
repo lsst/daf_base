@@ -89,6 +89,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.typeOf("dt"), dafBase.PropertySet.TYPE_DateTime)
         self.assertEqual(ps.getDateTime("dt").nsecs(), 1238657233314159265)
         self.assertEqual(ps.getString("blank"), "")
+        self.assertEqual(ps.valueCount(), 13)
 
         self.assertIsNone(ps.getScalar("undef"))
         self.assertEqual(ps.typeOf("undef"), dafBase.PropertyList.TYPE_Undef)
@@ -126,6 +127,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertAlmostEqual(ps.getFloat("float"), 3.14159, 6)
         self.assertEqual(ps.typeOf("double"), dafBase.PropertySet.TYPE_Double)
         self.assertEqual(ps.getDouble("double"), 2.718281828459045)
+        self.assertEqual(ps.valueCount(), 6)
         self.checkPickle(ps)
 
     def testGetDefault(self):
@@ -161,12 +163,14 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getArray("ints"), v)
         self.assertEqual(ps.getScalar("ints"), v[-1])
         self.assertEqual(ps["ints"], v[-1])
+        self.assertEqual(ps.valueCount(), 6)
         ps.setInt("int", 999)
         x = ps.get("int")
         self.assertEqual(x, 999)
         self.assertEqual(ps.getArray("int"), [999])
         self.assertEqual(ps.getScalar("int"), 999)
         self.assertEqual(ps["int"], 999)
+        self.assertEqual(ps.valueCount(), 7)
         self.checkPickle(ps)
 
     def testGetVector2(self):
@@ -198,6 +202,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(w[3], -999)
         self.assertEqual(w[4], 13)
         self.assertEqual(ps.getString("other"), "foo")
+        self.assertEqual(ps.valueCount(), 6)
         self.checkPickle(ps)
 
     def testSetAddVector(self):
@@ -222,6 +227,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("strs"), strArr[-1])
         self.assertEqual(ps.getArray("strs"), strArr)
         self.assertEqual(ps.getScalar("strs"), strArr[-1])
+        self.assertEqual(ps.valueCount(), 11)
 
         ps.add("bools", list(reversed(boolArr)))
         ps.add("ints", list(reversed(intArr)))
@@ -239,6 +245,7 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("strs"), strArr[0])
         self.assertEqual(ps.getArray("strs"), strArr + list(reversed(strArr)))
         self.assertEqual(ps.getScalar("strs"), strArr[0])
+        self.assertEqual(ps.valueCount(), 22)
         self.checkPickle(ps)
 
     def testDateTimeToString(self):
@@ -269,17 +276,20 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.get("b.a"), 1)
         self.assertEqual(ps.getArray("b.a"), [1])
         self.assertEqual(ps.getScalar("b.a"), 1)
+        self.assertEqual(ps.valueCount(), 1)
         ps.set("c", ps1)
         self.assertEqual(ps.getArray("c"), ps1)
         self.assertEqual(ps.getScalar("c"), ps1)
         self.assertEqual(ps.get("c.a"), 1)
         self.assertEqual(ps.getArray("c.a"), [1])
         self.assertEqual(ps.getScalar("c.a"), 1)
+        self.assertEqual(ps.valueCount(), 2)
         ps.set("c.a", 2)
         self.assertEqual(ps.get("b.a"), 2)
         self.assertEqual(ps.getArray("b.a"), [2])
         self.assertEqual(ps.getScalar("b.a"), 2)
         self.assertEqual(ps.get("b").get("a"), 2)
+        self.assertEqual(ps.valueCount(), 2)
         self.checkPickle(ps)
 
     def testCopy(self):
@@ -291,6 +301,8 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(dest.get("destItem1"), value1[-1])
         self.assertEqual(dest.getArray("destItem1"), value1)
         self.assertEqual(dest.getScalar("destItem1"), value1[-1])
+        self.assertEqual(source.valueCount(), 2)
+        self.assertEqual(dest.valueCount(), 2)
 
         # items are replaced, regardless of type
         dest.set("destItem2", "string value")
@@ -300,12 +312,16 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(dest.get("destItem2"), value2[-1])
         self.assertEqual(dest.getArray("destItem2"), value2)
         self.assertEqual(dest.getScalar("destItem2"), value2[-1])
+        self.assertEqual(source.valueCount(), 5)
+        self.assertEqual(dest.valueCount(), 5)
 
         # asScalar copies only the last value
         dest.copy("destItem2Scalar", source, "srcItem2", asScalar=True)
         self.assertEqual(dest.get("destItem2Scalar"), value2[-1])
         self.assertEqual(dest.getArray("destItem2Scalar"), [value2[-1]])
         self.assertEqual(dest.getScalar("destItem2Scalar"), value2[-1])
+        self.assertEqual(source.valueCount(), 5)
+        self.assertEqual(dest.valueCount(), 6)
 
 
 class FlatTestCase(unittest.TestCase):
@@ -504,6 +520,7 @@ class FlatTestCase(unittest.TestCase):
 
         self.assertEqual(ps.valueCount("ps1.pre"), 3)
         self.assertEqual(ps.valueCount("int"), 2)
+        self.assertEqual(ps.valueCount(), 12)
 
         v = ps.getArray("ps1.pre")
         self.assertEqual(v, [1, 3, 4])
@@ -553,6 +570,7 @@ class FlatTestCase(unittest.TestCase):
 
         self.assertEqual(ps.valueCount("ps1.pre"), 2)
         self.assertEqual(ps.valueCount("int"), 1)
+        self.assertEqual(ps.valueCount(), 7)
 
         v = ps.getArray("ps1.pre")
         self.assertEqual(v, [3, 4])
@@ -656,6 +674,7 @@ class FlatTestCase(unittest.TestCase):
         self.assertEqual(ps.valueCount("ints"), 3)
         self.assertEqual(ps.valueCount("int"), 1)
         self.assertEqual(ps.valueCount("ints2"), 2)
+        self.assertEqual(ps.valueCount(), 6)
         self.assertEqual(ps.typeOf("ints"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.typeOf("int"), dafBase.PropertySet.TYPE_Int)
         self.assertEqual(ps.typeOf("ints2"), dafBase.PropertySet.TYPE_Int)

@@ -165,6 +165,14 @@ bool PropertySet::isUndefined(std::string const& name) const {
     return i != _map.end() && i->second->back().type() == typeid(nullptr);
 }
 
+size_t PropertySet::valueCount() const {
+    size_t sum = 0;
+    for (auto const& name : paramNames(false)) {
+        sum += valueCount(name);
+    }
+    return sum;
+}
+
 size_t PropertySet::valueCount(std::string const& name) const {
     auto const i = _find(name);
     if (i == _map.end()) return 0;
