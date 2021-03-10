@@ -152,6 +152,22 @@ class DictTestCase(unittest.TestCase):
 
         container["a_property_list"] = self.pl
 
+        # Upgrading of integer
+        key = "upgrade"
+        container[key] = 1
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+        self.assertEqual(container[key], 1)
+
+        # Set to 64-bit int value
+        container[key] = 8589934592
+        self.assertEqual(container[key], 8589934592)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        # Set to small int again, type should not change
+        container[key] = 42
+        self.assertEqual(container[key], 42)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
     def testDictPropertyList(self):
         container = self.pl
         self.assertIn("string", container)
@@ -195,6 +211,20 @@ class DictTestCase(unittest.TestCase):
         # Dict should be converted to a PropertySet
         container["dict"] = {"a": 1, "b": 2}
         self.assertEqual(container.getScalar("dict.b"), 2)
+
+        # Upgrading of integer
+        key = "upgrade"
+        container[key] = 1
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+        self.assertEqual(container[key], 1)
+        container[key] = 8589934592
+        self.assertEqual(container[key], 8589934592)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        # Set to small int again, type should not change
+        container[key] = 42
+        self.assertEqual(container[key], 42)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
 
     def testCopyPropertyList(self):
         # For PropertyList shallow copy and deep copy are identical
