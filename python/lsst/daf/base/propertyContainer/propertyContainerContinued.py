@@ -270,29 +270,34 @@ def _guessIntegerType(container, name, value):
         return useType
 
     if isinstance(value, numbers.Integral):
+
+        def _choose_int_from_range(int_value, current_type):
+            print(f"Checking in '{name}' for {int_value} ({current_type})")
+            if int_value <= maxInt and int_value >= minInt and current_type in (None, "Int"):
+                # Use Int only if in range and either no current type or the
+                # current type is an Int.
+                use_type = "Int"
+            elif int_value >= minLongLong and int_value < 0:
+                # All large negatives must be LongLong if they did not fit
+                # in Int clause above.
+                use_type = "LongLong"
+            elif int_value >= 0 and int_value <= maxLongLong and current_type in (None, "Int", "LongLong"):
+                # Larger than Int or already a LongLong
+                use_type = "LongLong"
+            elif int_value <= maxU64 and int_value >= minU64:
+                use_type = "UnsignedLongLong"
+            else:
+                raise RuntimeError("Unable to guess integer type for storing out of "
+                                   f"range value: {int_value}")
+            return use_type
+
         try:
             containerType = _propertyContainerElementTypeName(container, name)
         except LookupError:
-            # nothing in the container so choose based on size.
-            if value <= maxInt and value >= minInt:
-                useType = "Int"
-            elif value <= maxLongLong and value >= minLongLong:
-                useType = "LongLong"
-            elif value <= maxU64 and value >= minU64:
-                useType = "UnsignedLongLong"
-            else:
-                raise RuntimeError("Unable to guess integer type for storing value: %d" % (value,))
+            useType = _choose_int_from_range(value, None)
         else:
-            if containerType == "Int":
-                # Always use an Int even if we know it won't fit. The later
-                # code will trigger OverflowError if appropriate. Setting the
-                # type to LongLong here will trigger a TypeError instead so
-                # it's best to trigger a predictable OverflowError.
-                useType = "Int"
-            elif containerType == "LongLong":
-                useType = "LongLong"
-            elif containerType == "UnsignedLongLong":
-                useType = "UnsignedLongLong"
+            useType = _choose_int_from_range(value, containerType)
+
     return useType
 
 
