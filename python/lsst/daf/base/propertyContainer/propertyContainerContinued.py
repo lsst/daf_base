@@ -227,6 +227,22 @@ def _propertyContainerGet(container, name, returnStyle):
     raise TypeError('Unknown PropertySet value type for ' + name)
 
 
+def _iterable(a):
+    """Make input iterable.
+
+    Takes whatever is given to it and yields it back one element at a time.
+    If it is not an iterable or it is a string or PropertySet/List,
+    yields itself.
+    """
+    if isinstance(a, (str, PropertyList, PropertySet)):
+        yield a
+        return
+    try:
+        yield from a
+    except Exception:
+        yield a
+
+
 def _guessIntegerType(container, name, value):
     """Given an existing container and name, determine the type
     that should be used for the supplied value. The supplied value
@@ -248,7 +264,7 @@ def _guessIntegerType(container, name, value):
         Name of item
 
     value : `object`
-        Value to be assigned a type
+        Value to be assigned a type. Can be an iterable.
 
     Returns
     -------
@@ -256,7 +272,6 @@ def _guessIntegerType(container, name, value):
         Type to use for the supplied value. `None` if the input is
         `bool` or a non-integral value.
     """
-    useType = None
     maxInt = 2147483647
     minInt = -2147483648
     maxLongLong = 2**63 - 1
@@ -264,53 +279,86 @@ def _guessIntegerType(container, name, value):
     maxU64 = 2**64 - 1
     minU64 = 0
 
-    # We do not want to convert bool to int so let the system work that
-    # out itself
-    if isinstance(value, bool):
-        return useType
+    # Go through the values to find the range of supplied integers,
+    # stopping early if we don't have an integer.
+    min = None
+    max = None
+    for v in _iterable(value):
+        # Do not try to convert a bool to an integer
+        if not isinstance(v, numbers.Integral) or isinstance(v, bool):
+            return None
 
-    if isinstance(value, numbers.Integral):
+        if min is None:
+            min = v
+            max = v
+        elif v < min:
+            min = v
+        elif v > max:
+            max = v
 
-        def _choose_int_from_range(int_value, current_type):
-            print(f"Checking in '{name}' for {int_value} ({current_type})")
-            if int_value <= maxInt and int_value >= minInt and current_type in (None, "Int"):
-                # Use Int only if in range and either no current type or the
-                # current type is an Int.
-                use_type = "Int"
-            elif int_value >= minLongLong and int_value < 0:
-                # All large negatives must be LongLong if they did not fit
-                # in Int clause above.
-                use_type = "LongLong"
-            elif int_value >= 0 and int_value <= maxLongLong and current_type in (None, "Int", "LongLong"):
-                # Larger than Int or already a LongLong
-                use_type = "LongLong"
-            elif int_value <= maxU64 and int_value >= minU64:
-                use_type = "UnsignedLongLong"
-            else:
-                raise RuntimeError("Unable to guess integer type for storing out of "
-                                   f"range value: {int_value}")
-            return use_type
+    # Safety net
+    if min is None or max is None:
+        raise RuntimeError(f"Internal logic failure calculating integer range of {value}")
 
-        try:
-            containerType = _propertyContainerElementTypeName(container, name)
-        except LookupError:
-            useType = _choose_int_from_range(value, None)
+    def _choose_int_from_range(int_value, current_type):
+        # If this is changing type from non-integer the current type
+        # does not matter.
+        if current_type not in {"Int", "LongLong", "UnsignedLongLong"}:
+            current_type = None
+
+        if int_value <= maxInt and int_value >= minInt and current_type in (None, "Int"):
+            # Use Int only if in range and either no current type or the
+            # current type is an Int.
+            use_type = "Int"
+        elif int_value >= minLongLong and int_value < 0:
+            # All large negatives must be LongLong if they did not fit
+            # in Int clause above.
+            use_type = "LongLong"
+        elif int_value >= 0 and int_value <= maxLongLong and current_type in (None, "Int", "LongLong"):
+            # Larger than Int or already a LongLong
+            use_type = "LongLong"
+        elif int_value <= maxU64 and int_value >= minU64:
+            use_type = "UnsignedLongLong"
         else:
-            useType = _choose_int_from_range(value, containerType)
+            raise RuntimeError("Unable to guess integer type for storing out of "
+                               f"range value: {int_value}")
+        return use_type
 
-    return useType
+    try:
+        containerType = _propertyContainerElementTypeName(container, name)
+    except LookupError:
+        containerType = None
+
+    useTypeMin = _choose_int_from_range(min, containerType)
+    useTypeMax = _choose_int_from_range(max, containerType)
+
+    if useTypeMin == useTypeMax:
+        return useTypeMin
+
+    # When different the combinations are:
+    # Int + LongLong
+    # Int + UnsignedLongLong
+    # LongLong + UnsignedLongLong
+
+    choices = {useTypeMin, useTypeMax}
+    if choices == {"Int", "LongLong"}:
+        return "LongLong"
+
+    # If UnsignedLongLong is required things will break if the min
+    # is negative. They will break whatever we choose if that is the case
+    # but we have no choice but to return the UnsignedLongLong regardless.
+    if "UnsignedLongLong" in choices:
+        return "UnsignedLongLong"
+
+    raise RuntimeError(f"Logic error in guessing integer type from {min} and {max}")
 
 
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type
     """
-    if hasattr(value, "__iter__") and not isinstance(value, (str, PropertySet, PropertyList)):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
+    exemplar = next(_iterable(value))
     t = type(exemplar)
-    setType = _guessIntegerType(container, name, exemplar)
+    setType = _guessIntegerType(container, name, value)
 
     if setType is not None or t in typeMenu:
         if setType is None:
@@ -327,11 +375,7 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
     """Add a single Python value of unknown type
     """
-    if hasattr(value, "__iter__"):
-        exemplar = value[0]
-    else:
-        exemplar = value
-
+    exemplar = next(_iterable(value))
     t = type(exemplar)
     addType = _guessIntegerType(container, name, exemplar)
 
@@ -549,7 +593,7 @@ class PropertySet:
 
     def __eq__(self, other):
         if type(self) != type(other):
-            return False
+            return NotImplemented
 
         if len(self) != len(other):
             return False

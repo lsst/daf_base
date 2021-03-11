@@ -226,6 +226,34 @@ class DictTestCase(unittest.TestCase):
         self.assertEqual(container[key], 42)
         self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
 
+        # Check that 0 ends up with the correct type
+        key = "zero"
+        container[key] = 0
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+
+        # And again but bouncing through an Undef
+        key = "zeroundef"
+        container[key] = None
+        container[key] = 0
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+
+        # Store an array of integers with a large value
+        key = "intarray"
+        testArray = [1, 8589934592, 3]
+        container[key] = testArray
+        self.assertEqual(container.getArray(key), testArray)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        container[key] = [-1, 2, 3]
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        container[key] = [1, 2, 2**63 + 1]
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_UnsignedLongLong)
+
+        with self.assertRaises(TypeError):
+            # This can't fit LongLong but also contains negative number
+            container[key] = [-1, 2, 2**63 + 1]
+
     def testCopyPropertyList(self):
         # For PropertyList shallow copy and deep copy are identical
         shallow = copy.copy(self.pl)
