@@ -152,6 +152,22 @@ class DictTestCase(unittest.TestCase):
 
         container["a_property_list"] = self.pl
 
+        # Upgrading of integer
+        key = "upgrade"
+        container[key] = 1
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+        self.assertEqual(container[key], 1)
+
+        # Set to 64-bit int value
+        container[key] = 8589934592
+        self.assertEqual(container[key], 8589934592)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        # Set to small int again, type should not change
+        container[key] = 42
+        self.assertEqual(container[key], 42)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
     def testDictPropertyList(self):
         container = self.pl
         self.assertIn("string", container)
@@ -195,6 +211,52 @@ class DictTestCase(unittest.TestCase):
         # Dict should be converted to a PropertySet
         container["dict"] = {"a": 1, "b": 2}
         self.assertEqual(container.getScalar("dict.b"), 2)
+
+        # Upgrading of integer
+        key = "upgrade"
+        container[key] = 1
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+        self.assertEqual(container[key], 1)
+        container[key] = 8589934592
+        self.assertEqual(container[key], 8589934592)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        # Set to small int again, type should not change
+        container[key] = 42
+        self.assertEqual(container[key], 42)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        # Check that 0 ends up with the correct type
+        key = "zero"
+        container[key] = 0
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+
+        # And again but bouncing through an Undef
+        key = "zeroundef"
+        container[key] = None
+        container[key] = 0
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_Int)
+
+        # Store an array of integers with a large value
+        key = "intarray"
+        testArray = [1, 8589934592, 3]
+        container[key] = testArray
+        self.assertEqual(container.getArray(key), testArray)
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        container[key] = [-1, 2, 3]
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
+
+        container[key] = [1, 2, 2**63 + 1]
+        self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_UnsignedLongLong)
+
+        # Store an empty list
+        container["emptylist"] = []
+        self.assertNotIn("emptylist", container)
+
+        with self.assertRaises(TypeError):
+            # This can't fit LongLong but also contains negative number
+            container[key] = [-1, 2, 2**63 + 1]
 
     def testCopyPropertyList(self):
         # For PropertyList shallow copy and deep copy are identical

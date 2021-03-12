@@ -173,6 +173,10 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.valueCount(), 7)
         self.checkPickle(ps)
 
+        # Check that an empty list does nothing
+        ps.setInt("empty", [])
+        self.assertNotIn("empty", ps)
+
     def testGetVector2(self):
         ps = dafBase.PropertySet()
         v = [42, 2008, 1]
@@ -204,6 +208,10 @@ class PropertySetTestCase(unittest.TestCase):
         self.assertEqual(ps.getString("other"), "foo")
         self.assertEqual(ps.valueCount(), 6)
         self.checkPickle(ps)
+
+        # Check that an empty list does nothing
+        ps.addInt("ints", [])
+        self.assertEqual(ps.getArrayInt("ints"), w)
 
     def testSetAddVector(self):
         ps = dafBase.PropertySet()
