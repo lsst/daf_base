@@ -250,6 +250,10 @@ class DictTestCase(unittest.TestCase):
         container[key] = [1, 2, 2**63 + 1]
         self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_UnsignedLongLong)
 
+        # Store an empty list
+        container["emptylist"] = []
+        self.assertNotIn("emptylist", container)
+
         with self.assertRaises(TypeError):
             # This can't fit LongLong but also contains negative number
             container[key] = [-1, 2, 2**63 + 1]

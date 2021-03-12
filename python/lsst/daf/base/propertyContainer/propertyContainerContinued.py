@@ -356,7 +356,12 @@ def _guessIntegerType(container, name, value):
 def _propertyContainerSet(container, name, value, typeMenu, *args):
     """Set a single Python value of unknown type
     """
-    exemplar = next(_iterable(value))
+    try:
+        exemplar = next(_iterable(value))
+    except StopIteration:
+        # Do nothing if nothing provided. This matches the behavior
+        # of the explicit setX() methods.
+        return
     t = type(exemplar)
     setType = _guessIntegerType(container, name, value)
 
@@ -375,7 +380,12 @@ def _propertyContainerSet(container, name, value, typeMenu, *args):
 def _propertyContainerAdd(container, name, value, typeMenu, *args):
     """Add a single Python value of unknown type
     """
-    exemplar = next(_iterable(value))
+    try:
+        exemplar = next(_iterable(value))
+    except StopIteration:
+        # Adding an empty iterable to an existing entry is a no-op
+        # since there is nothing to add.
+        return
     t = type(exemplar)
     addType = _guessIntegerType(container, name, exemplar)
 
