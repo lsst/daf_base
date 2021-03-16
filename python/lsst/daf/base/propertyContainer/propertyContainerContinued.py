@@ -700,6 +700,35 @@ class PropertySet:
     def values(self):
         return ValuesView(self)
 
+    def pop(self, name, default=None):
+        """Remove the named key and return its value.
+
+        Parameters
+        ----------
+        name : `str`
+            Name of the key to remove.
+        default : Any, optional
+            Value to return if the key is not present.
+
+        Returns
+        -------
+        value : Any
+            The value of the item as would be returned using `getScalar()`.
+
+        Raises
+        ------
+        KeyError
+            Raised if no default is given and the key is missing.
+        """
+        if name in self:
+            value = self[name]
+            self.remove(name)
+        else:
+            if default is None:
+                raise KeyError(name)
+            value = default
+        return value
+
     def __reduce__(self):
         # It would be a bit simpler to use __setstate__ and __getstate__.
         # However, implementing __setstate__ in Python causes segfaults
