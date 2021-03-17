@@ -168,6 +168,14 @@ class DictTestCase(unittest.TestCase):
         self.assertEqual(container[key], 42)
         self.assertEqual(container.typeOf(key), lsst.daf.base.PropertySet.TYPE_LongLong)
 
+    def testPop(self):
+        container = self.ps
+        self.assertEqual(container.pop("int"), 2009)
+        self.assertNotIn("int", container)
+        self.assertEqual(container.pop("not_there", 42), 42)
+        with self.assertRaises(KeyError):
+            container.pop("not_there")
+
     def testDictPropertyList(self):
         container = self.pl
         self.assertIn("string", container)
