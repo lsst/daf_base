@@ -1,3 +1,4 @@
+#include <cstddef>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
@@ -74,7 +75,7 @@ PYBIND11_MODULE(propertyList, mod) {
     declareAccessors<long long>(cls, "LongLong");
     declareAccessors<float>(cls, "Float");
     declareAccessors<double>(cls, "Double");
-    declareAccessors<nullptr_t>(cls, "Undef");
+    declareAccessors<std::nullptr_t>(cls, "Undef");
     declareAccessors<std::string>(cls, "String");
     declareAccessors<DateTime>(cls, "DateTime");
 
