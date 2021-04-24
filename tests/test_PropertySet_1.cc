@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(getScalar) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*"), "foo");
     BOOST_CHECK_EQUAL(ps.get<std::string>("char*2"), "foo2");
     BOOST_CHECK_EQUAL(ps.get<std::string>("string"), "bar");
-    BOOST_CHECK_EQUAL(ps.get<nullptr_t>("undef"), nullptr);
+    BOOST_CHECK_EQUAL(ps.get<std::nullptr_t>("undef"), nullptr);
     BOOST_CHECK_EQUAL(ps.isUndefined("string"), false);
     BOOST_CHECK_EQUAL(ps.isUndefined("undef"), true);
 }
