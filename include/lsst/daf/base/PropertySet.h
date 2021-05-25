@@ -48,8 +48,7 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
-
-#include "boost/any.hpp"
+#include <any>
 
 #include "lsst/base.h"
 #include "lsst/daf/base/Persistable.h"
@@ -460,7 +459,7 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    virtual void _set(std::string const& name, std::shared_ptr<std::vector<std::any> > vp);
 
     /*
      * Find the property name (possibly hierarchical) and append or set its
@@ -470,14 +469,14 @@ protected:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _add(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    virtual void _add(std::string const& name, std::shared_ptr<std::vector<std::any> > vp);
 
     // Format a value in human-readable form; called by toString
     virtual std::string _format(std::string const& name) const;
 
 private:
 
-    typedef std::unordered_map<std::string, std::shared_ptr<std::vector<boost::any> > > AnyMap;
+    typedef std::unordered_map<std::string, std::shared_ptr<std::vector<std::any> > > AnyMap;
 
     /*
      * Find the property name (possibly hierarchical).
@@ -503,9 +502,9 @@ private:
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    virtual void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<std::any> > vp);
     void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
-    void _cycleCheckAnyVec(std::vector<boost::any> const& v, std::string const& name);
+    void _cycleCheckAnyVec(std::vector<std::any> const& v, std::string const& name);
     void _cycleCheckPtr(Ptr const& v, std::string const& name);
 
     AnyMap _map;
