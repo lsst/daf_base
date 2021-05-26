@@ -37,9 +37,10 @@
 #include <limits>
 #include <cmath>
 #include <vector>
+#include <regex>
+#include <sstream>
 
 #include "boost/format.hpp"
-#include "boost/regex.hpp"
 
 #include "lsst/daf/base/DateTime.h"
 #include "lsst/pex/exceptions.h"
@@ -383,10 +384,10 @@ DateTime::DateTime(int year, int month, int day, int hr, int min, int sec, Times
 }
 
 DateTime::DateTime(std::string const& iso8601, Timescale scale) {
-    boost::regex re;
+    std::regex re;
     if (scale == UTC) {
         // time zone "Z" required
-        re = boost::regex(
+        re = std::regex(
                 "(\\d{4})-?(\\d{2})-?(\\d{2})"
                 "T"
                 "(\\d{2}):?(\\d{2}):?(\\d{2})"
@@ -394,13 +395,13 @@ DateTime::DateTime(std::string const& iso8601, Timescale scale) {
                 "Z");
     } else {
         // no time zone character accepted
-        re = boost::regex(
+        re = std::regex(
                 "(\\d{4})-?(\\d{2})-?(\\d{2})"
                 "T"
                 "(\\d{2}):?(\\d{2}):?(\\d{2})"
                 "([.,](\\d*))?");
     }
-    boost::smatch matches;
+    std::smatch matches;
     if (!regex_match(iso8601, matches, re)) {
         throw LSST_EXCEPT(lsst::pex::exceptions::DomainError, "Not in acceptable ISO8601 format: " + iso8601);
     }
@@ -527,15 +528,17 @@ DateTime DateTime::now(void) {
 void DateTime::initializeLeapSeconds(std::string const& leapString) {
     Leap l;
     leapSecTable.clear();
-    boost::regex re(
-            "^\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
-            " \\+ \\(MJD - ([\\d.]+)\\) X ([\\d.]+)\\s*S$");
-    for (boost::cregex_iterator i = make_regex_iterator(leapString.c_str(), re);
-         i != boost::cregex_iterator(); ++i) {
-        double mjdUtc = strtod((*i)[1].first, 0) - MJD_TO_JD;
-        l.offset = strtod((*i)[2].first, 0);
-        l.mjdRef = strtod((*i)[3].first, 0);
-        l.drift = strtod((*i)[4].first, 0);
+    std::regex re(
+            "\\d{4}.*?=JD\\s*([\\d.]+)\\s+TAI-UTC=\\s+([\\d.]+)\\s+S"
+            " \\+ \\(MJD - ([\\d.]+)\\) X ([\\d.]+)\\s*S");
+
+
+    for (std::sregex_iterator i = std::sregex_iterator(leapString.begin(), leapString.end(), re);
+         i != std::sregex_iterator(); ++i) {
+        double mjdUtc = std::stod((*i)[1]) - MJD_TO_JD;
+        l.offset = std::stod((*i)[2]);
+        l.mjdRef = std::stod((*i)[3]);
+        l.drift = std::stod((*i)[4]);
         l.whenUtc = static_cast<long long>((mjdUtc - EPOCH_IN_MJD) * NSEC_PER_DAY);
         l.whenTai = l.whenUtc + static_cast<long long>(1.0e9 * (l.offset + (mjdUtc - l.mjdRef) * l.drift));
         leapSecTable.push_back(l);
