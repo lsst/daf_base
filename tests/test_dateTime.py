@@ -26,6 +26,8 @@ import pickle
 import time
 import unittest
 
+import astropy.time
+
 from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
 
@@ -152,6 +154,48 @@ class DateTimeTestCase(unittest.TestCase):
         self.assertEqual(ts.nsecs(DateTime.UTC), 1238657199000000000)
         self.assertEqual(ts.toString(ts.UTC), "2009-04-02T07:26:39.000000000Z")
         self.assertTrue(ts.isValid())
+
+    def testSOFA(self):
+        """The SOFA documentation includes an example conversion:
+        https://www.iausofa.org/2017_0420_C/sofa/sofa_ts_c.pdf
+        (page 8, section 2.4)
+
+        The value in those docs is only ~single precision, so I re-computed
+        it with pyerfa to get a more correct value.
+        """
+        with self.subTest("jd to jyear"):
+            self.assertEqual(DateTime(2457073.05631, DateTime.JD, DateTime.TAI).get(DateTime.EPOCH),
+                             2015.1349933196439)
+        with self.subTest("jyear to jd"):
+            self.assertEqual(DateTime(2015.1349933196, DateTime.EPOCH, DateTime.TAI).get(DateTime.JD),
+                             2457073.056309984)
+
+    def testAstropyComparison(self):
+        """Astropy's Time module is based on ERFA, providing a well verified
+        comparison point.
+        """
+        def check_times(dateTime, time):
+            with self.subTest("jyear"):
+                self.assertAlmostEqual(dateTime.get(DateTime.EPOCH), time.tai.jyear)
+            with self.subTest("mjd"):
+                self.assertEqual(dateTime.get(DateTime.MJD), time.tai.mjd)
+            with self.subTest("jd"):
+                self.assertEqual(dateTime.get(DateTime.JD), time.tai.jd)
+
+        # Unix epoch comparison
+        dateTime = DateTime("19700101T000000Z", DateTime.UTC)
+        time = astropy.time.Time("1970-01-01T00:00:00", format="isot", scale="utc")
+        check_times(dateTime, time)
+
+        # J2000 epoch comparison
+        dateTime = DateTime(2000.0, DateTime.EPOCH, DateTime.UTC)
+        time = astropy.time.Time(2000.0, format="jyear", scale="utc")
+        check_times(dateTime, time)
+
+        # random future MJD epoch comparison
+        dateTime = DateTime(65432.1, DateTime.MJD, DateTime.TAI)
+        time = astropy.time.Time(65432.1, format="mjd", scale="tai")
+        check_times(dateTime, time)
 
     def testIsoThrow(self):
         with self.assertRaises(pexExcept.DomainError):

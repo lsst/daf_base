@@ -53,7 +53,7 @@ constexpr long long dafBase::DateTime::invalid_nsecs;
 // Epoch = 1970 JAN  1 00:00:00 = JD 2440587.5 = MJD 40587.0
 static double const MJD_TO_JD = 2400000.5;
 static double const EPOCH_IN_MJD = 40587.0;
-static double const JD2000 = 2451544.50;
+static double const JD2000 = 2451545.0;
 
 /// Nanoseconds per day.
 static double const NSEC_PER_DAY = 86.4e12;
