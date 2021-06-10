@@ -205,7 +205,7 @@ T PropertySet::get(std::string const& name)
     try {
         return std::any_cast<T>(i->second->back());
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<T>(i->second->back());
@@ -221,7 +221,7 @@ T PropertySet::get(std::string const& name, T const& defaultValue)
     try {
         return std::any_cast<T>(i->second->back());
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<T>(i->second->back());
@@ -238,7 +238,7 @@ std::vector<T> PropertySet::getArray(std::string const& name) const {
         try {
             v.push_back(std::any_cast<T>(j));
         } catch (std::bad_any_cast &) {
-            throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+            std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
         }
     }
     return v;
@@ -274,7 +274,7 @@ int PropertySet::getAsInt(std::string const& name) const {
     try {
         return std::any_cast<int>(v);
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<int>(v);
@@ -300,7 +300,7 @@ int64_t PropertySet::getAsInt64(std::string const& name) const {
     try {
         return std::any_cast<int64_t>(v);
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<int64_t>(v);
@@ -327,7 +327,7 @@ uint64_t PropertySet::getAsUInt64(std::string const& name) const {
     try {
         return std::any_cast<uint64_t>(v);
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<uint64_t>(v);
@@ -356,7 +356,7 @@ double PropertySet::getAsDouble(std::string const& name) const {
     try {
         return std::any_cast<double>(v);
     } catch (std::bad_any_cast &) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
     return std::any_cast<double>(v);
