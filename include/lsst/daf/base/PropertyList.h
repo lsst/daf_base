@@ -287,7 +287,7 @@ private:
 
     typedef std::unordered_map<std::string, std::string> CommentMap;
 
-    virtual void _set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp);
+    virtual void _set(std::string const& name, std::shared_ptr<std::vector<std::any> > vp);
     virtual void _moveToEnd(std::string const& name);
     virtual void _commentOrderFix(std::string const& name, std::string const& comment);
 

@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <any>
 
 #include "lsst/daf/base/DateTime.h"
 
@@ -223,7 +224,7 @@ void PropertyList::remove(std::string const& name) {
 // Private member functions
 ///////////////////////////////////////////////////////////////////////////////
 
-void PropertyList::_set(std::string const& name, std::shared_ptr<std::vector<boost::any> > vp) {
+void PropertyList::_set(std::string const& name, std::shared_ptr<std::vector<std::any> > vp) {
     PropertySet::_set(name, vp);
     if (_comments.find(name) == _comments.end()) {
         _comments.insert(std::make_pair(name, std::string()));

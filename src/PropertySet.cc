@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <any>
 
 #include "lsst/pex/exceptions/Runtime.h"
 #include "lsst/daf/base/DateTime.h"
@@ -39,13 +40,13 @@ namespace base {
 namespace {
 
 /**
- * Append the contents of a vector<T> to a vector<boost::any>
+ * Append the contents of a vector<T> to a vector<std::any>
  *
- * This method exists because vector<boost::any>.insert mis-behaves for vector of bool,
+ * This method exists because vector<std::any>.insert mis-behaves for vector of bool,
  * resulting in a vector with elements that are a strange type.
  */
 template <typename T>
-void _append(std::vector<boost::any>& dest, std::vector<T> const& src) {
+void _append(std::vector<std::any>& dest, std::vector<T> const& src) {
     dest.reserve(dest.size() + src.size());
     for (const T& val : src) {
         dest.push_back(static_cast<T>(val));
@@ -67,7 +68,7 @@ PropertySet::Ptr PropertySet::deepCopy() const {
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {
             for (auto const& j : *elt.second) {
-                Ptr p = boost::any_cast<Ptr>(j);
+                Ptr p = std::any_cast<Ptr>(j);
                 if (p.get() == 0) {
                     n->add(elt.first, Ptr());
                 } else {
@@ -75,7 +76,7 @@ PropertySet::Ptr PropertySet::deepCopy() const {
                 }
             }
         } else {
-            std::shared_ptr<std::vector<boost::any>> vp(new std::vector<boost::any>(*(elt.second)));
+            std::shared_ptr<std::vector<std::any>> vp(new std::vector<std::any>(*(elt.second)));
             n->_map[elt.first] = vp;
         }
     }
@@ -87,7 +88,7 @@ size_t PropertySet::nameCount(bool topLevelOnly) const {
     for (auto const& elt : _map) {
         ++n;
         if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(elt.second->back());
+            Ptr p = std::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0) {
                 n += p->nameCount(false);
             }
@@ -101,7 +102,7 @@ std::vector<std::string> PropertySet::names(bool topLevelOnly) const {
     for (auto const& elt : _map) {
         v.push_back(elt.first);
         if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(elt.second->back());
+            Ptr p = std::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0) {
                 std::vector<std::string> w = p->names(false);
                 for (auto const& k : w) {
@@ -117,7 +118,7 @@ std::vector<std::string> PropertySet::paramNames(bool topLevelOnly) const {
     std::vector<std::string> v;
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = boost::any_cast<Ptr>(elt.second->back());
+            Ptr p = std::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->paramNames(false);
                 for (auto const& k : w) {
@@ -136,7 +137,7 @@ std::vector<std::string> PropertySet::propertySetNames(bool topLevelOnly) const 
     for (auto const& elt : _map) {
         if (elt.second->back().type() == typeid(Ptr)) {
             v.push_back(elt.first);
-            Ptr p = boost::any_cast<Ptr>(elt.second->back());
+            Ptr p = std::any_cast<Ptr>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->propertySetNames(false);
                 for (auto const& k : w) {
@@ -202,12 +203,12 @@ T PropertySet::get(std::string const& name)
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
     try {
-        return boost::any_cast<T>(i->second->back());
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<T>(i->second->back());
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<T>(i->second->back());
+    return std::any_cast<T>(i->second->back());
 }
 
 template <typename T>
@@ -218,12 +219,12 @@ T PropertySet::get(std::string const& name, T const& defaultValue)
         return defaultValue;
     }
     try {
-        return boost::any_cast<T>(i->second->back());
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<T>(i->second->back());
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<T>(i->second->back());
+    return std::any_cast<T>(i->second->back());
 }
 
 template <typename T>
@@ -235,9 +236,9 @@ std::vector<T> PropertySet::getArray(std::string const& name) const {
     std::vector<T> v;
     for (auto const& j : *(i->second)) {
         try {
-            v.push_back(boost::any_cast<T>(j));
-        } catch (boost::bad_any_cast) {
-            throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+            v.push_back(std::any_cast<T>(j));
+        } catch (std::bad_any_cast &) {
+            std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
         }
     }
     return v;
@@ -255,28 +256,28 @@ int PropertySet::getAsInt(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
-    boost::any v = i->second->back();
+    std::any v = i->second->back();
     std::type_info const& t = v.type();
     if (t == typeid(bool)) {
-        return boost::any_cast<bool>(v);
+        return std::any_cast<bool>(v);
     } else if (t == typeid(char)) {
-        return boost::any_cast<char>(v);
+        return std::any_cast<char>(v);
     } else if (t == typeid(signed char)) {
-        return boost::any_cast<signed char>(v);
+        return std::any_cast<signed char>(v);
     } else if (t == typeid(unsigned char)) {
-        return boost::any_cast<unsigned char>(v);
+        return std::any_cast<unsigned char>(v);
     } else if (t == typeid(short)) {
-        return boost::any_cast<short>(v);
+        return std::any_cast<short>(v);
     } else if (t == typeid(unsigned short)) {
-        return boost::any_cast<unsigned short>(v);
+        return std::any_cast<unsigned short>(v);
     }
     try {
-        return boost::any_cast<int>(v);
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<int>(v);
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<int>(v);
+    return std::any_cast<int>(v);
 }
 
 int64_t PropertySet::getAsInt64(std::string const& name) const {
@@ -284,25 +285,25 @@ int64_t PropertySet::getAsInt64(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
-    boost::any v = i->second->back();
+    std::any v = i->second->back();
     std::type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    if (t == typeid(int)) return boost::any_cast<int>(v);
-    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
-    if (t == typeid(long)) return boost::any_cast<long>(v);
-    if (t == typeid(long long)) return boost::any_cast<long long>(v);
+    if (t == typeid(bool)) return std::any_cast<bool>(v);
+    if (t == typeid(char)) return std::any_cast<char>(v);
+    if (t == typeid(signed char)) return std::any_cast<signed char>(v);
+    if (t == typeid(unsigned char)) return std::any_cast<unsigned char>(v);
+    if (t == typeid(short)) return std::any_cast<short>(v);
+    if (t == typeid(unsigned short)) return std::any_cast<unsigned short>(v);
+    if (t == typeid(int)) return std::any_cast<int>(v);
+    if (t == typeid(unsigned int)) return std::any_cast<unsigned int>(v);
+    if (t == typeid(long)) return std::any_cast<long>(v);
+    if (t == typeid(long long)) return std::any_cast<long long>(v);
     try {
-        return boost::any_cast<int64_t>(v);
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<int64_t>(v);
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<int64_t>(v);
+    return std::any_cast<int64_t>(v);
 }
 
 uint64_t PropertySet::getAsUInt64(std::string const& name) const {
@@ -310,26 +311,26 @@ uint64_t PropertySet::getAsUInt64(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
-    boost::any v = i->second->back();
+    std::any v = i->second->back();
     std::type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    if (t == typeid(int)) return boost::any_cast<int>(v);
-    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
-    if (t == typeid(long)) return boost::any_cast<long>(v);
-    if (t == typeid(long long)) return boost::any_cast<long long>(v);
-    if (t == typeid(unsigned long long)) return boost::any_cast<unsigned long long>(v);
+    if (t == typeid(bool)) return std::any_cast<bool>(v);
+    if (t == typeid(char)) return std::any_cast<char>(v);
+    if (t == typeid(signed char)) return std::any_cast<signed char>(v);
+    if (t == typeid(unsigned char)) return std::any_cast<unsigned char>(v);
+    if (t == typeid(short)) return std::any_cast<short>(v);
+    if (t == typeid(unsigned short)) return std::any_cast<unsigned short>(v);
+    if (t == typeid(int)) return std::any_cast<int>(v);
+    if (t == typeid(unsigned int)) return std::any_cast<unsigned int>(v);
+    if (t == typeid(long)) return std::any_cast<long>(v);
+    if (t == typeid(long long)) return std::any_cast<long long>(v);
+    if (t == typeid(unsigned long long)) return std::any_cast<unsigned long long>(v);
     try {
-        return boost::any_cast<uint64_t>(v);
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<uint64_t>(v);
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<uint64_t>(v);
+    return std::any_cast<uint64_t>(v);
 }
 
 double PropertySet::getAsDouble(std::string const& name) const {
@@ -337,28 +338,28 @@ double PropertySet::getAsDouble(std::string const& name) const {
     if (i == _map.end()) {
         throw LSST_EXCEPT(pex::exceptions::NotFoundError, name + " not found");
     }
-    boost::any v = i->second->back();
+    std::any v = i->second->back();
     std::type_info const& t = v.type();
-    if (t == typeid(bool)) return boost::any_cast<bool>(v);
-    if (t == typeid(char)) return boost::any_cast<char>(v);
-    if (t == typeid(signed char)) return boost::any_cast<signed char>(v);
-    if (t == typeid(unsigned char)) return boost::any_cast<unsigned char>(v);
-    if (t == typeid(short)) return boost::any_cast<short>(v);
-    if (t == typeid(unsigned short)) return boost::any_cast<unsigned short>(v);
-    if (t == typeid(int)) return boost::any_cast<int>(v);
-    if (t == typeid(unsigned int)) return boost::any_cast<unsigned int>(v);
-    if (t == typeid(long)) return boost::any_cast<long>(v);
-    if (t == typeid(unsigned long)) return boost::any_cast<unsigned long>(v);
-    if (t == typeid(long long)) return boost::any_cast<long long>(v);
-    if (t == typeid(unsigned long long)) return boost::any_cast<unsigned long long>(v);
-    if (t == typeid(float)) return boost::any_cast<float>(v);
+    if (t == typeid(bool)) return std::any_cast<bool>(v);
+    if (t == typeid(char)) return std::any_cast<char>(v);
+    if (t == typeid(signed char)) return std::any_cast<signed char>(v);
+    if (t == typeid(unsigned char)) return std::any_cast<unsigned char>(v);
+    if (t == typeid(short)) return std::any_cast<short>(v);
+    if (t == typeid(unsigned short)) return std::any_cast<unsigned short>(v);
+    if (t == typeid(int)) return std::any_cast<int>(v);
+    if (t == typeid(unsigned int)) return std::any_cast<unsigned int>(v);
+    if (t == typeid(long)) return std::any_cast<long>(v);
+    if (t == typeid(unsigned long)) return std::any_cast<unsigned long>(v);
+    if (t == typeid(long long)) return std::any_cast<long long>(v);
+    if (t == typeid(unsigned long long)) return std::any_cast<unsigned long long>(v);
+    if (t == typeid(float)) return std::any_cast<float>(v);
     try {
-        return boost::any_cast<double>(v);
-    } catch (boost::bad_any_cast) {
-        throw LSST_EXCEPT(pex::exceptions::TypeError, name);
+        return std::any_cast<double>(v);
+    } catch (std::bad_any_cast &) {
+        std::throw_with_nested(LSST_EXCEPT(pex::exceptions::TypeError, name));
     }
     // not reached
-    return boost::any_cast<double>(v);
+    return std::any_cast<double>(v);
 }
 
 std::string PropertySet::getAsString(std::string const& name) const { return get<std::string>(name); }
@@ -374,14 +375,14 @@ std::string PropertySet::toString(bool topLevelOnly, std::string const& indent) 
     std::vector<std::string> nv = names();
     sort(nv.begin(), nv.end());
     for (auto const& i : nv) {
-        std::shared_ptr<std::vector<boost::any>> vp = _map.find(i)->second;
+        std::shared_ptr<std::vector<std::any>> vp = _map.find(i)->second;
         std::type_info const& t = vp->back().type();
         if (t == typeid(Ptr)) {
             s << indent << i << " = ";
             if (topLevelOnly) {
                 s << "{ ... }";
             } else {
-                Ptr p = boost::any_cast<Ptr>(vp->back());
+                Ptr p = std::any_cast<Ptr>(vp->back());
                 if (p.get() == 0) {
                     s << "{ NULL }";
                 } else {
@@ -403,7 +404,7 @@ std::string PropertySet::_format(std::string const& name) const {
     s << std::showpoint;  // Always show a decimal point for floats
     auto const j = _map.find(name);
     s << j->first << " = ";
-    std::shared_ptr<std::vector<boost::any>> vp = j->second;
+    std::shared_ptr<std::vector<std::any>> vp = j->second;
     if (vp->size() > 1) {
         s << "[ ";
     }
@@ -415,39 +416,39 @@ std::string PropertySet::_format(std::string const& name) const {
         } else {
             s << ", ";
         }
-        boost::any const& v(k);
+        std::any const& v(k);
         if (t == typeid(bool)) {
-            s << boost::any_cast<bool>(v);
+            s << std::any_cast<bool>(v);
         } else if (t == typeid(char)) {
-            s << '\'' << boost::any_cast<char>(v) << '\'';
+            s << '\'' << std::any_cast<char>(v) << '\'';
         } else if (t == typeid(signed char)) {
-            s << '\'' << boost::any_cast<signed char>(v) << '\'';
+            s << '\'' << std::any_cast<signed char>(v) << '\'';
         } else if (t == typeid(unsigned char)) {
-            s << '\'' << boost::any_cast<unsigned char>(v) << '\'';
+            s << '\'' << std::any_cast<unsigned char>(v) << '\'';
         } else if (t == typeid(short)) {
-            s << boost::any_cast<short>(v);
+            s << std::any_cast<short>(v);
         } else if (t == typeid(unsigned short)) {
-            s << boost::any_cast<unsigned short>(v);
+            s << std::any_cast<unsigned short>(v);
         } else if (t == typeid(int)) {
-            s << boost::any_cast<int>(v);
+            s << std::any_cast<int>(v);
         } else if (t == typeid(unsigned int)) {
-            s << boost::any_cast<unsigned int>(v);
+            s << std::any_cast<unsigned int>(v);
         } else if (t == typeid(long)) {
-            s << boost::any_cast<long>(v);
+            s << std::any_cast<long>(v);
         } else if (t == typeid(unsigned long)) {
-            s << boost::any_cast<unsigned long>(v);
+            s << std::any_cast<unsigned long>(v);
         } else if (t == typeid(long long)) {
-            s << boost::any_cast<long long>(v);
+            s << std::any_cast<long long>(v);
         } else if (t == typeid(unsigned long long)) {
-            s << boost::any_cast<unsigned long long>(v);
+            s << std::any_cast<unsigned long long>(v);
         } else if (t == typeid(float)) {
-            s << std::setprecision(7) << boost::any_cast<float>(v);
+            s << std::setprecision(7) << std::any_cast<float>(v);
         } else if (t == typeid(double)) {
-            s << std::setprecision(14) << boost::any_cast<double>(v);
+            s << std::setprecision(14) << std::any_cast<double>(v);
         } else if (t == typeid(std::string)) {
-            s << '"' << boost::any_cast<std::string>(v) << '"';
+            s << '"' << std::any_cast<std::string>(v) << '"';
         } else if (t == typeid(DateTime)) {
-            s << boost::any_cast<DateTime>(v).toString(DateTime::UTC);
+            s << std::any_cast<DateTime>(v).toString(DateTime::UTC);
         } else if (t == typeid(Ptr)) {
             s << "{ ... }";
         } else if (t == typeid(Persistable::Ptr)) {
@@ -469,7 +470,7 @@ std::string PropertySet::_format(std::string const& name) const {
 
 template <typename T>
 void PropertySet::set(std::string const& name, T const& value) {
-    std::shared_ptr<std::vector<boost::any>> vp(new std::vector<boost::any>);
+    std::shared_ptr<std::vector<std::any>> vp(new std::vector<std::any>);
     vp->push_back(value);
     _set(name, vp);
 }
@@ -477,7 +478,7 @@ void PropertySet::set(std::string const& name, T const& value) {
 template <typename T>
 void PropertySet::set(std::string const& name, std::vector<T> const& value) {
     if (value.empty()) return;
-    std::shared_ptr<std::vector<boost::any>> vp(new std::vector<boost::any>);
+    std::shared_ptr<std::vector<std::any>> vp(new std::vector<std::any>);
     _append(*vp, value);
     _set(name, vp);
 }
@@ -552,11 +553,11 @@ void PropertySet::copy(std::string const& dest, ConstPtr source, std::string con
     }
     remove(dest);
     if (asScalar) {
-        auto vp = std::make_shared<std::vector<boost::any>>();
+        auto vp = std::make_shared<std::vector<std::any>>();
         vp->push_back(sj->second->back());
         _set(dest, vp);
     } else {
-        auto vp = std::make_shared<std::vector<boost::any>>(*(sj->second));
+        auto vp = std::make_shared<std::vector<std::any>>(*(sj->second));
         _set(dest, vp);
     }
 }
@@ -583,7 +584,7 @@ void PropertySet::remove(std::string const& name) {
     if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
         return;
     }
-    Ptr p = boost::any_cast<Ptr>(j->second->back());
+    Ptr p = std::any_cast<Ptr>(j->second->back());
     if (p.get() != 0) {
         std::string suffix(name, i + 1);
         p->remove(suffix);
@@ -604,7 +605,7 @@ PropertySet::AnyMap::iterator PropertySet::_find(std::string const& name) {
     if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
         return _map.end();
     }
-    Ptr p = boost::any_cast<Ptr>(j->second->back());
+    Ptr p = std::any_cast<Ptr>(j->second->back());
     if (p.get() == 0) {
         return _map.end();
     }
@@ -626,7 +627,7 @@ PropertySet::AnyMap::const_iterator PropertySet::_find(std::string const& name) 
     if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
         return _map.end();
     }
-    Ptr p = boost::any_cast<Ptr>(j->second->back());
+    Ptr p = std::any_cast<Ptr>(j->second->back());
     if (p.get() == 0) {
         return _map.end();
     }
@@ -638,11 +639,11 @@ PropertySet::AnyMap::const_iterator PropertySet::_find(std::string const& name) 
     return x;
 }
 
-void PropertySet::_set(std::string const& name, std::shared_ptr<std::vector<boost::any>> vp) {
+void PropertySet::_set(std::string const& name, std::shared_ptr<std::vector<std::any>> vp) {
     _findOrInsert(name, vp);
 }
 
-void PropertySet::_add(std::string const& name, std::shared_ptr<std::vector<boost::any>> vp) {
+void PropertySet::_add(std::string const& name, std::shared_ptr<std::vector<std::any>> vp) {
     auto const dp = _find(name);
     if (dp == _map.end()) {
         _set(name, vp);
@@ -658,10 +659,10 @@ void PropertySet::_add(std::string const& name, std::shared_ptr<std::vector<boos
     }
 }
 
-void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::vector<boost::any>> vp) {
+void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::vector<std::any>> vp) {
     if (vp->back().type() == typeid(Ptr)) {
         if (_flat) {
-            Ptr source = boost::any_cast<Ptr>(vp->back());
+            Ptr source = std::any_cast<Ptr>(vp->back());
             std::vector<std::string> names = source->paramNames(false);
             for (auto const& i : names) {
                 auto const sp = source->_find(i);
@@ -685,7 +686,7 @@ void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::ve
     if (j == _map.end()) {
         PropertySet::Ptr pp(new PropertySet);
         pp->_findOrInsert(suffix, vp);
-        std::shared_ptr<std::vector<boost::any>> temp(new std::vector<boost::any>);
+        std::shared_ptr<std::vector<std::any>> temp(new std::vector<std::any>);
         temp->push_back(pp);
         _map[prefix] = temp;
         return;
@@ -693,7 +694,7 @@ void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::ve
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
                           prefix + " exists but does not contain PropertySet::Ptrs");
     }
-    Ptr p = boost::any_cast<Ptr>(j->second->back());
+    Ptr p = std::any_cast<Ptr>(j->second->back());
     if (p.get() == 0) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
                           prefix + " exists but contains null PropertySet::Ptr");
@@ -707,9 +708,9 @@ void PropertySet::_cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const
     }
 }
 
-void PropertySet::_cycleCheckAnyVec(std::vector<boost::any> const& v, std::string const& name) {
+void PropertySet::_cycleCheckAnyVec(std::vector<std::any> const& v, std::string const& name) {
     for (auto const& i : v) {
-        _cycleCheckPtr(boost::any_cast<Ptr>(i), name);
+        _cycleCheckPtr(std::any_cast<Ptr>(i), name);
     }
 }
 
