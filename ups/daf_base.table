@@ -1,4 +1,5 @@
 setupRequired(utils)
+setupRequired(cpputils)
 setupRequired(pex_exceptions)
 
 envPrepend(LD_LIBRARY_PATH, ${PRODUCT_DIR}/lib)
