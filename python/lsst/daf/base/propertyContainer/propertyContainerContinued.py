@@ -676,7 +676,8 @@ class PropertySet:
         return self.getScalar(name)
 
     def __delitem__(self, name):
-        if name in self:
+        if self.exists(name):
+            # dot-delimited names should work so cannot use "in".
             self.remove(name)
         else:
             raise KeyError(f"{name} not present in dict")
@@ -706,7 +707,7 @@ class PropertySet:
         Parameters
         ----------
         name : `str`
-            Name of the key to remove.
+            Name of the key to remove. Can be hierarchical.
         default : Any, optional
             Value to return if the key is not present.
 
@@ -720,7 +721,7 @@ class PropertySet:
         KeyError
             Raised if no default is given and the key is missing.
         """
-        if name in self:
+        if self.exists(name):
             value = self[name]
             self.remove(name)
         else:
