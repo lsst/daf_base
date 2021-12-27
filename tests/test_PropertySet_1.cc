@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_SUITE(PropertySetSuite) /* parasoft-suppress LsstDm-3-2a LsstDm-
 BOOST_AUTO_TEST_CASE(construct) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
                                      test harness macros" */
     dafBase::PropertySet ps;
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     BOOST_CHECK_EQUAL(!psp, false);
 }
 
@@ -305,14 +305,14 @@ BOOST_AUTO_TEST_CASE(arrayProperties) { /* parasoft-suppress LsstDm-3-1 LsstDm-3
 BOOST_AUTO_TEST_CASE(hierarchy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost
                                      test harness macros" */
     dafBase::PropertySet ps;
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
 
     psp->set("pre", 1);
     ps.set("ps1", psp);
     psp->set("post", 2);
     ps.set("int", 42);
-    ps.set("ps2", dafBase::PropertySet::Ptr(new dafBase::PropertySet));
-    ps.get<dafBase::PropertySet::Ptr>("ps2")->set("plus", 10.24);
+    ps.set("ps2", std::shared_ptr<dafBase::PropertySet>(new dafBase::PropertySet));
+    ps.get<std::shared_ptr<dafBase::PropertySet>>("ps2")->set("plus", 10.24);
     ps.set("ps2.minus", -10.24);
     ps.set("ps3.sub1", "foo");
     ps.set("ps3.sub2", "bar");
@@ -338,9 +338,9 @@ BOOST_AUTO_TEST_CASE(hierarchy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Ls
     BOOST_CHECK(!ps.isPropertySetPtr("ps3.sub1"));
     BOOST_CHECK(!ps.isPropertySetPtr("ps3.sub2"));
 
-    dafBase::PropertySet::Ptr psp1 = ps.get<dafBase::PropertySet::Ptr>("ps1");
-    dafBase::PropertySet::Ptr psp2 = ps.get<dafBase::PropertySet::Ptr>("ps2");
-    dafBase::PropertySet::Ptr psp3 = ps.get<dafBase::PropertySet::Ptr>("ps3");
+    auto psp1 = ps.get<std::shared_ptr<dafBase::PropertySet>>("ps1");
+    auto psp2 = ps.get<std::shared_ptr<dafBase::PropertySet>>("ps2");
+    auto psp3 = ps.get<std::shared_ptr<dafBase::PropertySet>>("ps3");
     BOOST_CHECK(psp1);
     BOOST_CHECK(psp2);
     BOOST_CHECK(psp3);
@@ -492,7 +492,7 @@ BOOST_AUTO_TEST_CASE(getAs) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm
     ps.set<std::string>("char*", "foo");
     ps.set("char*2", "foo2");
     ps.set("string", std::string("bar"));
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("bottom", "x");
     ps.set("top", psp);
 
@@ -540,14 +540,14 @@ BOOST_AUTO_TEST_CASE(
     ps.set("ps2.minus", -10.24);
     ps.set("ps3.sub.subsub", "foo");
 
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("ps1.pre", 3);
     psp->add("ps1.pre", 4);
     psp->set("int", 2008);
     psp->set("ps2.foo", "bar");
     psp->set("ps4.top", "bottom");
 
-    ps.combine(psp);
+    ps.combine(*psp);
 
     BOOST_CHECK(ps.isPropertySetPtr("ps1"));
     BOOST_CHECK(ps.isPropertySetPtr("ps2"));
@@ -584,10 +584,10 @@ BOOST_AUTO_TEST_CASE(combineThrow) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a
     dafBase::PropertySet ps;
     ps.set("int", 42);
 
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("int", 3.14159);
 
-    BOOST_CHECK_THROW(ps.combine(psp), pexExcept::TypeError);
+    BOOST_CHECK_THROW(ps.combine(*psp), pexExcept::TypeError);
 }
 
 BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test
@@ -601,14 +601,14 @@ BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-
     ps.set("ps2.minus", -10.24);
     ps.set("ps3.sub.subsub", "foo");
 
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("ps1.pre", 3);
     psp->add("ps1.pre", 4);
     psp->set("int", 2008);
     psp->set("ps2.foo", "bar");
     psp->set("ps4.top", "bottom");
 
-    ps.copy("ps1", psp, "ps1");
+    ps.copy("ps1", *psp, "ps1");
 
     BOOST_CHECK(ps.isPropertySetPtr("ps1"));
     BOOST_CHECK(!ps.isArray("ps1"));
@@ -619,7 +619,7 @@ BOOST_AUTO_TEST_CASE(copy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-
     BOOST_CHECK_EQUAL(v[0], 3);
     BOOST_CHECK_EQUAL(v[1], 4);
 
-    ps.copy("ps5", psp, "ps4");
+    ps.copy("ps5", *psp, "ps4");
 
     BOOST_CHECK(ps.isPropertySetPtr("ps5"));
     BOOST_CHECK(!ps.isArray("ps5"));
@@ -676,11 +676,11 @@ BOOST_AUTO_TEST_CASE(deepCopy) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
                                     test harness macros" */
     dafBase::PropertySet ps;
     ps.set("int", 42);
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("bottom", "x");
     ps.set("top", psp);
 
-    dafBase::PropertySet::Ptr psp2 = ps.deepCopy();
+    auto psp2 = ps.deepCopy();
     BOOST_CHECK(psp2->exists("int"));
     BOOST_CHECK(psp2->exists("top.bottom"));
     BOOST_CHECK_EQUAL(psp2->getAsInt("int"), 42);
@@ -768,13 +768,13 @@ BOOST_AUTO_TEST_CASE(toString) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a Lss
 
 BOOST_AUTO_TEST_CASE(cycle) { /* parasoft-suppress LsstDm-3-1 LsstDm-3-4a LsstDm-5-25 LsstDm-4-6 "Boost test
                                  harness macros" */
-    dafBase::PropertySet::Ptr psp(new dafBase::PropertySet);
+    std::shared_ptr<dafBase::PropertySet> psp(new dafBase::PropertySet);
     psp->set("int", 42);
     psp->set("a.double", 3.14159);
     psp->set("b.c.d", 2008);
-    dafBase::PropertySet::Ptr a = psp->getAsPropertySetPtr("a");
-    dafBase::PropertySet::Ptr b = psp->getAsPropertySetPtr("b");
-    dafBase::PropertySet::Ptr c = psp->getAsPropertySetPtr("b.c");
+    auto a = psp->getAsPropertySetPtr("a");
+    auto b = psp->getAsPropertySetPtr("b");
+    auto c = psp->getAsPropertySetPtr("b.c");
     BOOST_CHECK_THROW(psp->set("t", psp), pexExcept::InvalidParameterError);
     BOOST_CHECK_THROW(psp->set("a.t", psp), pexExcept::InvalidParameterError);
     BOOST_CHECK_THROW(psp->set("a.t", a), pexExcept::InvalidParameterError);

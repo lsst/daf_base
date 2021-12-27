@@ -63,14 +63,14 @@ PropertySet::~PropertySet() noexcept = default;
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertySet::deepCopy() const {
-    Ptr n(new PropertySet(_flat));
+std::shared_ptr<PropertySet> PropertySet::deepCopy() const {
+    auto n = std::make_shared<PropertySet>(_flat);
     for (auto const& elt : _map) {
-        if (elt.second->back().type() == typeid(Ptr)) {
+        if (elt.second->back().type() == typeid(std::shared_ptr<PropertySet>)) {
             for (auto const& j : *elt.second) {
-                Ptr p = std::any_cast<Ptr>(j);
+                auto p = std::any_cast<std::shared_ptr<PropertySet>>(j);
                 if (p.get() == 0) {
-                    n->add(elt.first, Ptr());
+                    n->add(elt.first, std::shared_ptr<PropertySet>());
                 } else {
                     n->add(elt.first, p->deepCopy());
                 }
@@ -87,8 +87,8 @@ size_t PropertySet::nameCount(bool topLevelOnly) const {
     int n = 0;
     for (auto const& elt : _map) {
         ++n;
-        if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = std::any_cast<Ptr>(elt.second->back());
+        if (!topLevelOnly && elt.second->back().type() == typeid(std::shared_ptr<PropertySet>)) {
+            auto p = std::any_cast<std::shared_ptr<PropertySet>>(elt.second->back());
             if (p.get() != 0) {
                 n += p->nameCount(false);
             }
@@ -101,8 +101,8 @@ std::vector<std::string> PropertySet::names(bool topLevelOnly) const {
     std::vector<std::string> v;
     for (auto const& elt : _map) {
         v.push_back(elt.first);
-        if (!topLevelOnly && elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = std::any_cast<Ptr>(elt.second->back());
+        if (!topLevelOnly && elt.second->back().type() == typeid(std::shared_ptr<PropertySet>)) {
+            auto p = std::any_cast<std::shared_ptr<PropertySet>>(elt.second->back());
             if (p.get() != 0) {
                 std::vector<std::string> w = p->names(false);
                 for (auto const& k : w) {
@@ -117,8 +117,8 @@ std::vector<std::string> PropertySet::names(bool topLevelOnly) const {
 std::vector<std::string> PropertySet::paramNames(bool topLevelOnly) const {
     std::vector<std::string> v;
     for (auto const& elt : _map) {
-        if (elt.second->back().type() == typeid(Ptr)) {
-            Ptr p = std::any_cast<Ptr>(elt.second->back());
+        if (elt.second->back().type() == typeid(std::shared_ptr<PropertySet>)) {
+            auto p = std::any_cast<std::shared_ptr<PropertySet>>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->paramNames(false);
                 for (auto const& k : w) {
@@ -135,9 +135,9 @@ std::vector<std::string> PropertySet::paramNames(bool topLevelOnly) const {
 std::vector<std::string> PropertySet::propertySetNames(bool topLevelOnly) const {
     std::vector<std::string> v;
     for (auto const& elt : _map) {
-        if (elt.second->back().type() == typeid(Ptr)) {
+        if (elt.second->back().type() == typeid(std::shared_ptr<PropertySet>)) {
             v.push_back(elt.first);
-            Ptr p = std::any_cast<Ptr>(elt.second->back());
+            auto p = std::any_cast<std::shared_ptr<PropertySet>>(elt.second->back());
             if (p.get() != 0 && !topLevelOnly) {
                 std::vector<std::string> w = p->propertySetNames(false);
                 for (auto const& k : w) {
@@ -158,7 +158,7 @@ bool PropertySet::isArray(std::string const& name) const {
 
 bool PropertySet::isPropertySetPtr(std::string const& name) const {
     auto const i = _find(name);
-    return i != _map.end() && i->second->back().type() == typeid(Ptr);
+    return i != _map.end() && i->second->back().type() == typeid(std::shared_ptr<PropertySet>);
 }
 
 bool PropertySet::isUndefined(std::string const& name) const {
@@ -364,7 +364,9 @@ double PropertySet::getAsDouble(std::string const& name) const {
 
 std::string PropertySet::getAsString(std::string const& name) const { return get<std::string>(name); }
 
-PropertySet::Ptr PropertySet::getAsPropertySetPtr(std::string const& name) const { return get<Ptr>(name); }
+std::shared_ptr<PropertySet> PropertySet::getAsPropertySetPtr(std::string const& name) const {
+    return get<std::shared_ptr<PropertySet>>(name);
+}
 
 Persistable::Ptr PropertySet::getAsPersistablePtr(std::string const& name) const {
     return get<Persistable::Ptr>(name);
@@ -377,12 +379,12 @@ std::string PropertySet::toString(bool topLevelOnly, std::string const& indent) 
     for (auto const& i : nv) {
         std::shared_ptr<std::vector<std::any>> vp = _map.find(i)->second;
         std::type_info const& t = vp->back().type();
-        if (t == typeid(Ptr)) {
+        if (t == typeid(std::shared_ptr<PropertySet>)) {
             s << indent << i << " = ";
             if (topLevelOnly) {
                 s << "{ ... }";
             } else {
-                Ptr p = std::any_cast<Ptr>(vp->back());
+                auto p = std::any_cast<std::shared_ptr<PropertySet>>(vp->back());
                 if (p.get() == 0) {
                     s << "{ NULL }";
                 } else {
@@ -449,7 +451,7 @@ std::string PropertySet::_format(std::string const& name) const {
             s << '"' << std::any_cast<std::string>(v) << '"';
         } else if (t == typeid(DateTime)) {
             s << std::any_cast<DateTime>(v).toString(DateTime::UTC);
-        } else if (t == typeid(Ptr)) {
+        } else if (t == typeid(std::shared_ptr<PropertySet>)) {
             s << "{ ... }";
         } else if (t == typeid(Persistable::Ptr)) {
             s << "<Persistable>";
@@ -498,14 +500,17 @@ void PropertySet::add(std::string const& name, T const& value) {
     }
 }
 
-// Specialize for Ptrs to check for cycles.
+// Specialize for shared_ptr to check for cycles.
 template <>
-void PropertySet::add<PropertySet::Ptr>(std::string const& name, Ptr const& value) {
+void PropertySet::add<std::shared_ptr<PropertySet>>(
+    std::string const& name,
+    std::shared_ptr<PropertySet> const& value
+) {
     AnyMap::iterator i = _find(name);
     if (i == _map.end()) {
         set(name, value);
     } else {
-        if (i->second->back().type() != typeid(Ptr)) {
+        if (i->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
             throw LSST_EXCEPT(pex::exceptions::TypeError, name + " has mismatched type");
         }
         _cycleCheckPtr(value, name);
@@ -526,14 +531,17 @@ void PropertySet::add(std::string const& name, std::vector<T> const& value) {
     }
 }
 
-// Specialize for Ptrs to check for cycles.
+// Specialize for shared_ptr to check for cycles.
 template <>
-void PropertySet::add<PropertySet::Ptr>(std::string const& name, std::vector<Ptr> const& value) {
+void PropertySet::add<std::shared_ptr<PropertySet>>(
+    std::string const& name,
+    std::vector<std::shared_ptr<PropertySet>> const& value
+) {
     AnyMap::iterator i = _find(name);
     if (i == _map.end()) {
         set(name, value);
     } else {
-        if (i->second->back().type() != typeid(Ptr)) {
+        if (i->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
             throw LSST_EXCEPT(pex::exceptions::TypeError, name + " has mismatched type");
         }
         _cycleCheckPtrVec(value, name);
@@ -543,12 +551,14 @@ void PropertySet::add<PropertySet::Ptr>(std::string const& name, std::vector<Ptr
 
 void PropertySet::add(std::string const& name, char const* value) { add(name, std::string(value)); }
 
-void PropertySet::copy(std::string const& dest, ConstPtr source, std::string const& name, bool asScalar) {
-    if (source.get() == 0) {
-        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
-    }
-    auto const sj = source->_find(name);
-    if (sj == source->_map.end()) {
+void PropertySet::copy(
+    std::string const& dest,
+    PropertySet const& source,
+    std::string const& name,
+    bool asScalar
+) {
+    auto const sj = source._find(name);
+    if (sj == source._map.end()) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, name + " not in source");
     }
     remove(dest);
@@ -562,15 +572,27 @@ void PropertySet::copy(std::string const& dest, ConstPtr source, std::string con
     }
 }
 
-void PropertySet::combine(ConstPtr source) {
-    if (source.get() == 0) {
-        return;
+void PropertySet::copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                       std::string const& name, bool asScalar) {
+    if (!source) {
+        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
     }
-    std::vector<std::string> names = source->paramNames(false);
+    copy(dest, *source, name, asScalar);
+}
+
+void PropertySet::combine(PropertySet const & source) {
+    std::vector<std::string> names = source.paramNames(false);
     for (auto const& name : names) {
-        auto const sp = source->_find(name);
+        auto const sp = source._find(name);
         _add(name, sp->second);
     }
+}
+
+void PropertySet::combine(std::shared_ptr<PropertySet const> source) {
+    if (!source) {
+        return;
+    }
+    combine(*source);
 }
 
 void PropertySet::remove(std::string const& name) {
@@ -581,10 +603,10 @@ void PropertySet::remove(std::string const& name) {
     }
     std::string prefix(name, 0, i);
     AnyMap::iterator j = _map.find(prefix);
-    if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
+    if (j == _map.end() || j->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
         return;
     }
-    Ptr p = std::any_cast<Ptr>(j->second->back());
+    auto p = std::any_cast<std::shared_ptr<PropertySet>>(j->second->back());
     if (p.get() != 0) {
         std::string suffix(name, i + 1);
         p->remove(suffix);
@@ -602,10 +624,10 @@ PropertySet::AnyMap::iterator PropertySet::_find(std::string const& name) {
     }
     std::string prefix(name, 0, i);
     AnyMap::iterator j = _map.find(prefix);
-    if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
+    if (j == _map.end() || j->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
         return _map.end();
     }
-    Ptr p = std::any_cast<Ptr>(j->second->back());
+    auto p = std::any_cast<std::shared_ptr<PropertySet>>(j->second->back());
     if (p.get() == 0) {
         return _map.end();
     }
@@ -624,10 +646,10 @@ PropertySet::AnyMap::const_iterator PropertySet::_find(std::string const& name) 
     }
     std::string prefix(name, 0, i);
     auto const j = _map.find(prefix);
-    if (j == _map.end() || j->second->back().type() != typeid(Ptr)) {
+    if (j == _map.end() || j->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
         return _map.end();
     }
-    Ptr p = std::any_cast<Ptr>(j->second->back());
+    auto p = std::any_cast<std::shared_ptr<PropertySet>>(j->second->back());
     if (p.get() == 0) {
         return _map.end();
     }
@@ -652,7 +674,7 @@ void PropertySet::_add(std::string const& name, std::shared_ptr<std::vector<std:
             throw LSST_EXCEPT(pex::exceptions::TypeError, name + " has mismatched type");
         }
         // Check for cycles
-        if (vp->back().type() == typeid(Ptr)) {
+        if (vp->back().type() == typeid(std::shared_ptr<PropertySet>)) {
             _cycleCheckAnyVec(*vp, name);
         }
         _append(*(dp->second), *vp);
@@ -660,9 +682,9 @@ void PropertySet::_add(std::string const& name, std::shared_ptr<std::vector<std:
 }
 
 void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::vector<std::any>> vp) {
-    if (vp->back().type() == typeid(Ptr)) {
+    if (vp->back().type() == typeid(std::shared_ptr<PropertySet>)) {
         if (_flat) {
-            Ptr source = std::any_cast<Ptr>(vp->back());
+            auto source = std::any_cast<std::shared_ptr<PropertySet>>(vp->back());
             std::vector<std::string> names = source->paramNames(false);
             for (auto const& i : names) {
                 auto const sp = source->_find(i);
@@ -684,25 +706,28 @@ void PropertySet::_findOrInsert(std::string const& name, std::shared_ptr<std::ve
     std::string suffix(name, i + 1);
     AnyMap::iterator j = _map.find(prefix);
     if (j == _map.end()) {
-        PropertySet::Ptr pp(new PropertySet);
+        auto pp = std::make_shared<PropertySet>();
         pp->_findOrInsert(suffix, vp);
         std::shared_ptr<std::vector<std::any>> temp(new std::vector<std::any>);
         temp->push_back(pp);
         _map[prefix] = temp;
         return;
-    } else if (j->second->back().type() != typeid(Ptr)) {
+    } else if (j->second->back().type() != typeid(std::shared_ptr<PropertySet>)) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
-                          prefix + " exists but does not contain PropertySet::Ptrs");
+                          prefix + " exists but does not contain PropertySets");
     }
-    Ptr p = std::any_cast<Ptr>(j->second->back());
+    auto p = std::any_cast<std::shared_ptr<PropertySet>>(j->second->back());
     if (p.get() == 0) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError,
-                          prefix + " exists but contains null PropertySet::Ptr");
+                          prefix + " exists but contains a null PropertySet");
     }
     p->_findOrInsert(suffix, vp);
 }
 
-void PropertySet::_cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name) {
+void PropertySet::_cycleCheckPtrVec(
+    std::vector<std::shared_ptr<PropertySet>> const& v,
+    std::string const& name
+) {
     for (auto const& i : v) {
         _cycleCheckPtr(i, name);
     }
@@ -710,11 +735,11 @@ void PropertySet::_cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const
 
 void PropertySet::_cycleCheckAnyVec(std::vector<std::any> const& v, std::string const& name) {
     for (auto const& i : v) {
-        _cycleCheckPtr(std::any_cast<Ptr>(i), name);
+        _cycleCheckPtr(std::any_cast<std::shared_ptr<PropertySet>>(i), name);
     }
 }
 
-void PropertySet::_cycleCheckPtr(Ptr const& v, std::string const& name) {
+void PropertySet::_cycleCheckPtr(std::shared_ptr<PropertySet> const & v, std::string const& name) {
     if (v.get() == this) {
         throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, name + " would cause a cycle");
     }
@@ -767,7 +792,7 @@ INSTANTIATE(float)
 INSTANTIATE(double)
 INSTANTIATE(std::nullptr_t)
 INSTANTIATE(std::string)
-INSTANTIATE_PROPERTY_SET(PropertySet::Ptr)
+INSTANTIATE_PROPERTY_SET(std::shared_ptr<PropertySet>)
 INSTANTIATE(Persistable::Ptr)
 INSTANTIATE(DateTime)
 

@@ -48,9 +48,9 @@ PropertyList::~PropertyList() noexcept = default;
 // Accessors
 ///////////////////////////////////////////////////////////////////////////////
 
-PropertySet::Ptr PropertyList::deepCopy() const {
-    Ptr n(new PropertyList);
-    n->PropertySet::combine(this->PropertySet::deepCopy());
+std::shared_ptr<PropertySet> PropertyList::deepCopy() const {
+    std::shared_ptr<PropertyList> n(new PropertyList);
+    n->PropertySet::combine(*this->PropertySet::deepCopy());
     n->_order = _order;
     n->_comments = _comments;
     return n;
@@ -115,8 +115,8 @@ void PropertyList::set(std::string const& name, T const& value) {
     PropertySet::set(name, value);
 }
 
-void PropertyList::set(std::string const& name, PropertySet::Ptr const& value) {
-    Ptr pl = std::dynamic_pointer_cast<PropertyList, PropertySet>(value);
+void PropertyList::set(std::string const& name, std::shared_ptr<PropertySet> const& value) {
+    auto pl = std::dynamic_pointer_cast<PropertyList, PropertySet>(value);
     PropertySet::set(name, value);
     _comments.erase(name);
     _order.remove(name);
@@ -184,17 +184,24 @@ void PropertyList::add(std::string const& name, std::vector<T> const& value, std
 ///////////////////////////////////////////////////////////////////////////////
 // Other modifiers
 
-void PropertyList::copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
+void PropertyList::copy(std::string const& dest, PropertySet const & source, std::string const& name,
                         bool asScalar) {
     PropertySet::copy(dest, source, name, asScalar);
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
+    auto const * pl = dynamic_cast<PropertyList const *>(&source);
     if (pl) {
         _comments[name] = pl->_comments.find(name)->second;
     }
 }
 
-void PropertyList::combine(PropertySet::ConstPtr source) {
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
+void PropertyList::copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                        std::string const& name, bool asScalar) {
+    if (source) {
+        copy(dest, *source, name, asScalar);
+    }
+}
+
+void PropertyList::combine(PropertySet const & source) {
+    auto const * pl = dynamic_cast<PropertyList const *>(&source);
     std::list<std::string> newOrder;
     if (pl) {
         newOrder = _order;
@@ -212,6 +219,13 @@ void PropertyList::combine(PropertySet::ConstPtr source) {
             _comments[name] = pl->_comments.find(name)->second;
         }
     }
+}
+
+void PropertyList::combine(std::shared_ptr<PropertySet const> source) {
+    if (!source) {
+        return;
+    }
+    combine(*source);
 }
 
 void PropertyList::remove(std::string const& name) {
