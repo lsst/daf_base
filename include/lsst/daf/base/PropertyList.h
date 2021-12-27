@@ -82,9 +82,9 @@ public:
     /**
      * Make a deep copy of the PropertyList and all of its contents.
      *
-     * @return PropertyList::Ptr pointing to the new copy.
+     * @return PropertyList pointing to the new copy.
      */
-    virtual PropertySet::Ptr deepCopy() const;
+    virtual std::shared_ptr<PropertySet> deepCopy() const;
 
     // I can't make copydoc work for this so...
     /**
@@ -156,7 +156,7 @@ public:
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    void set(std::string const& name, PropertySet::Ptr const& value);
+    void set(std::string const& name, std::shared_ptr<PropertySet> const& value);
 
     /// @copydoc PropertySet::set(std::string const&, std::vector<T> const&)
     template <typename T>
@@ -274,11 +274,14 @@ public:
     }
 
     /// @copydoc PropertySet::copy
-    virtual void copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
+    virtual void copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                      std::string const& name, bool asScalar = false);
+    virtual void copy(std::string const& dest, PropertySet const & source, std::string const& name,
                       bool asScalar = false);
 
     /// @copydoc PropertySet::combine
-    virtual void combine(PropertySet::ConstPtr source);
+    virtual void combine(PropertySet const & source);
+    virtual void combine(std::shared_ptr<PropertySet const> source);
 
     /// @copydoc PropertySet::remove
     virtual void remove(std::string const& name);

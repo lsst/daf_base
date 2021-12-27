@@ -184,17 +184,25 @@ void PropertyList::add(std::string const& name, std::vector<T> const& value, std
 ///////////////////////////////////////////////////////////////////////////////
 // Other modifiers
 
-void PropertyList::copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
+void PropertyList::copy(std::string const& dest, PropertySet const & source, std::string const& name,
                         bool asScalar) {
     PropertySet::copy(dest, source, name, asScalar);
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
+    auto const * pl = dynamic_cast<PropertyList const *>(&source);
     if (pl) {
         _comments[name] = pl->_comments.find(name)->second;
     }
 }
 
-void PropertyList::combine(PropertySet::ConstPtr source) {
-    ConstPtr pl = std::dynamic_pointer_cast<PropertyList const, PropertySet const>(source);
+void PropertyList::copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                        std::string const& name, bool asScalar) {
+    if (!source) {
+        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
+    }
+    copy(dest, *source, name, asScalar);
+}
+
+void PropertyList::combine(PropertySet const & source) {
+    auto const * pl = dynamic_cast<PropertyList const *>(&source);
     std::list<std::string> newOrder;
     if (pl) {
         newOrder = _order;
@@ -212,6 +220,13 @@ void PropertyList::combine(PropertySet::ConstPtr source) {
             _comments[name] = pl->_comments.find(name)->second;
         }
     }
+}
+
+void PropertyList::combine(std::shared_ptr<PropertySet const> source) {
+    if (!source) {
+        return;
+    }
+    combine(*source);
 }
 
 void PropertyList::remove(std::string const& name) {

@@ -92,9 +92,9 @@ public:
     /**
      * Make a deep copy of the PropertySet and all of its contents.
      *
-     * @return PropertySet::Ptr pointing to the new copy.
+     * @return PropertySet pointing to the new copy.
      */
-    virtual Ptr deepCopy() const;
+    virtual std::shared_ptr<PropertySet> deepCopy() const;
 
     /**
      * Get the number of names in the PropertySet, optionally including those in subproperties.
@@ -139,13 +139,16 @@ public:
      */
     bool isArray(std::string const& name) const;
 
+    //@{
     /**
      * Determine if a name (possibly hierarchical) is a subproperty.
      *
      * @param[in] name Property name to examine, possibly hierarchical.
-     * @return true if property exists and its values are PropertySet::Ptrs.
+     * @return true if property exists and its values are PropertySet:.
      */
+    bool isPropertySet(std::string const& name) const;
     bool isPropertySetPtr(std::string const& name) const;
+    //@}
 
     /**
      * Determine if a name (possibly hierarchical) has a defined value.
@@ -308,15 +311,18 @@ public:
      */
     std::string getAsString(std::string const& name) const;
 
+    //@{
     /**
      * Get the last value for a subproperty name (possibly hierarchical).
      *
      * @param[in] name Property name to examine, possibly hierarchical.
-     * @return PropertySet::Ptr value.
+     * @return PropertySet value.
      * @throws NotFoundError Property does not exist.
-     * @throws TypeError Value is not a PropertySet::Ptr.
+     * @throws TypeError Value is not a PropertySet.
      */
-    PropertySet::Ptr getAsPropertySetPtr(std::string const& name) const;
+    std::shared_ptr<PropertySet> getAsPropertySet(std::string const& name) const;
+    std::shared_ptr<PropertySet> getAsPropertySetPtr(std::string const& name) const;
+    //@}
 
     /**
      * Get the last value for a Persistable name (possibly hierarchical).
@@ -410,12 +416,13 @@ public:
      */
     void add(std::string const& name, char const* value);
 
+    //@{
     /**
      * Replace a single value vector in the destination with one from the
      * \a source.
      *
      * @param[in] dest Destination property name.
-     * @param[in] source PropertySet::Ptr for the source PropertySet.
+     * @param[in] source PropertySet for the source PropertySet.
      * @param[in] name Property name to extract.
      * @param[in] asScalar If true copy the item as a scalar by ignoring all but the last value
      *                     (which is the value returned by get<T>(name))
@@ -423,9 +430,13 @@ public:
      * @throws InvalidParameterError Name does not exist in source.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
-    virtual void copy(std::string const& dest, ConstPtr source, std::string const& name,
+    virtual void copy(std::string const& dest, PropertySet const & source, std::string const& name,
                       bool asScalar = false);
+    virtual void copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                      std::string const& name, bool asScalar = false);
+    //@}
 
+    //@{
     /**
      * Append all value vectors from the \a source to their corresponding
      * properties.  Sets values if a property does not exist.
@@ -433,13 +444,15 @@ public:
      * If a property already exists then the types of the existing value(s)
      * must match the type of the value(s) in \a source.
      *
-     * @param[in] source PropertySet::Ptr for the source PropertySet.
+     * @param[in] source PropertySet for the source PropertySet.
      * @throws TypeError Type does not match existing values for an item.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      *
      * @warning May only partially combine the PropertySets if an exception occurs.
      */
-    virtual void combine(ConstPtr source);
+    virtual void combine(PropertySet const & source);
+    virtual void combine(std::shared_ptr<PropertySet const> source);
+    //@}
 
     /**
      * Remove all values for a property name (possibly hierarchical).  Does
@@ -496,16 +509,16 @@ private:
 
     /*
      * Find the property name (possibly hierarchical) and set or replace its
-     * value with the given vector of values.
+     * value with the given vector of values.`
      *
      * @param[in] name Property name to find, possibly hierarchical.
      * @param[in] vp shared_ptr to vector of values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
      */
     virtual void _findOrInsert(std::string const& name, std::shared_ptr<std::vector<std::any> > vp);
-    void _cycleCheckPtrVec(std::vector<Ptr> const& v, std::string const& name);
+    void _cycleCheckPtrVec(std::vector<std::shared_ptr<PropertySet>> const& v, std::string const& name);
     void _cycleCheckAnyVec(std::vector<std::any> const& v, std::string const& name);
-    void _cycleCheckPtr(Ptr const& v, std::string const& name);
+    void _cycleCheckPtr(std::shared_ptr<PropertySet> const & v, std::string const& name);
 
     AnyMap _map;
     bool _flat;
@@ -516,9 +529,17 @@ private:
 #endif
 
 template <>
-void PropertySet::add<PropertySet::Ptr>(std::string const& name, Ptr const& value);
+void PropertySet::add<std::shared_ptr<PropertySet>>(
+    std::string const& name,
+    std::shared_ptr<PropertySet> const& value
+);
+
 template <>
-void PropertySet::add<PropertySet::Ptr>(std::string const& name, std::vector<Ptr> const& value);
+void PropertySet::add<std::shared_ptr<PropertySet>>(
+    std::string const& name,
+    std::vector<std::shared_ptr<PropertySet>> const& value
+);
+
 }
 }  // namespace daf
 }  // namespace lsst

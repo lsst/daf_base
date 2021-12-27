@@ -70,6 +70,7 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("exists", &PropertySet::exists);
     cls.def("isArray", &PropertySet::isArray);
     cls.def("isUndefined", &PropertySet::isUndefined);
+    cls.def("isPropertySet", &PropertySet::isPropertySet);
     cls.def("isPropertySetPtr", &PropertySet::isPropertySetPtr);
     cls.def("valueCount",
             py::overload_cast<>(&PropertySet::valueCount, py::const_));
@@ -78,8 +79,14 @@ PYBIND11_MODULE(propertySet, mod) {
                                                   py::const_));
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
     cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
-    cls.def("copy", &PropertySet::copy, "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
-    cls.def("combine", &PropertySet::combine);
+    cls.def(
+        "copy",
+        py::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
+            &PropertySet::copy
+        ),
+        "dest"_a, "source"_a, "name"_a, "asScalar"_a=false
+    );
+    cls.def("combine", py::overload_cast<PropertySet const &>(&PropertySet::combine));
     cls.def("remove", &PropertySet::remove);
     cls.def("getAsBool", &PropertySet::getAsBool);
     cls.def("getAsInt", &PropertySet::getAsInt);
@@ -87,6 +94,7 @@ PYBIND11_MODULE(propertySet, mod) {
     cls.def("getAsUInt64", &PropertySet::getAsUInt64);
     cls.def("getAsDouble", &PropertySet::getAsDouble);
     cls.def("getAsString", &PropertySet::getAsString);
+    cls.def("getAsPropertySet", &PropertySet::getAsPropertySet);
     cls.def("getAsPropertySetPtr", &PropertySet::getAsPropertySetPtr);
     cls.def("getAsPersistablePtr", &PropertySet::getAsPersistablePtr);
 
