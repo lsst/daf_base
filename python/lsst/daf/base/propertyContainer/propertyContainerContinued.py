@@ -26,6 +26,7 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 
 import enum
 import numbers
+import dataclasses
 from collections.abc import Mapping, KeysView, ValuesView, ItemsView
 
 # Ensure that C++ exceptions are properly translated to Python
@@ -440,6 +441,41 @@ class PropertySet:
                  PropertyList: "PropertySet",
                  None: "Undef",
                  }
+
+    @classmethod
+    def from_mapping(cls, metadata):
+        """Create a `PropertySet` from a mapping or dict-like object.
+
+        Parameters
+        ----------
+        metadata : `collections.abc.Mapping`
+            Metadata from which to create the `PropertySet`.
+            Can be a mapping, a `~dataclasses.dataclass` or anything that
+            supports ``toDict()``, ``to_dict()`` or ``dict()`` method.
+            It is assumed that the dictionary is expanded recursively by these
+            methods or that the Python type can be understood by `PropertySet`.
+
+        Returns
+        -------
+        ps : `PropertySet`
+            The new `PropertySet`.
+        """
+        ps = cls()
+        d = None
+        if isinstance(metadata, Mapping):
+            d = metadata
+        elif dataclasses.is_dataclass(metadata):
+            d = dataclasses.asdict(metadata)
+        else:
+            for attr in ("to_dict", "toDict", "dict"):
+                if hasattr(metadata, attr):
+                    d = getattr(metadata, attr)()
+                    break
+        if d is None:
+            raise ValueError("Unable to extract mappings from the supplied metadata of type"
+                             f" {type(metadata)}")
+        ps.update(d)
+        return ps
 
     def get(self, name, default=None):
         """Return an item as a scalar, else default.

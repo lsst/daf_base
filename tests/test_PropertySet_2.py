@@ -21,6 +21,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
+import dataclasses
 import pickle
 import unittest
 
@@ -640,6 +641,25 @@ class FlatTestCase(unittest.TestCase):
         self.assertIsInstance(d["dt"], dafBase.DateTime)
         self.assertEqual(d["dt"].nsecs(), 1238657233314159265)
 
+        # Check round tripping.
+        from_dict = dafBase.PropertySet.from_mapping(d)
+
+        # The specialist type fields (float, short, uint64_t) will not
+        # round trip properly and so use string equality and remove the
+        # float field because the number of figures changes.
+        # The float field won't round trip so has to be examined separately
+        # because the type will have changed.
+        self.assertAlmostEqual(from_dict["float"], ps2["float"])
+        del ps2["float"]
+        del from_dict["float"]
+        self.assertEqual(str(from_dict), str(ps2))
+
+        # Test again, but relying on the toDict method of a PropertySet
+        self.assertEqual(str(dafBase.PropertySet.from_mapping(ps2)), str(ps2))
+
+        with self.assertRaises(ValueError):
+            dafBase.PropertySet.from_mapping([])
+
         d2 = d["ps"]
         self.assertIsInstance(d2, dict)
 
@@ -656,6 +676,18 @@ class FlatTestCase(unittest.TestCase):
         self.assertIsInstance(d2["ints"], list)
         self.assertIsInstance(d2["ints"][0], (int, int))
         self.assertEqual(d2["ints"], [10, 9, 8])
+
+    def testFromDataclass(self):
+        """Test creation of PropertySet from a dataclass."""
+
+        @dataclasses.dataclass
+        class TestData:
+            string: str
+            number: int
+
+        t = TestData("test", 42)
+        ps = dafBase.PropertySet.from_mapping(t)
+        self.assertEqual(ps.toDict(), {"string": "test", "number": 42})
 
     def testAddVector(self):
         ps = dafBase.PropertySet()
