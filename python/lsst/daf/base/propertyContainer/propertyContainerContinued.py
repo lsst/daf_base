@@ -37,6 +37,14 @@ from .propertySet import PropertySet
 from .propertyList import PropertyList
 from ..dateTime import DateTime
 
+# Map the type names to the internal type representation.
+_TYPE_MAP = {}
+for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong",
+                  "Float", "Double", "String", "DateTime",
+                  "PropertySet", "Undef"):
+    type_obj = getattr(PropertySet, "TYPE_" + checkType)
+    _TYPE_MAP[type_obj] = checkType
+
 
 def getPropertySetState(container, asLists=False):
     """Get the state of a PropertySet in a form that can be pickled.
@@ -165,12 +173,8 @@ def _propertyContainerElementTypeName(container, name):
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
         raise KeyError(str(e))
-    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong",
-                      "Float", "Double", "String", "DateTime",
-                      "PropertySet", "Undef"):
-        if t == getattr(container, "TYPE_" + checkType):
-            return checkType
-    return None
+
+    return _TYPE_MAP.get(t, None)
 
 
 def _propertyContainerGet(container, name, returnStyle):
