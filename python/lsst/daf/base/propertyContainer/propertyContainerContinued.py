@@ -172,7 +172,7 @@ def _propertyContainerElementTypeName(container, name):
     except LookupError as e:
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
-        raise KeyError(str(e))
+        raise KeyError(str(e)) from None
 
     return _TYPE_MAP.get(t, None)
 
