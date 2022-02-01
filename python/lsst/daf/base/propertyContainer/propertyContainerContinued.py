@@ -332,9 +332,9 @@ def _guessIntegerType(container, name, value):
                                f"range value: {int_value}")
         return use_type
 
-    try:
+    if container.exists(name):
         containerType = _propertyContainerElementTypeName(container, name)
-    except LookupError:
+    else:
         containerType = None
 
     useTypeMin = _choose_int_from_range(min, containerType)
