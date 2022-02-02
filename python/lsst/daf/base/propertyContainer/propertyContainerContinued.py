@@ -25,6 +25,7 @@
 __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState", "setPropertyListState"]
 
 import enum
+import math
 import numbers
 import dataclasses
 from collections.abc import Mapping, KeysView, ValuesView, ItemsView
@@ -36,6 +37,16 @@ from lsst.utils import continueClass
 from .propertySet import PropertySet
 from .propertyList import PropertyList
 from ..dateTime import DateTime
+
+# Map the type names to the internal type representation.
+_TYPE_MAP = {}
+for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong",
+                  "Float", "Double", "String", "DateTime",
+                  "PropertySet", "Undef"):
+    type_obj = getattr(PropertySet, "TYPE_" + checkType)
+    _TYPE_MAP[type_obj] = checkType
+    # Store both directions.
+    _TYPE_MAP[checkType] = type_obj
 
 
 def getPropertySetState(container, asLists=False):
@@ -164,13 +175,9 @@ def _propertyContainerElementTypeName(container, name):
     except LookupError as e:
         # KeyError is more commonly expected when asking for an element
         # from a mapping.
-        raise KeyError(str(e))
-    for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong",
-                      "Float", "Double", "String", "DateTime",
-                      "PropertySet", "Undef"):
-        if t == getattr(container, "TYPE_" + checkType):
-            return checkType
-    return None
+        raise KeyError(str(e)) from None
+
+    return _TYPE_MAP.get(t, None)
 
 
 def _propertyContainerGet(container, name, returnStyle):
@@ -325,9 +332,9 @@ def _guessIntegerType(container, name, value):
                                f"range value: {int_value}")
         return use_type
 
-    try:
+    if container.exists(name):
         containerType = _propertyContainerElementTypeName(container, name)
-    except LookupError:
+    else:
         containerType = None
 
     useTypeMin = _choose_int_from_range(min, containerType)
@@ -645,11 +652,19 @@ class PropertySet:
             return False
 
         for name in self:
-            if _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO) != \
-                    _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO):
+            if (self_typeOf := self.typeOf(name)) != other.typeOf(name):
                 return False
-            if self.typeOf(name) != other.typeOf(name):
-                return False
+
+            if (v1 := _propertyContainerGet(self, name, returnStyle=ReturnStyle.AUTO)) != \
+                    (v2 := _propertyContainerGet(other, name, returnStyle=ReturnStyle.AUTO)):
+                # It is possible that we have floats that are NaN. When
+                # equating two PropertySets if there are fields with NaN
+                # these should equate equal.
+                if self_typeOf in (_TYPE_MAP["Float"], _TYPE_MAP["Double"]) \
+                        and math.isnan(v1) and math.isnan(v2):
+                    pass
+                else:
+                    return False
 
         return True
 
