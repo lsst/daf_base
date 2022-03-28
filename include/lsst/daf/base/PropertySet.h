@@ -348,6 +348,12 @@ public:
      * @param[in] name Property name to set, possibly hierarchical.
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * If `value` is a `PropertySet`, the default implementation will allow it
+     * to be retreived later via `get` (or other methods) using the given
+     * `name`, and the result will be the same `shared_ptr` passed in, but this
+     * is not guaranteed to be the behavior for all derived classes, which may
+     * flatten out `PropertySet` values instead.
      */
     template <typename T>
     void set(std::string const& name, T const& value);
@@ -380,6 +386,12 @@ public:
      * @param[in] value Value to append.
      * @throws TypeError Type does not match existing values.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * If `value` is a `PropertySet`, the default implementation will allow it
+     * to be retreived later via `get` (or other methods) using the given
+     * `name`, and the result will be the same `shared_ptr` passed in, but this
+     * is not guaranteed to be the behavior for all derived classes, which may
+     * flatten out `PropertySet` values instead.
      */
     template <typename T>
     void add(std::string const& name, T const& value);

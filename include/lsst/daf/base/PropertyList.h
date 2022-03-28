@@ -155,6 +155,10 @@ public:
      * @param[in] name Property name to set, possibly hierarchical.
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * Unlike the base `PropertySet` implementation, `PropertyList` flattens
+     * out nested `PropertySet` objects, storing their keys with nested names
+     * but not the `PropertySet` instance itself.
      */
     void set(std::string const& name, std::shared_ptr<PropertySet> const& value);
 
