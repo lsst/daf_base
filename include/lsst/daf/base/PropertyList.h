@@ -82,9 +82,9 @@ public:
     /**
      * Make a deep copy of the PropertyList and all of its contents.
      *
-     * @return PropertyList::Ptr pointing to the new copy.
+     * @return PropertyList pointing to the new copy.
      */
-    virtual PropertySet::Ptr deepCopy() const;
+    virtual std::shared_ptr<PropertySet> deepCopy() const;
 
     // I can't make copydoc work for this so...
     /**
@@ -155,8 +155,12 @@ public:
      * @param[in] name Property name to set, possibly hierarchical.
      * @param[in] value Value to set.
      * @throws InvalidParameterError Hierarchical name uses non-PropertySet.
+     *
+     * Unlike the base `PropertySet` implementation, `PropertyList` flattens
+     * out nested `PropertySet` objects, storing their keys with nested names
+     * but not the `PropertySet` instance itself.
      */
-    void set(std::string const& name, PropertySet::Ptr const& value);
+    void set(std::string const& name, std::shared_ptr<PropertySet> const& value);
 
     /// @copydoc PropertySet::set(std::string const&, std::vector<T> const&)
     template <typename T>
@@ -273,12 +277,21 @@ public:
         add(name, value, std::string(comment));
     }
 
+    //@{
     /// @copydoc PropertySet::copy
-    virtual void copy(std::string const& dest, PropertySet::ConstPtr source, std::string const& name,
+    virtual void copy(std::string const& dest, PropertySet const & source, std::string const& name,
                       bool asScalar = false);
+    [[deprecated("Replaced by a non-shared_ptr overload.  Will be removed after v25.")]]
+    virtual void copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
+                      std::string const& name, bool asScalar = false);
+    //@}
 
+    //@{
     /// @copydoc PropertySet::combine
-    virtual void combine(PropertySet::ConstPtr source);
+    virtual void combine(PropertySet const & source);
+    [[deprecated("Replaced by a non-shared_ptr overload.  Will be removed after v25.")]]
+    virtual void combine(std::shared_ptr<PropertySet const> source);
+    //@}
 
     /// @copydoc PropertySet::remove
     virtual void remove(std::string const& name);

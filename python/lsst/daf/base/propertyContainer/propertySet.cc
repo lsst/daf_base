@@ -78,8 +78,14 @@ PYBIND11_MODULE(propertySet, mod) {
                                                   py::const_));
     cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
     cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
-    cls.def("copy", &PropertySet::copy, "dest"_a, "source"_a, "name"_a, "asScalar"_a=false);
-    cls.def("combine", &PropertySet::combine);
+    cls.def(
+        "copy",
+        py::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
+            &PropertySet::copy
+        ),
+        "dest"_a, "source"_a, "name"_a, "asScalar"_a=false
+    );
+    cls.def("combine", py::overload_cast<PropertySet const &>(&PropertySet::combine));
     cls.def("remove", &PropertySet::remove);
     cls.def("getAsBool", &PropertySet::getAsBool);
     cls.def("getAsInt", &PropertySet::getAsInt);
