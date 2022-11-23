@@ -333,6 +333,8 @@ class DateTimeTestCase(unittest.TestCase):
                 ts.timeval(scale)
             with self.assertRaises(RuntimeError):
                 ts.toString(scale)
+            with self.assertRaises(RuntimeError):
+                ts.toPython()
         self.assertEqual(repr(ts), "DateTime()")
 
     def testNegative(self):
