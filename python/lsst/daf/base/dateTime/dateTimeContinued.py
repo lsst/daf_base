@@ -44,8 +44,15 @@ class DateTime:  # noqa: F811
         -------
         datetime : `datetime.datetime`
             The resultant Python `datetime.datetime` object.
+
+        Raises
+        ------
+        ValueError
+            Raised if the DateTime is invalid (uninitialized).
         """
         import datetime
+        if not self.isValid():
+            raise RuntimeError("DateTime not valid")
         nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
         return datetime.datetime.utcfromtimestamp(nsecs/10**9)
 
