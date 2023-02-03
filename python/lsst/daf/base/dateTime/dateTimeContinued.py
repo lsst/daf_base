@@ -19,8 +19,6 @@
 # You should have received a copy of the LSST License Statement and
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
-#
-
 
 __all__ = []
 
@@ -55,6 +53,23 @@ class DateTime:  # noqa: F811
             raise RuntimeError("DateTime not valid")
         nsecs = self.nsecs(timescale) if timescale is not None else self.nsecs()
         return datetime.datetime.utcfromtimestamp(nsecs/10**9)
+
+    def toAstropy(self, timescale=None):
+        """Convert a DateTime to an astropy Time.
+
+        Returns
+        -------
+        time : `astropy.time.Time`
+            This date as an astropy MJD/TAI time.
+
+        Raises
+        ------
+        ValueError
+            Raised if the DateTime is invalid (uninitialized).
+        """
+        # So that astropy is not an import-time dependency of daf_base.
+        import astropy.time
+        return astropy.time.Time(self.get(system=DateTime.MJD, scale=DateTime.TAI), scale="tai", format="mjd")
 
     def __repr__(self):
         if self.isValid():
