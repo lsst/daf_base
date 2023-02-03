@@ -33,7 +33,7 @@ import lsst.pex.exceptions as pexExcept
 
 
 class DateTimeTestCase(unittest.TestCase):
-    """A test case for DateTime.
+    """Base class for tests of DateTime objects, without any timezone.
     """
 
     def setUp(self):
