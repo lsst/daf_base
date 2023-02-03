@@ -30,9 +30,10 @@ import astropy.time
 
 from lsst.daf.base import DateTime
 import lsst.pex.exceptions as pexExcept
+import lsst.utils.tests
 
 
-class DateTimeTestCase(unittest.TestCase):
+class DateTimeTestCase(lsst.utils.tests.TestCase):
     """Base class for tests of DateTime objects, without any timezone.
     """
 
@@ -394,6 +395,26 @@ class DateTimeTestCase(unittest.TestCase):
         ts = DateTime(int(1192755473000000000), DateTime.UTC)
         nts = pickle.loads(pickle.dumps(ts))
         self.assertEqual(nts.nsecs(DateTime.UTC), int(1192755473000000000))
+
+    def testToAstropy(self):
+        """Test that DateTime converstion to astropy is exact to within machine
+        precision.
+        """
+        date = DateTime(0)
+        astropyTime = date.toAstropy()
+        self.assertFloatsAlmostEqual(date.get(), astropyTime.to_value(format="mjd"))
+
+        date = DateTime(45205.125, DateTime.MJD, DateTime.UTC)
+        astropyTime = date.toAstropy()
+        self.assertFloatsAlmostEqual(date.get(), astropyTime.to_value(format="mjd"))
+
+        date = DateTime(2023.123456789012, DateTime.EPOCH)
+        astropyTime = date.toAstropy()
+        self.assertFloatsAlmostEqual(date.get(), astropyTime.to_value(format="mjd"))
+
+        date = DateTime()
+        with self.assertRaisesRegex(RuntimeError, "DateTime not valid"):
+            date.toAstropy()
 
 
 class TimeZoneBaseTestCase(DateTimeTestCase):
