@@ -29,7 +29,7 @@
 #include "boost/test/unit_test.hpp"
 #pragma clang diagnostic pop
 
-#include "lsst/utils/tests.h"
+#include "lsst/cpputils/tests.h"
 #include "lsst/pex/exceptions.h"
 
 namespace test = boost::test_tools;
@@ -91,10 +91,10 @@ BOOST_AUTO_TEST_CASE(Throw) {
 }
 
 BOOST_AUTO_TEST_CASE(Hash) {
-    lsst::utils::assertValidHash<DateTime>();
+    lsst::cpputils::assertValidHash<DateTime>();
 
     DateTime date1("20090402T072639.314159265Z", DateTime::UTC);
-    lsst::utils::assertHashesEqual(date1, DateTime(date1.nsecs()));
+    lsst::cpputils::assertHashesEqual(date1, DateTime(date1.nsecs()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
