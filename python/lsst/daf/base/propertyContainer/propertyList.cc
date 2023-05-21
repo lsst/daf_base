@@ -1,6 +1,7 @@
 #include <cstddef>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "lsst/cpputils/python.h"
 
 #include "lsst/daf/base/PropertyList.h"
 #include "lsst/daf/base/DateTime.h"
@@ -57,30 +58,29 @@ void declareAccessors(C& cls, std::string const& name) {
 
 }  // namespace
 
-PYBIND11_MODULE(propertyList, mod) {
-    py::module::import("lsst.daf.base.persistable");
+void wrapPropertyList(lsst::cpputils::python::WrapperCollection &wrappers) {
+    using PyPropertyList =  py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet>;
+    wrappers.wrapType(PyPropertyList(wrappers.module, "PropertyList"), [](auto &mod, auto &cls) {
+        cls.def(py::init<>());
 
-    py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet> cls(mod, "PropertyList");
+        cls.def("getComment", &PropertyList::getComment);
+        cls.def("getOrderedNames", &PropertyList::getOrderedNames);
+        cls.def("deepCopy",
+                [](PropertyList const &self) { return std::static_pointer_cast<PropertySet>(self.deepCopy()); });
+        declareAccessors<bool>(cls, "Bool");
+        declareAccessors<short>(cls, "Short");
+        declareAccessors<int>(cls, "Int");
+        declareAccessors<long>(cls, "Long");
+        declareAccessors<long long>(cls, "LongLong");
+        declareAccessors<float>(cls, "Float");
+        declareAccessors<double>(cls, "Double");
+        declareAccessors<std::nullptr_t>(cls, "Undef");
+        declareAccessors<std::string>(cls, "String");
+        declareAccessors<DateTime>(cls, "DateTime");
 
-    cls.def(py::init<>());
-
-    cls.def("getComment", &PropertyList::getComment);
-    cls.def("getOrderedNames", &PropertyList::getOrderedNames);
-    cls.def("deepCopy",
-            [](PropertyList const& self) { return std::static_pointer_cast<PropertySet>(self.deepCopy()); });
-    declareAccessors<bool>(cls, "Bool");
-    declareAccessors<short>(cls, "Short");
-    declareAccessors<int>(cls, "Int");
-    declareAccessors<long>(cls, "Long");
-    declareAccessors<long long>(cls, "LongLong");
-    declareAccessors<float>(cls, "Float");
-    declareAccessors<double>(cls, "Double");
-    declareAccessors<std::nullptr_t>(cls, "Undef");
-    declareAccessors<std::string>(cls, "String");
-    declareAccessors<DateTime>(cls, "DateTime");
-
-    cls.def("setPropertySet",
-            (void (PropertyList::*)(std::string const&, PropertySet::Ptr const&)) & PropertyList::set);
+        cls.def("setPropertySet",
+                (void (PropertyList::*)(std::string const &, PropertySet::Ptr const &)) &PropertyList::set);
+    });
 }
 
 }  // base

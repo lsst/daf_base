@@ -20,11 +20,11 @@
 # the GNU General Public License along with this program.  If not,
 # see <http://www.lsstcorp.org/LegalNotices/>.
 
-__all__ = []
+__all__ = ["DateTime"]
 
 from lsst.utils import continueClass
 
-from .dateTime import DateTime
+from .._dafBaseLib import DateTime
 
 
 @continueClass  # noqa: F811 (FIXME: remove for py 3.8+)
