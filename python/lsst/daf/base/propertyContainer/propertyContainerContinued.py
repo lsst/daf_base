@@ -34,8 +34,7 @@ from collections.abc import Mapping, KeysView, ValuesView, ItemsView
 import lsst.pex.exceptions  # noqa: F401
 from lsst.utils import continueClass
 
-from .propertySet import PropertySet
-from .propertyList import PropertyList
+from .._dafBaseLib import PropertySet, PropertyList
 from ..dateTime import DateTime
 
 # Map the type names to the internal type representation.

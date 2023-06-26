@@ -21,6 +21,5 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from .propertySet import *
-from .propertyList import *
+from .._dafBaseLib import PropertyList, PropertySet
 from .propertyContainerContinued import *

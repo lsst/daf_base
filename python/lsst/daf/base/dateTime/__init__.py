@@ -21,5 +21,4 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from .dateTime import *
 from .dateTimeContinued import *

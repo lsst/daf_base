@@ -1,4 +1,9 @@
 # -*- python -*-
 from lsst.sconsUtils import scripts
-scripts.BasicSConscript.pybind11(['dateTime/dateTime', 'persistable',
-	'propertyContainer/propertyList', 'propertyContainer/propertySet'], addUnderscore=False)
+scripts.BasicSConscript.python(["_dafBaseLib"], [
+    "_dafBaseLib.cc",
+    "persistable.cc",
+    "dateTime/dateTime.cc",
+    "propertyContainer/propertyList.cc",
+    "propertyContainer/propertySet.cc"
+])
