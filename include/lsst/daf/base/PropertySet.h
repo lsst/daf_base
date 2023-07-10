@@ -438,9 +438,6 @@ public:
      */
     virtual void copy(std::string const& dest, PropertySet const & source, std::string const& name,
                       bool asScalar = false);
-    [[deprecated("Replaced by a non-shared_ptr overload.  Will be removed after v25.")]]
-    virtual void copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
-                      std::string const& name, bool asScalar = false);
     //@}
 
     //@{
@@ -458,8 +455,6 @@ public:
      * @warning May only partially combine the PropertySets if an exception occurs.
      */
     virtual void combine(PropertySet const & source);
-    [[deprecated("Replaced by a non-shared_ptr overload.  Will be removed after v25.")]]
-    virtual void combine(std::shared_ptr<PropertySet const> source);
     //@}
 
     /**
