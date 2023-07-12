@@ -572,13 +572,6 @@ void PropertySet::copy(
     }
 }
 
-void PropertySet::copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
-                       std::string const& name, bool asScalar) {
-    if (!source) {
-        throw LSST_EXCEPT(pex::exceptions::InvalidParameterError, "Missing source");
-    }
-    copy(dest, *source, name, asScalar);
-}
 
 void PropertySet::combine(PropertySet const & source) {
     std::vector<std::string> names = source.paramNames(false);
@@ -588,12 +581,6 @@ void PropertySet::combine(PropertySet const & source) {
     }
 }
 
-void PropertySet::combine(std::shared_ptr<PropertySet const> source) {
-    if (!source) {
-        return;
-    }
-    combine(*source);
-}
 
 void PropertySet::remove(std::string const& name) {
     std::string::size_type i = name.find('.');

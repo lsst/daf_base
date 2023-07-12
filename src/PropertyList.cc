@@ -193,12 +193,6 @@ void PropertyList::copy(std::string const& dest, PropertySet const & source, std
     }
 }
 
-void PropertyList::copy(std::string const& dest, std::shared_ptr<PropertySet const> source,
-                        std::string const& name, bool asScalar) {
-    if (source) {
-        copy(dest, *source, name, asScalar);
-    }
-}
 
 void PropertyList::combine(PropertySet const & source) {
     auto const * pl = dynamic_cast<PropertyList const *>(&source);
@@ -221,12 +215,6 @@ void PropertyList::combine(PropertySet const & source) {
     }
 }
 
-void PropertyList::combine(std::shared_ptr<PropertySet const> source) {
-    if (!source) {
-        return;
-    }
-    combine(*source);
-}
 
 void PropertyList::remove(std::string const& name) {
     PropertySet::remove(name);
