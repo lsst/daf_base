@@ -10,7 +10,7 @@ namespace lsst {
 namespace daf {
 namespace base {
 void wrapPersistable(lsst::cpputils::python::WrapperCollection &wrappers) {
-    using PyPersistable = py::class_<Persistable, std::shared_ptr<Persistable>>;
+    using PyPersistable = py::class_<Persistable>;
     wrappers.wrapType(PyPersistable(wrappers.module,  "Persistable"), [] (auto &mod, auto &cls) {
     });
 }
