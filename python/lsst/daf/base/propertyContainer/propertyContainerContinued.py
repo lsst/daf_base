@@ -812,11 +812,10 @@ class PropertySet:
             `float`, `str`, `bool`, or another `dict` with the same key and
             value types.  Will be empty if ``key`` does not exist.
         """
-        try:
-            value = self.getScalar(key)
-        except KeyError:
+        if self.exists(key):
+            return self.getScalar(key).toDict()
+        else:
             return {}
-        return value.toDict()
 
     def set_dict(self, key: str, value: NestedMetadataDict) -> None:
         """Assign a possibly-hierarchical nested `dict`.
