@@ -21,7 +21,6 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-
 __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState", "setPropertyListState"]
 
 import enum
@@ -29,6 +28,7 @@ import math
 import numbers
 import dataclasses
 from collections.abc import Mapping, KeysView, ValuesView, ItemsView
+from typing import TypeAlias, Union
 
 # Ensure that C++ exceptions are properly translated to Python
 import lsst.pex.exceptions  # noqa: F401
@@ -36,6 +36,12 @@ from lsst.utils import continueClass
 
 from .._dafBaseLib import PropertySet, PropertyList
 from ..dateTime import DateTime
+
+
+# Note that '|' syntax for unions doesn't work when we have to use a string
+# literal (and we do since it's recursive and not an annotation).
+NestedMetadataDict: TypeAlias = Mapping[str, Union[str, float, int, bool, "NestedMetadataDict"]]
+
 
 # Map the type names to the internal type representation.
 _TYPE_MAP = {}
@@ -788,6 +794,47 @@ class PropertySet:
         # the pybind11 memory allocation step.
         return (_makePropertySet, (getPropertySetState(self),))
 
+    def get_dict(self, key: str) -> NestedMetadataDict:
+        """Return a possibly-hierarchical nested `dict`.
+
+        This implements the `lsst.pipe.base.GetDictMetadata` protocol for
+        consistency with `lsst.pipe.base.TaskMetadata` and `PropertyList`.
+
+        Parameters
+        ----------
+        key : `str`
+            String key associated with the mapping.
+
+        Returns
+        -------
+        value : `~collections.abc.Mapping`
+            Possibly-nested mapping, with `str` keys and values that are `int`,
+            `float`, `str`, `bool`, or another `dict` with the same key and
+            value types.  Will be empty if ``key`` does not exist.
+        """
+        try:
+            value = self.getScalar(key)
+        except KeyError:
+            return {}
+        return value.toDict()
+
+    def set_dict(self, key: str, value: NestedMetadataDict) -> None:
+        """Assign a possibly-hierarchical nested `dict`.
+
+        This implements the `lsst.pipe.base.SetDictMetadata` protocol for
+        consistency with `lsst.pipe.base.TaskMetadata` and `PropertyList`.
+
+        Parameters
+        ----------
+        key : `str`
+            String key associated with the mapping.
+        value : `~collections.abc.Mapping`
+            Possibly-nested mapping, with `str` keys and values that are `int`,
+            `float`, `str`, `bool`, or another `dict` with the same key and
+            value types.
+        """
+        self.set(key, PropertySet.from_mapping(value))
+
 
 @continueClass
 class PropertyList:
@@ -1056,3 +1103,49 @@ class PropertyList:
         # object.__new__(PropertyList, *args) which bypasses
         # the pybind11 memory allocation step.
         return (_makePropertyList, (getPropertyListState(self),))
+
+    def get_dict(self, key: str) -> NestedMetadataDict:
+        """Return a possibly-hierarchical nested `dict`.
+
+        This implements the `lsst.pipe.base.GetDictMetadata` protocol for
+        consistency with `lsst.pipe.base.TaskMetadata` and `PropertySet`.
+
+        Parameters
+        ----------
+        key : `str`
+            String key associated with the mapping.
+
+        Returns
+        -------
+        value : `~collections.abc.Mapping`
+            Possibly-nested mapping, with `str` keys and values that are `int`,
+            `float`, `str`, `bool`, or another `dict` with the same key and
+            value types.  Will be empty if ``key`` does not exist.
+        """
+        result: NestedMetadataDict = {}
+        name: str
+        for name in self.getOrderedNames():
+            levels = name.split(".")
+            if levels[0] == key:
+                nested = result
+                for level_key in levels[1:-1]:
+                    nested = result.setdefault(level_key, {})
+                nested[levels[-1]] = self[name]
+        return result
+
+    def set_dict(self, key: str, value: NestedMetadataDict) -> None:
+        """Assign a possibly-hierarchical nested `dict`.
+
+        This implements the `lsst.pipe.base.SetDictMetadata` protocol for
+        consistency with `lsst.pipe.base.TaskMetadata` and `PropertySet`.
+
+        Parameters
+        ----------
+        key : `str`
+            String key associated with the mapping.
+        value : `~collections.abc.Mapping`
+            Possibly-nested mapping, with `str` keys and values that are `int`,
+            `float`, `str`, `bool`, or another `dict` with the same key and
+            value types.
+        """
+        self.set(key, PropertySet.from_mapping(value))

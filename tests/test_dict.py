@@ -284,6 +284,32 @@ class DictTestCase(unittest.TestCase):
         self.assertNotIn("dt", deep)
         self.assertIn("dt", self.pl)
 
+    def test_get_set_dict(self):
+        """Test the get_dict and set_dict methods of both `PropertyList` and
+        `PropertySet`.
+        """
+
+        def check(obj):
+            d1 = {"one": 1, "two": 2.0, "three": True, "four": {"a": 4, "b": "B"}, "five": {}}
+            obj.set_dict("d", d1)
+            obj.set_dict("e", {})
+            d2 = obj.get_dict("d")
+            # Keys with empty-dict values may or may not be round-tripped.
+            self.assertGreaterEqual(d2.keys(), {"one", "two", "three", "four"})
+            self.assertLessEqual(d2.keys(), {"one", "two", "three", "four", "five"})
+            self.assertEqual(d2["one"], d1["one"])
+            self.assertEqual(d2["two"], d1["two"])
+            self.assertEqual(d2["three"], d1["three"])
+            self.assertEqual(d2["four"], d1["four"])
+            self.assertEqual(d2.get("five", {}), d1["five"])
+            # Empty dict may or may not have been added, and retrieving it or
+            # a key that was never added yields an empty dict.
+            self.assertEqual(obj.get_dict("e"), {})
+            self.assertEqual(obj.get_dict("f"), {})
+
+        check(lsst.daf.base.PropertySet())
+        check(lsst.daf.base.PropertyList())
+
 
 if __name__ == '__main__':
     unittest.main()
