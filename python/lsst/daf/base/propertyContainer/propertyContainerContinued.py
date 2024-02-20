@@ -811,6 +811,13 @@ class PropertySet:
             Possibly-nested mapping, with `str` keys and values that are `int`,
             `float`, `str`, `bool`, or another `dict` with the same key and
             value types.  Will be empty if ``key`` does not exist.
+
+        Raises
+        ------
+        TypeError
+            Raised if the value associated with this key is not a nested
+            dictionary, but does exist.  Note that this behavior is not
+            consistent with `PropertyList` (which returns an empty `dict`).
         """
         if self.exists(key):
             return self.getScalar(key).toDict()
