@@ -1,13 +1,15 @@
 #include <cstddef>
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+#include "nanobind/nanobind.h"
+#include "nanobind/stl/vector.h"
+#include "nanobind/stl/string.h"
+#include "nanobind/stl/string.h"
 #include "lsst/cpputils/python.h"
 
 #include "lsst/daf/base/PropertyList.h"
 #include "lsst/daf/base/DateTime.h"
 
-namespace py = pybind11;
-using namespace pybind11::literals;
+namespace nb = nanobind;
+using namespace nb::literals;
 
 namespace lsst {
 namespace daf {
@@ -33,14 +35,13 @@ void declareAccessors(C& cls, std::string const& name) {
             "name"_a);
 
     const std::string setName = "set" + name;
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&)) & PropertyList::set<T>);
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&)) & PropertyList::set<T>, nb::arg("name"), nb::arg("value").none());
     cls.def(setName.c_str(),
-            (void (PropertyList::*)(std::string const&, std::vector<T> const&)) & PropertyList::set<T>);
-    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&)) &
-                                     PropertyList::set<T>);
+            (void (PropertyList::*)(std::string const&, std::vector<T> const&)) & PropertyList::set<T>, nb::arg("name"), nb::arg("value").none() );
+    cls.def(setName.c_str(), (void (PropertyList::*)(std::string const&, T const&, std::string const&)) &PropertyList::set<T>,
+            nb::arg(), nb::arg().none(), nb::arg());
     cls.def(setName.c_str(),
-            (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&)) &
-                    PropertyList::set<T>);
+            (void (PropertyList::*)(std::string const&, std::vector<T> const&, std::string const&)) &PropertyList::set<T>);
 
     const std::string addName = "add" + name;
     cls.def(addName.c_str(), (void (PropertyList::*)(std::string const&, T const&)) & PropertyList::add<T>);
@@ -53,15 +54,15 @@ void declareAccessors(C& cls, std::string const& name) {
                     PropertyList::add<T>);
 
     const std::string typeName = "TYPE_" + name;
-    cls.attr(typeName.c_str()) = py::cast(typeid(T), py::return_value_policy::reference);
+    cls.attr(typeName.c_str()) = nb::cast(typeid(T), nb::rv_policy::reference);
 }
 
 }  // namespace
 
 void wrapPropertyList(lsst::cpputils::python::WrapperCollection &wrappers) {
-    using PyPropertyList =  py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet>;
+    using PyPropertyList =  nb::class_<PropertyList, PropertySet>;
     wrappers.wrapType(PyPropertyList(wrappers.module, "PropertyList"), [](auto &mod, auto &cls) {
-        cls.def(py::init<>());
+        cls.def(nb::init<>());
 
         cls.def("getComment", &PropertyList::getComment);
         cls.def("getOrderedNames", &PropertyList::getOrderedNames);

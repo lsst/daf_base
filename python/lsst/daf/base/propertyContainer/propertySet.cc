@@ -1,5 +1,7 @@
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+#include "nanobind/nanobind.h"
+#include "nanobind/stl/vector.h"
+#include "nanobind/stl/string.h"
+#include "nanobind/stl/shared_ptr.h"
 
 #include "lsst/cpputils/python.h"
 
@@ -9,8 +11,8 @@
 #include "lsst/daf/base/PropertySet.h"
 #include "lsst/daf/base/DateTime.h"
 
-namespace py = pybind11;
-using namespace pybind11::literals;
+namespace nb = nanobind;
+using namespace nanobind::literals;
 
 namespace lsst {
 namespace daf {
@@ -30,10 +32,10 @@ void declareAccessors(C& cls, std::string const& name) {
 
     const std::string setName = "set" + name;
     cls.def(setName.c_str(), (void (PropertySet::*)(std::string const&, T const&)) & PropertySet::set<T>,
-            "name"_a, "value"_a);
+            nb::arg("name"), nb::arg("value").none());
     cls.def(setName.c_str(),
             (void (PropertySet::*)(std::string const&, std::vector<T> const&)) & PropertySet::set<T>,
-            "name"_a, "value"_a);
+            nb::arg("name"), nb::arg("value").none());
 
     const std::string addName = "add" + name;
     cls.def(addName.c_str(), (void (PropertySet::*)(std::string const&, T const&)) & PropertySet::add<T>,
@@ -43,13 +45,13 @@ void declareAccessors(C& cls, std::string const& name) {
             "name"_a, "value"_a);
 
     const std::string typeName = "TYPE_" + name;
-    cls.attr(typeName.c_str()) = py::cast(PropertySet::typeOfT<T>(), py::return_value_policy::reference);
+    cls.attr(typeName.c_str()) = nb::cast(PropertySet::typeOfT<T>(), nb::rv_policy::reference);
 }
 
 }  // <anonymous>
 
  void wrapPropertySet(lsst::cpputils::python::WrapperCollection &wrappers) {
-    wrappers.wrapType(py::class_<std::type_info>(wrappers.module, "TypeInfo"), [](auto &mod, auto &cls) {
+    wrappers.wrapType(nb::class_<std::type_info>(wrappers.module, "TypeInfo"), [](auto &mod, auto &cls) {
         cls.def("__eq__",
                 [](std::type_info const &self, std::type_info const &other) { return self == other; });
         cls.def("__ne__",
@@ -58,9 +60,9 @@ void declareAccessors(C& cls, std::string const& name) {
         cls.def("__hash__", &std::type_info::hash_code);
     });
 
-     using PyPropertySet = py::class_<PropertySet, std::shared_ptr<PropertySet>>;
+     using PyPropertySet = nb::class_<PropertySet>;
      wrappers.wrapType(PyPropertySet(wrappers.module, "PropertySet"), [](auto &mod, auto &cls) {
-         cls.def(py::init<bool>(), "flat"_a = false);
+         cls.def(nb::init<bool>(), "flat"_a = false);
 
          cls.def("deepCopy", &PropertySet::deepCopy);
          cls.def("nameCount", &PropertySet::nameCount, "topLevelOnly"_a = true);
@@ -72,20 +74,20 @@ void declareAccessors(C& cls, std::string const& name) {
          cls.def("isUndefined", &PropertySet::isUndefined);
          cls.def("isPropertySetPtr", &PropertySet::isPropertySetPtr);
          cls.def("valueCount",
-                 py::overload_cast<>(&PropertySet::valueCount, py::const_));
+                 nb::overload_cast<>(&PropertySet::valueCount, nb::const_));
          cls.def("valueCount",
-                 py::overload_cast<std::string const &>(&PropertySet::valueCount,
-                                                        py::const_));
-         cls.def("typeOf", &PropertySet::typeOf, py::return_value_policy::reference);
+                 nb::overload_cast<std::string const &>(&PropertySet::valueCount,
+                                                        nb::const_));
+         cls.def("typeOf", &PropertySet::typeOf, nb::rv_policy::reference);
          cls.def("toString", &PropertySet::toString, "topLevelOnly"_a = false, "indent"_a = "");
          cls.def(
                  "copy",
-                 py::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
+                 nb::overload_cast<std::string const &, PropertySet const &, std::string const &, bool>(
                          &PropertySet::copy
                  ),
                  "dest"_a, "source"_a, "name"_a, "asScalar"_a = false
          );
-         cls.def("combine", py::overload_cast<PropertySet const &>(&PropertySet::combine));
+         cls.def("combine", nb::overload_cast<PropertySet const &>(&PropertySet::combine));
          cls.def("remove", &PropertySet::remove);
          cls.def("getAsBool", &PropertySet::getAsBool);
          cls.def("getAsInt", &PropertySet::getAsInt);
