@@ -21,7 +21,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pybind11/pybind11.h"
+#include "nanobind/nanobind.h"
 #include "lsst/cpputils/python.h"
 
 namespace lsst {
@@ -34,7 +34,7 @@ void wrapDateTime(WrapperCollection &wrappers);
 void wrapPropertyList(WrapperCollection &wrappers);
 void wrapPropertySet(WrapperCollection &wrappers);
 
-PYBIND11_MODULE(_dafBaseLib, mod) {
+NB_MODULE(_dafBaseLib, mod) {
     lsst::cpputils::python::WrapperCollection wrappers(mod, "lsst.daf.base");
     wrapPersistable(wrappers);
     wrapDateTime(wrappers);
