@@ -650,7 +650,7 @@ class PropertySet:
         return d
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return NotImplemented
 
         if len(self) != len(other):
