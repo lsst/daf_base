@@ -112,6 +112,15 @@ class DateTimeTestCase(lsst.utils.tests.TestCase):
                 successes += 1
         self.assertGreaterEqual(successes, 3)
 
+    def testSorting(self):
+        invalid = DateTime()
+        old = DateTime(1192755506000000000, DateTime.TAI)
+        now = DateTime.now()
+        ordered = [invalid, old, now]
+
+        self.assertEqual(sorted([now, invalid, old]), ordered)
+        self.assertEqual(sorted([old, now, invalid]), ordered)
+
     def testIsoEpoch(self):
         ts = DateTime("19700101T000000Z", DateTime.UTC)
         self.assertEqual(ts.nsecs(DateTime.UTC), 0)

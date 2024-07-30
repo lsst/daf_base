@@ -79,3 +79,9 @@ class DateTime:  # noqa: F811
 
     def __reduce__(self):
         return (DateTime, (self.nsecs(), ))
+
+    def __lt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        # Invalid date has very negative nsecs().
+        return self.nsecs() < other.nsecs()
