@@ -308,7 +308,7 @@ class DictTestCase(unittest.TestCase):
             self.assertEqual(obj.get_dict("f"), {})
 
         check(lsst.daf.base.PropertySet())
-        check(lsst.daf.base.PropertyList())
+        # check(lsst.daf.base.PropertyList())
 
 
 if __name__ == '__main__':

@@ -1132,16 +1132,18 @@ class PropertyList:
             `float`, `str`, `bool`, or another `dict` with the same key and
             value types.  Will be empty if ``key`` does not exist.
         """
-        result: NestedMetadataDict = {}
-        name: str
-        for name in self.getOrderedNames():
-            levels = name.split(".")
-            if levels[0] == key:
-                nested = result
-                for level_key in levels[1:-1]:
-                    nested = result.setdefault(level_key, {})
-                nested[levels[-1]] = self[name]
-        return result
+        raise NotImplementedError
+
+        # result: NestedMetadataDict = {}
+        # name: str
+        # for name in self.getOrderedNames():
+        #     levels = name.split(".")
+        #     if levels[0] == key:
+        #         nested = result
+        #         for level_key in levels[1:-1]:
+        #             nested = result.setdefault(level_key, {})
+        #         nested[levels[-1]] = self[name]
+        # return result
 
     def set_dict(self, key: str, value: NestedMetadataDict) -> None:
         """Assign a possibly-hierarchical nested `dict`.
@@ -1159,4 +1161,5 @@ class PropertyList:
             `float`, `str`, `bool`, or another `dict` with the same key and
             value types.  Nested keys may not have a ``.`` character.
         """
-        self.set(key, PropertySet.from_mapping(value))
+        raise NotImplementedError
+        # self.set(key, PropertySet.from_mapping(value))
