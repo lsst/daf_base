@@ -24,3 +24,4 @@ tests/test_PropertyList
 tests/test_PropertySet_1
 tests/test_citizen
 tests/test_dateTime_1
+python/*.dist-info/
