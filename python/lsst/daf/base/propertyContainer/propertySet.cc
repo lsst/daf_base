@@ -96,6 +96,9 @@ void declareAccessors(C& cls, std::string const& name) {
          cls.def("getAsPropertySetPtr", &PropertySet::getAsPropertySetPtr);
          cls.def("getAsPersistablePtr", &PropertySet::getAsPersistablePtr);
 
+         cpputils::python::addOutputOp(cls, "__repr__");
+         cpputils::python::addOutputOp(cls, "__str__");
+
          declareAccessors<bool>(cls, "Bool");
          declareAccessors<short>(cls, "Short");
          declareAccessors<int>(cls, "Int");

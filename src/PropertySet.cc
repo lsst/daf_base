@@ -738,6 +738,13 @@ void PropertySet::_cycleCheckPtr(std::shared_ptr<PropertySet> const & v, std::st
     }
 }
 
+std::ostream &operator<<(std::ostream &os, PropertySet const &propertySet)
+{
+    os << propertySet.toString() << std::endl;
+    return os;
+}
+
+
     ///////////////////////////////////////////////////////////////////////////////
     // Explicit template instantiations
     ///////////////////////////////////////////////////////////////////////////////
