@@ -49,6 +49,7 @@
 #include <unordered_map>
 #include <vector>
 #include <any>
+#include <ostream>
 
 #include "lsst/base.h"
 #include "lsst/daf/base/Persistable.h"
@@ -526,6 +527,10 @@ private:
     AnyMap _map;
     bool _flat;
 };
+
+
+std::ostream &operator<<(std::ostream &os, PropertySet const &propertySet);
+
 
 #if defined(__ICC)
 #pragma warning(pop)
