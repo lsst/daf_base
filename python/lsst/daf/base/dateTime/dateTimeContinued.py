@@ -85,3 +85,18 @@ class DateTime:  # noqa: F811
             return NotImplemented
         # Invalid date has very negative nsecs().
         return self.nsecs() < other.nsecs()
+
+    def __le__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.nsecs() <= other.nsecs()
+
+    def __gt__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.nsecs() > other.nsecs()
+
+    def __ge__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.nsecs() >= other.nsecs()
