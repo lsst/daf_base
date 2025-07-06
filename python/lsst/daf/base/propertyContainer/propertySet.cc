@@ -58,7 +58,7 @@ void declareAccessors(C& cls, std::string const& name) {
         cls.def("__hash__", &std::type_info::hash_code);
     });
 
-     using PyPropertySet = py::class_<PropertySet>;
+     using PyPropertySet = py::classh<PropertySet>;
      wrappers.wrapType(PyPropertySet(wrappers.module, "PropertySet"), [](auto &mod, auto &cls) {
          cls.def(py::init<bool>(), "flat"_a = false);
 
