@@ -59,7 +59,7 @@ void declareAccessors(C& cls, std::string const& name) {
 }  // namespace
 
 void wrapPropertyList(lsst::cpputils::python::WrapperCollection &wrappers) {
-    using PyPropertyList =  py::class_<PropertyList, std::shared_ptr<PropertyList>, PropertySet>;
+    using PyPropertyList =  py::classh<PropertyList, PropertySet>;
     wrappers.wrapType(PyPropertyList(wrappers.module, "PropertyList"), [](auto &mod, auto &cls) {
         cls.def(py::init<>());
 
