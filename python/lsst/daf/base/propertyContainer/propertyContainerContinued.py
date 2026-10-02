@@ -26,9 +26,13 @@ __all__ = ["getPropertySetState", "getPropertyListState", "setPropertySetState",
 import enum
 import math
 import numbers
+import warnings
 import dataclasses
 from collections.abc import Mapping, KeysView, ValuesView, ItemsView
 from typing import TypeAlias, Union
+
+import astropy.io.fits
+import astropy.io.fits.verify
 
 # Ensure that C++ exceptions are properly translated to Python
 import lsst.pex.exceptions  # noqa: F401
@@ -1001,6 +1005,75 @@ class PropertyList:
         else:
             value = self.getScalar(name)
         getattr(self, f"set{containerType}")(name, value, comment)
+
+    @classmethod
+    def from_astropy_header(cls, header: astropy.io.fits.Header) -> "PropertyList":
+        """Convert an `astropy.io.fits.Header` into a `PropertyList`.
+
+        Parameters
+        ----------
+        header : `astropy.io.fits.Header`
+            FITS header to convert.
+
+        Returns
+        -------
+        propertyList : `PropertyList`
+            Equivalent legacy metadata.  Blank (keyword-less) cards and
+            cards whose values Astropy cannot parse (e.g. from unterminated
+            quoted strings in real raw headers) are skipped.  Cards with
+            `astropy.io.fits.card.Undefined` values (e.g. ``SEEING =``) are
+            stored as undefined properties (``TYPE_Undef``), preserving any
+            comment text.  COMMENT and HISTORY cards hold their text as
+            string values, as they do both in FITS convention and when read
+            back by `lsst.afw.fits.readMetadata`.
+
+        Notes
+        -----
+        Comments on cards are preserved via `PropertyList.add`, and so are
+        keyed by name: cards that repeat a keyword share that keyword's
+        comment slot.
+        """
+        result = cls()
+        for card in header.cards:
+            if not card.keyword:
+                # Truly blank cards have no name to key on.
+                continue
+            try:
+                value = card.value
+            except astropy.io.fits.verify.VerifyError:
+                # Values astropy cannot parse (e.g. from unterminated quoted
+                # strings) have no representation in legacy metadata.
+                continue
+            comment = card.comment or None
+            if isinstance(value, astropy.io.fits.card.Undefined):
+                value = None
+            result.add(card.keyword, value, comment)
+        return result
+
+    def to_astropy_header(self) -> astropy.io.fits.Header:
+        """Convert this `PropertyList` into an `astropy.io.fits.Header`.
+
+        Returns
+        -------
+        header : `astropy.io.fits.Header`
+            FITS header with one card per stored value, in insertion order.
+            Undefined properties become cards with no value
+            (`astropy.io.fits.card.Undefined`); string values stored under
+            the COMMENT and HISTORY keywords render as bare comment cards
+            (``COMMENT text``) rather than ``COMMENT = 'text'``.  Comments
+            set via `PropertyList.add` or `setComment` are restored.
+        """
+        header = astropy.io.fits.Header()
+        with warnings.catch_warnings():
+            # Silence warnings about long keys becoming HIERARCH and
+            # comments being truncated; both are unavoidable here.
+            warnings.simplefilter("ignore", category=astropy.io.fits.verify.VerifyWarning)
+            for name in self.getOrderedNames():
+                values = self.getArray(name)
+                comment = self.getComment(name) or None
+                for value in values:
+                    header.append(astropy.io.fits.Card(name, value, comment), end=True)
+        return header
 
     def toList(self):
         """Return a list of tuples of name, value, comment for each property
