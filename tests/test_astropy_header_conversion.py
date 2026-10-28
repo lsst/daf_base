@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import math
 import unittest
 
 import astropy.io.fits
@@ -183,6 +184,45 @@ class AstropyHeaderConversionTestCase(lsst.utils.tests.TestCase):
             [card.comment for card in round_tripped.cards if card.keyword == "FOO"],
             ["comment only"],
         )
+
+    def test_non_finite_floats(self):
+        """Test that non-finite floats are written as the special strings
+        used by afw's FITS writer and are converted back to floats on read.
+        """
+        metadata = PropertyList()
+        metadata.add("NANVAL", math.nan, "not a number")
+        metadata.add("POSINF", math.inf)
+        metadata.add("NEGINF", -math.inf)
+        metadata.add("MIXED", 1.5)
+        metadata.add("MIXED", math.nan)
+        metadata.add("COMMENT", "NAN")
+
+        header = metadata.to_astropy_header()
+        self.assertEqual(
+            [(card.keyword, card.value) for card in header.cards],
+            [
+                ("NANVAL", "NAN"),
+                ("POSINF", "+INFINITY"),
+                ("NEGINF", "-INFINITY"),
+                ("MIXED", 1.5),
+                ("MIXED", "NAN"),
+                ("COMMENT", "NAN"),
+            ],
+        )
+        self.assertEqual(header.comments["NANVAL"], "not a number")
+        # The header must be writable as FITS.
+        header.tostring()
+
+        round_tripped = PropertyList.from_astropy_header(header)
+        self.assertTrue(math.isnan(round_tripped.getScalar("NANVAL")))
+        self.assertEqual(round_tripped.getComment("NANVAL"), "not a number")
+        self.assertEqual(round_tripped.getScalar("POSINF"), math.inf)
+        self.assertEqual(round_tripped.getScalar("NEGINF"), -math.inf)
+        mixed = round_tripped.getArray("MIXED")
+        self.assertEqual(mixed[0], 1.5)
+        self.assertTrue(math.isnan(mixed[1]))
+        # Commentary cards are text, never converted to floats.
+        self.assertEqual(round_tripped.getArray("COMMENT"), ["NAN"])
 
 
 class TestMemory(lsst.utils.tests.MemoryTestCase):

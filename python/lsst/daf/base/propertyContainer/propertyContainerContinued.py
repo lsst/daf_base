@@ -57,6 +57,24 @@ for checkType in ("Bool", "Short", "Int", "Long", "LongLong", "UnsignedLongLong"
     # Store both directions.
     _TYPE_MAP[checkType] = type_obj
 
+# FITS headers cannot represent non-finite floats, so afw's FITS writer stores
+# them as these strings and its reader converts them back to floats.
+_NON_FINITE_FLOAT_STRINGS = {"NAN": math.nan, "+INFINITY": math.inf, "-INFINITY": -math.inf}
+
+# Keywords whose cards hold free text rather than a value.
+_COMMENTARY_KEYWORDS = frozenset({"COMMENT", "HISTORY"})
+
+
+def _nonFiniteFloatToString(value):
+    """Return the afw FITS string representation of a non-finite float,
+    or `None` if the value is finite.
+    """
+    if math.isfinite(value):
+        return None
+    if math.isnan(value):
+        return "NAN"
+    return "-INFINITY" if value < 0 else "+INFINITY"
+
 
 def getPropertySetState(container, asLists=False):
     """Get the state of a PropertySet in a form that can be pickled.
@@ -1025,7 +1043,10 @@ class PropertyList:
             stored as undefined properties (``TYPE_Undef``), preserving any
             comment text.  COMMENT and HISTORY cards hold their text as
             string values, as they do both in FITS convention and when read
-            back by `lsst.afw.fits.readMetadata`.
+            back by `lsst.afw.fits.readMetadata`.  The string values
+            ``NAN``, ``+INFINITY`` and ``-INFINITY`` are converted to the
+            corresponding non-finite floats, matching
+            `lsst.afw.fits.readMetadata`.
 
         Notes
         -----
@@ -1047,6 +1068,8 @@ class PropertyList:
             comment = card.comment or None
             if isinstance(value, astropy.io.fits.card.Undefined):
                 value = None
+            elif isinstance(value, str) and card.keyword not in _COMMENTARY_KEYWORDS:
+                value = _NON_FINITE_FLOAT_STRINGS.get(value, value)
             result.add(card.keyword, value, comment)
         return result
 
@@ -1062,6 +1085,9 @@ class PropertyList:
             the COMMENT and HISTORY keywords render as bare comment cards
             (``COMMENT text``) rather than ``COMMENT = 'text'``.  Comments
             set via `PropertyList.add` or `setComment` are restored.
+            Non-finite floats, which FITS headers cannot represent, are
+            stored as the strings ``NAN``, ``+INFINITY`` and ``-INFINITY``,
+            matching the afw FITS writer.
         """
         header = astropy.io.fits.Header()
         with warnings.catch_warnings():
@@ -1072,6 +1098,8 @@ class PropertyList:
                 values = self.getArray(name)
                 comment = self.getComment(name) or None
                 for value in values:
+                    if isinstance(value, float) and (nonFinite := _nonFiniteFloatToString(value)):
+                        value = nonFinite
                     header.append(astropy.io.fits.Card(name, value, comment), end=True)
         return header
 
