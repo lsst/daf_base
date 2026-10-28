@@ -1,3 +1,3 @@
 # -*- python -*-
 from lsst.sconsUtils import scripts
-scripts.BasicSConstruct("daf_base")
+scripts.BasicSConstruct("daf_base", noCfgFile=True)
